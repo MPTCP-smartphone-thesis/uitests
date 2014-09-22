@@ -1,0 +1,42 @@
+[submodule "uitests-twitter"]
+	path = uitests-twitter
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-twitter.git
+[submodule "uitests-drive"]
+	path = uitests-drive
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-drive.git
+[submodule "uitests-photos"]
+	path = uitests-photos
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-photos.git
+[submodule "uitests-youtube"]
+	path = uitests-youtube
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-youtube.git
+[submodule "uitests-spotify"]
+	path = uitests-spotify
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-spotify.git
+[submodule "uitests-shazam"]
+	path = uitests-shazam
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-shazam.git
+[submodule "uitests-instagram"]
+	path = uitests-instagram
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-instagram.git
+[submodule "uitests-viber"]
+	path = uitests-viber
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-viber.git
+[submodule "uitests-firefox"]
+	path = uitests-firefox
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-firefox.git
+[submodule "uitests-whatsapp"]
+	path = uitests-whatsapp
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-whatsapp.git
+[submodule "uitests-chrome"]
+	path = uitests-chrome
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-chrome.git
+[submodule "uitests-snapchat"]
+	path = uitests-snapchat
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-snapchat.git
+[submodule "uitests-messenger"]
+	path = uitests-messenger
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-messenger.git
+[submodule "uitests-facebook"]
+	path = uitests-facebook
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-facebook.git
