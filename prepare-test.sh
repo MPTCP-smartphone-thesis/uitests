@@ -1,8 +1,15 @@
-if [ "$2" == 'Y' ]; then
-cd ~/app/android-studio/sdk/tools
-./android create uitest-project -n uitests-$1 -t 1 -p /home/quentin/MPTCP/Git/uitests/uitests-$1
+#! /bin/bash
+
+DIR=$(pwd)
+read -p "Name of your uitest project? (e.g. 'snapchat') " PROJ_NAME
+read -p "Create new uitest project? [y/N] " NEW_UIPROJ
+
+if [ "$NEW_UIPROJ" = 'Y' -o "$NEW_UIPROJ" = 'y' ]; then
+	which android > /dev/null || (echo "Android not found: add it to your PATH" && exit 1) # e.g. PATH=$PATH:/home/quentin/app/android-studio/sdk/tools
+	android create uitest-project -n uitests-$PROJ_NAME -t 1 -p uitests-$PROJ_NAME
 fi
-cd ~/MPTCP/Git/uitests/uitests-$1
-ant build
+
+cd uitests-$PROJ_NAME
+ant build || exit 1
 cd bin
-adb push uitests-$1.jar  /storage/sdcard0/uitests-$1.jar
+adb push uitests-$PROJ_NAME.jar  /storage/sdcard0/uitests-$PROJ_NAME.jar || exit 1
