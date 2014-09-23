@@ -147,6 +147,14 @@ public class Utils {
 		return true;
 	}
 
+	public static boolean scrollBackward(UiScrollable obj) {
+		try {
+			return obj.scrollBackward();
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+
 	public static List<UiObject> getElems(String parentId, String childId) {
 		List<UiObject> childs = new ArrayList<UiObject>();
 
