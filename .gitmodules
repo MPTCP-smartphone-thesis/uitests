@@ -1,7 +1,3 @@
-[submodule "uitests-twitter"]
-	path = uitests-twitter
-	branch = master
-	url = git@github.com:MPTCP-smartphone-thesis/uitests-twitter.git
 [submodule "uitests-drive"]
 	path = uitests-drive
 	branch = master
