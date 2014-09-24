@@ -14,6 +14,9 @@ import com.android.uiautomator.core.UiSelector;
 import com.android.uiautomator.testrunner.UiAutomatorTestCase;
 
 public class Utils {
+	public enum Orientation {
+		LEFT, RIGHT, UP, DOWN
+	};
 
 	public static void runAsRoot(String[] cmds) {
 		try {
@@ -118,6 +121,33 @@ public class Utils {
 		}
 	}
 
+	public static boolean swipe(String id, Orientation orientation, int steps) {
+		try {
+			return swipe(getObject(id), orientation, steps);
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+
+	public static boolean swipe(UiObject obj, Orientation orientation, int steps) {
+		try {
+			switch (orientation) {
+			case DOWN:
+				return obj.swipeDown(steps);
+			case UP:
+				return obj.swipeUp(steps);
+			case LEFT:
+				return obj.swipeLeft(steps);
+			case RIGHT:
+				return obj.swipeRight(steps);
+			default:
+				return false;
+			}
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+
 	public static boolean setText(String id, String text) {
 		try {
 			return setText(getObject(id), text);
@@ -170,7 +200,7 @@ public class Utils {
 			return false;
 		}
 	}
-	
+
 	public static boolean scrollForward(UiScrollable obj) {
 		try {
 			return obj.scrollForward();
