@@ -4,6 +4,8 @@ import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.os.RemoteException;
+
 import com.android.uiautomator.core.UiCollection;
 import com.android.uiautomator.core.UiObject;
 import com.android.uiautomator.core.UiObjectNotFoundException;
@@ -29,6 +31,12 @@ public class Utils {
 
 	public static boolean openApp(UiAutomatorTestCase t, String appText,
 			String packageName) throws UiObjectNotFoundException {
+		// Wake up and pressHome before opening an app
+		try {
+			t.getUiDevice().wakeUp();
+		} catch (RemoteException e1) { // not a big deal
+			e1.printStackTrace();
+		}
 		t.getUiDevice().pressHome();
 
 		UiObject allAppsButton = new UiObject(
