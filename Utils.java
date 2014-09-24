@@ -105,6 +105,11 @@ public class Utils {
 		}
 	}
 
+	public static boolean clickOnTheMiddle(UiAutomatorTestCase t) {
+		return t.getUiDevice().click(t.getUiDevice().getDisplayWidth() / 2,
+				t.getUiDevice().getDisplayHeight() / 2);
+	}
+
 	public static boolean clickAndWaitForNewWindow(String id) {
 		try {
 			return click(getObject(id));
