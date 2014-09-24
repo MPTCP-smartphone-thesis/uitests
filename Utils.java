@@ -32,6 +32,20 @@ public class Utils {
 		}
 	}
 
+	/**
+	 * Create a new file in /storage/sdcard0
+	 * @pre: /storage/sdcard0/random_seed_orig should be present and we need
+	 *       root rights (easier for us)
+	 * @param output: name of the output file
+	 */
+	public static void createFile(String output) {
+		String[] commands = {
+				"dd if=/dev/urandom of=/storage/sdcard0/random_seed bs=1 count=100000",
+				"cat /storage/sdcard0/random_seed /storage/sdcard0/random_seed_orig /storage/sdcard0/random_seed > /storage/sdcard0/"
+						+ output };
+		Utils.runAsRoot(commands);
+	}
+
 	public static void killApp(UiAutomatorTestCase t, String appText) {
 		t.getUiDevice().pressHome(); // if we're already in recent apps
 		try {
