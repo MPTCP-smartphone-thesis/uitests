@@ -1,2 +1,2 @@
-git pull || git pull -u origin master
-git submodule update --remote --recursive
+git pull --recurse-submodules || git pull -u origin master --recurse-submodules
+# git submodule update --remote --recursive
