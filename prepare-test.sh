@@ -1,9 +1,10 @@
 #! /bin/bash
 
 DIR=$(pwd)
+[ ! -f "local.properties" ] && NEW_UIPROJ='Y' || read -p "Create new uitest project? [y/N] " NEW_UIPROJ
 [ -n "$1" ] && PROJ_NAME="$1" || read -p "Name of your uitest project? (e.g. 'snapchat') " PROJ_NAME
 
-if [ ! -f "uitests-$PROJ_NAME/local.properties" ]; then
+if [ "$NEW_UIPROJ" = 'Y' -o "$NEW_UIPROJ" = 'y' ]; then
 	which android > /dev/null || (echo "Android not found: add it to your PATH" && exit 1) # e.g. PATH=$PATH:/home/quentin/app/android-studio/sdk/tools
 	android create uitest-project -n uitests-$PROJ_NAME -t 1 -p uitests-$PROJ_NAME
 fi
