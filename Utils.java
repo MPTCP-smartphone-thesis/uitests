@@ -40,11 +40,19 @@ public class Utils {
 				new UiSelector().scrollable(true));
 
 		appViews.setAsHorizontalList();
-
-		UiObject settingsApp = appViews.getChildByText(new UiSelector()
-				.className(android.widget.TextView.class.getName()), appText);
-
-		settingsApp.clickAndWaitForNewWindow();
+		boolean succeed = false;
+		UiObject settingsApp;
+		while (!succeed) {
+			try {
+				settingsApp = appViews.getChildByText(new UiSelector()
+						.className(android.widget.TextView.class.getName()), appText);
+				succeed = true;
+				settingsApp.clickAndWaitForNewWindow();
+				}
+			catch (UiObjectNotFoundException e) {
+				appViews.scrollToEnd(10);
+			}
+		}
 
 		// Validate that the package name is the expected one
 		UiObject appValidation = new UiObject(
@@ -150,6 +158,14 @@ public class Utils {
 	public static boolean scrollBackward(UiScrollable obj) {
 		try {
 			return obj.scrollBackward();
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+	
+	public static boolean scrollForward(UiScrollable obj) {
+		try {
+			return obj.scrollForward();
 		} catch (UiObjectNotFoundException e) {
 			return false;
 		}
