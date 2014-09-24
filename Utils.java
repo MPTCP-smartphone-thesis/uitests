@@ -32,14 +32,35 @@ public class Utils {
 		}
 	}
 
+	public static void killApp(UiAutomatorTestCase t, String appText) {
+		t.getUiDevice().pressHome(); // if we're already in recent apps
+		try {
+			t.getUiDevice().pressRecentApps();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+			return;
+		}
+		t.sleep(1000);
+		List<UiObject> available = getElems("com.android.systemui:id/recents_bg_protect", "com.android.systemui:id/app_label");
+		for (UiObject uiObject : available) {
+			try {
+				if (uiObject.getText().equals(appText))
+					swipe(uiObject, Orientation.RIGHT, 5);
+			} catch (UiObjectNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public static boolean openApp(UiAutomatorTestCase t, String appText,
 			String packageName) throws UiObjectNotFoundException {
-		// Wake up and pressHome before opening an app
+		// Wake up, kill app (if found) and pressHome before opening an app
 		try {
 			t.getUiDevice().wakeUp();
 		} catch (RemoteException e1) { // not a big deal
 			e1.printStackTrace();
 		}
+		killApp(t, appText);
 		t.getUiDevice().pressHome();
 
 		UiObject allAppsButton = new UiObject(
