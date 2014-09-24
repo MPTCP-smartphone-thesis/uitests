@@ -178,6 +178,30 @@ public class Utils {
 			return false;
 		}
 	}
+	
+	public static boolean scrollForward(UiScrollable obj, int steps) {
+		try {
+			return obj.scrollForward(steps);
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+	
+	public static int getChildCount(UiObject obj) {
+		try {
+			return obj.getChildCount();
+		} catch (UiObjectNotFoundException e) {
+			return 0;
+		}
+	}
+	
+	public static boolean swipeLeft(UiObject obj, int steps) {
+		try {
+			return obj.swipeLeft(steps);
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
 
 	public static List<UiObject> getElems(String parentId, String childId) {
 		List<UiObject> childs = new ArrayList<UiObject>();
