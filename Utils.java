@@ -155,6 +155,14 @@ public class Utils {
 		}
 	}
 
+	public static boolean scrollForward(UiScrollable obj) {
+		try {
+			return obj.scrollForward();
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+
 	public static List<UiObject> getElems(String parentId, String childId) {
 		List<UiObject> childs = new ArrayList<UiObject>();
 
