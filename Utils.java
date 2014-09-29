@@ -161,6 +161,22 @@ public class Utils {
 		}
 	}
 
+	public static boolean longClick(UiObject obj) {
+		try {
+			return obj.longClick();
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+
+	public static boolean longClick(String id) {
+		try {
+			return longClick(getObject(id));
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+
 	public static boolean swipe(String id, Orientation orientation, int steps) {
 		try {
 			return swipe(getObject(id), orientation, steps);
