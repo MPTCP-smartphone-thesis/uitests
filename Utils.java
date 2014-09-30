@@ -116,6 +116,36 @@ public class Utils {
 		return obj;
 	}
 
+	public static UiObject getObjectWithDescription(String desc) {
+		return new UiObject(new UiSelector().description(desc));
+	}
+
+	public static UiObject getObjectWithId(String id, int instance) {
+		return new UiObject(new UiSelector().resourceId(id).instance(instance));
+	}
+
+	public static UiObject getObjectWithId(String id) {
+		return getObjectWithId(id, 0);
+	}
+
+	public static UiObject getObjectWithClassName(String className, int instance) {
+		return new UiObject(new UiSelector().className(className).instance(
+				instance));
+	}
+
+	public static UiObject getObjectWithClassNameAndText(String className,
+			String text) {
+		return new UiObject(new UiSelector().className(className).text(text));
+	}
+
+	public static UiObject getObjectWithText(String text) {
+		return new UiObject(new UiSelector().text(text));
+	}
+
+	public static UiScrollable getScrollableWithId(String id) {
+		return new UiScrollable(new UiSelector().resourceId(id));
+	}
+
 	public static boolean hasObject(String id) {
 		try {
 			return getObject(id) != null;
