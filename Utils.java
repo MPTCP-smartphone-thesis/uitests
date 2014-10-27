@@ -2,6 +2,7 @@ package utils;
 
 import java.io.DataOutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import android.os.RemoteException;
@@ -43,6 +44,36 @@ public class Utils {
 				"dd if=/dev/urandom of=/storage/sdcard0/random_seed bs=1 count=100000",
 				"cat /storage/sdcard0/random_seed /storage/sdcard0/random_seed_orig /storage/sdcard0/random_seed > /storage/sdcard0/"
 						+ output };
+		Utils.runAsRoot(commands);
+	}
+	
+	/**
+	 * Launch Tcpdump on the device and save the trace in the folder app
+	 * 
+	 * @param app
+	 *            The folder to save trace
+	 * @param timeout
+	 *            Time to kill the process (in seconds)
+	 */
+	public static void launchTcpdump(String app, int timeout) {
+		Date now = new Date();
+		String[] commands = {
+				"cd /storage/sdcard0",
+				"touch currentPid",
+				"mkdir trace | true",
+				"cd trace",
+				"mkdir " + app + " | true",
+				"cd " + app,
+				"timeout -t " + timeout + " tcpdump -i any -w " + now.getTime()
+						+ ".pcap & echo $! > ../../currentPid" };
+		Utils.runAsRoot(commands);
+	}
+
+	/**
+	 * Kill the tcpdump process launched
+	 */
+	public static void killTcpdump() {
+		String[] commands = { "cd /storage/sdcard0", "kill `cat currentPid`", };
 		Utils.runAsRoot(commands);
 	}
 
