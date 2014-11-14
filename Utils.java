@@ -64,7 +64,12 @@ public class Utils {
 				"cd trace",
 				"mkdir " + app + " | true",
 				"cd " + app,
-				"timeout -t " + timeout + " tcpdump -i any -w " + now.getTime()
+				"timeout -t " + timeout + " tcpdump -i wlan0 -w "
+						+ now.getTime()
+						+ "_wlan0"
+						+ ".pcap & echo $! > ../../currentPid",
+				"timeout -t " + timeout + " tcpdump -i rmnet0 -w "
+						+ now.getTime() + "_rmnet0"
 						+ ".pcap & echo $! > ../../currentPid" };
 		Utils.runAsRoot(commands);
 	}
