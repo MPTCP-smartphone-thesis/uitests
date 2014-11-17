@@ -50,10 +50,6 @@
 	path = uitests-facebook
 	branch = master
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-facebook.git
-[submodule "uitests-dropbox"]
-	path = uitests-dropbox
-	branch = master
-	url = git@github.com:MPTCP-smartphone-thesis/uitests-dropbox.git
 [submodule "uitests-dailymotion"]
 	path = uitests-dailymotion
 	branch = master
