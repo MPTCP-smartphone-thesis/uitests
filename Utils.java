@@ -19,6 +19,9 @@ public class Utils {
 		LEFT, RIGHT, UP, DOWN
 	};
 
+	public static final String homeDir = "/storage/sdcard0";
+	public static final String traceBase = homeDir + "/traces";
+
 	public static void runAsRoot(String[] cmds) {
 		try {
 			Process p = Runtime.getRuntime().exec("su");
@@ -41,12 +44,12 @@ public class Utils {
 	 */
 	public static void createFile(String output) {
 		String[] commands = {
-				"dd if=/dev/urandom of=/storage/sdcard0/random_seed bs=1 count=100000",
-				"cat /storage/sdcard0/random_seed /storage/sdcard0/random_seed_orig /storage/sdcard0/random_seed > /storage/sdcard0/"
+				"dd if=/dev/urandom of=" + homeDir + "/random_seed bs=1 count=100000",
+				"cat " + homeDir + "/random_seed " + homeDir + "/random_seed_orig " + homeDir + "/random_seed > " + homeDir + "/"
 						+ output };
 		Utils.runAsRoot(commands);
 	}
-	
+
 	/**
 	 * Launch Tcpdump on the device and save the trace in the folder app
 	 * 
@@ -58,12 +61,8 @@ public class Utils {
 	public static void launchTcpdump(String app, int timeout) {
 		Date now = new Date();
 		String[] commands = {
-				"cd /storage/sdcard0",
-				"touch currentPid",
-				"mkdir trace | true",
-				"cd trace",
-				"mkdir " + app + " | true",
-				"cd " + app,
+				"mkdir -p " + traceBase + "/" + app,
+				"cd " + traceBase + "/" + app,
 				"timeout -t " + timeout + " tcpdump -i wlan0 -w "
 						+ now.getTime()
 						+ "_wlan0"
@@ -78,7 +77,8 @@ public class Utils {
 	 * Kill the tcpdump process launched
 	 */
 	public static void killTcpdump() {
-		String[] commands = { "cd /storage/sdcard0", "kill `cat currentPid`", };
+		String[] commands = { "kill `cat " + traceBase + "currentPidWLan`",
+		                      "kill `cat " + traceBase + "currentPidRMNet`" };
 		Utils.runAsRoot(commands);
 	}
 
