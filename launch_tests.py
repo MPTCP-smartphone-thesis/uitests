@@ -151,6 +151,13 @@ Network = Enum('Network', 'wlan both4 both3 both2 rmnet4 rmnet3 rmnet2 both4TCDa
 net_list = list(Network)
 random.shuffle(net_list)
 
+# Check router OK and insert mod + delete rules
+if CTRL_WIFI:
+    if (not router_shell("echo OK"))
+        return 1
+    router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
+    router_shell("tc qdisc delete dev " + IFACE_ROUTER + " root")
+
 for net in net_list:
     name = net.name
     print('Network mode: ' + name)
