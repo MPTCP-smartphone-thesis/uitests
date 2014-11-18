@@ -58,14 +58,14 @@ print("Git version:")
 cmd = "git describe --abbrev=0 --dirty --always"
 subprocess.call(cmd.split())
 
-# Get random list of uitest dir
+# Get list of uitest dir (should contain build.xml file)
 uitests_dir = []
 for file in os.listdir('.'):
-    if file.startswith('uitests-') and os.path.isfile(os.path.join(file, 'build.xml')):
+    if file.startswith('uitests-') and not file == "uitests-preference_network" and os.path.isfile(os.path.join(file, 'build.xml')):
         uitests_dir.append(file)
 
 # Prepare the tests (build the jar if needed)
-for uitest in uitests_dir:
+for uitest in uitests_dir + ["uitests-preference_network"]:
     app = uitest[8:]
     print("Checking requirements for " + app)
     # Create project if needed
