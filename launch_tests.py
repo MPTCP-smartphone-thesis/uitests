@@ -106,6 +106,10 @@ def adb_shell(cmd):
         return False
     return True
 
+def adb_shell_root(cmd):
+    su_cmd = 'su sh -c "' + cmd + '"'
+    return adb_shell(su_cmd)
+
 # Launch test for one app and pull files
 def launch(app, net, out_base = output_dir):
     print("Launching tests for " + app + " at " + str(int(time.time())) + " for " + net)
@@ -136,6 +140,42 @@ def launch_all(uitests_dir, net):
         app = uitest[8:]
         launch(app)
 
+## Net: devise
+WIFI = 'wifi'
+DATA = 'data'
+
+# net should be: '4', '3' or '2'
+def change_pref_net(version):
+    cmd = "uiautomator runtest " + android_home + "/uitests-" + app + " -c " + app + ".LaunchSettings -e network-status " + version + "G"
+    return adb_shell(cmd)
+
+# 'wifi', 'enable'
+def manage_net(iface, status):
+    print(status + " " + iface)
+    return adb_shell_root('svc ' + iface + ' ' + status)
+
+def enable_iface(iface):
+    return manage_net(iface, 'enable')
+
+def disable_iface(iface):
+    return manage_net(iface, 'disable')
+
+def prefer_iface(iface):
+    return manage_net(iface, 'prefer')
+
+def rmnet(version):
+    disable_iface(WIFI)
+    enable_iface(DATA)
+    change_pref_net(version)
+
+def both(version, prefer_wifi=True):
+    enable_iface(WIFI)
+    enable_iface(DATA)
+    if prefer_wifi:
+        prefer_iface(WIFI)
+    else:
+        prefer_iface(DATA)
+    change_pref_net(version)
 
 ################################################################################
 
@@ -170,6 +210,19 @@ for net in net_list:
         name = name[0:index]
     else:
         tc = False
+
+    # Network of the devise
+    if net == Network.wlan:
+        enable_iface(WIFI)
+        disable_iface(DATA)
+    elif net == Network.both4Data: # prefer data
+        both('4', prefer_wifi=False)
+    elif name.startswith('both'):
+        both(name[4])
+    elif name.startswith('rmnet'):
+        rmnet(name[5])
+    else:
+        print('unknown: SKIP')
         continue
 
     launch_all(uitests_dir, net.name)
