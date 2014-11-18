@@ -66,7 +66,7 @@ for uitest in uitests_dir:
     app = uitest[8:]
     print("Checking requirements for " + app)
     # Create project if needed
-    if not os.path.isfile(os.path.join(uitest, 'local.properties')):
+    if DEVEL or not os.path.isfile(os.path.join(uitest, 'local.properties')):
         print("Creating uitest-project")
         cmd = "android create uitest-project -n " + uitest + " -t 1 -p " + uitest
         if subprocess.call(cmd.split()) != 0:
@@ -75,7 +75,7 @@ for uitest in uitests_dir:
 
     # Build project and push jar if needed
     jar_file = os.path.join(uitest, 'bin', uitest + '.jar')
-    if not os.path.isfile(jar_file):
+    if DEVEL or not os.path.isfile(jar_file):
         print("Build ant and push jar")
         os.chdir(uitest)
         cmd = "ant build"
@@ -92,13 +92,6 @@ for uitest in uitests_dir:
 
 
 ################################################################################
-
-
-# rmnet: 4G/3G/2G
-# both: wlan + rmnet4
-#      - L5p: Losses of 5%
-#      - D10ms: Delay of 10ms
-Network = Enum('Network', 'both wlan rmnet4 rmnet3 rmnet2 bothL5p bothL15p bothL5pD100ms bothD10ms bothD100ms bothD1000ms')
 
 def adb_shell(cmd):
     adb_cmd = "adb shell " + cmd
@@ -137,6 +130,16 @@ def launch_all(uitests_dir, net):
         app = uitest[8:]
         launch(app)
 
+
+################################################################################
+
+
+# rmnet: 4G/3G/2G
+# both: wlan + rmnet4
+#      - L5p: Losses of 5%
+#      - D10ms: Delay of 10ms
+Network = Enum('Network', 'both wlan rmnet4 rmnet3 rmnet2 bothL5p bothL15p bothL5pD100ms bothD10ms bothD100ms bothD1000ms')
+
 # All kinds of networks
 net_list = list(Network)
 random.shuffle(net_list)
@@ -156,6 +159,6 @@ for net in net_list:
     launch_all(uitests_dir, net.name)
 
 # Save the traces and purge the phone
-cmd = "bash save_traces_purge_phone " + arg_dir
+cmd = "bash save_traces_purge_phone.sh " + arg_dir
 if subprocess.call(cmd.split()) != 0:
     print("ERROR when using save_traces_purge_phone with " + arg_dir, file=sys.stderr)
