@@ -54,3 +54,7 @@
 	path = uitests-dailymotion
 	branch = master
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-dailymotion.git
+[submodule "uitests-preference_network"]
+	path = uitests-preference_network
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-preference_network.git
+	branch = master
