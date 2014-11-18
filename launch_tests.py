@@ -210,16 +210,12 @@ def router_shell(cmd):
         return False
     return True
 
-TC_ADDED = False # status of qdisc
-def enable_tc(netem):
-    cmd = "tc qdisc " + ("change" if TC_ADDED else "add") + " dev " + IFACE_ROUTER + " root " + netem
-    router_shell(cmd)
-    TC_ADDED = True
+def enable_netem(netem):
+    cmd = "tc qdisc add dev " + IFACE_ROUTER + " root netem " + netem
+    return router_shell(cmd)
 
-def disable_tc():
-    if TC_ADDED:
-        router_shell("tc qdisc delete dev " + IFACE_ROUTER + " root")
-        TC_ADDED = False
+def disable_netem():
+    return router_shell("tc qdisc delete dev " + IFACE_ROUTER + " root")
 
 ################################################################################
 
@@ -232,14 +228,14 @@ if CTRL_WIFI:
         exit(1)
     print("Reset Netem (tc), ignore errors")
     router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
-    router_shell("tc qdisc delete dev " + IFACE_ROUTER + " root")
+    disable_netem()
 
 # rmnet: 4G/3G/2G
 # both[234]: wlan + rmnet[234]
 # With TC:
 #      - L5p: Losses of 5%
 #      - D10m: Delay of 10ms
-Network = Enum('Network', 'wlan both4 both3 both2 rmnet4 rmnet3 rmnet2 both4TCData both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
+Network = Enum('Network', 'wlan both4 both3 both2 rmnet4 rmnet3 rmnet2 both4Data both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
 
 # All kinds of networks
 net_list = list(Network)
@@ -249,7 +245,7 @@ print(*(net.name for net in net_list))
 
 for net in net_list:
     name = net.name
-    print("\n========== Network mode: + name ===========\n\n")
+    print("\n========== Network mode: " + name + " ===========\n\n")
     index = name.find('TC')
     if index >= 0:
         if not CTRL_WIFI:
@@ -281,11 +277,14 @@ for net in net_list:
         # Delay
         netem += delay_cmd(get_value_between(tc, 'L', 'p'))
         if netem:
-            enable_tc(netem)
-    elif CTRL_WIFI:
-        disable_tc()
+            enable_netem(netem)
 
+    # Launch test
     launch_all(uitests_dir, net.name)
+
+    # Delete Netem
+    if tc and CTRL_WIFI:
+        disable_netem()
 
 print("\n================ DONE =================\n\n")
 
