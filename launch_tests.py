@@ -19,6 +19,9 @@
 #  MA 02110-1301, USA.
 #
 # ./launch_tests.py [trace_dir]
+#
+# To install on this machine: ant, adb, android, sshpass
+# Don't forget to load your SSH key for save_traces_purge_phone.sh script!
 
 import os
 import random
