@@ -35,6 +35,9 @@ from enum import Enum
 DEVEL = False
 # switch to False to not purge files
 PURGE = True
+# If we can control WiFi router
+CTRL_WIFI = True
+# Home dir on Android
 android_home = "/storage/sdcard0"
 
 print("Starting tests " + time.ctime())
@@ -149,15 +152,17 @@ net_list = list(Network)
 random.shuffle(net_list)
 
 for net in net_list:
-    print('Network mode: ' + net.name)
-    if net == Network.both:
-        print('todo') # we cannot [en/dis]able an IF with ifconfig...
-#    elif net == Network.wlan:
-#        print('todo')
-#    elif net == Network.rmnet4:
-#        print('todo')
+    name = net.name
+    print('Network mode: ' + name)
+    index = name.find('TC')
+    if index >= 0:
+        if not CTRL_WIFI:
+            print('We do not control the WiFi router, skip this test')
+            continue
+        tc = name[index+2:]
+        name = name[0:index]
     else:
-        print('SKIP')
+        tc = False
         continue
 
     launch_all(uitests_dir, net.name)
