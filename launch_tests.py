@@ -44,6 +44,8 @@ IFACE_ROUTER = "wlan0"
 # Home dir on Android
 android_home = "/storage/sdcard0"
 
+ERROR = "\n\t*** ERROR "
+
 print("Starting tests " + time.ctime())
 now_dir = time.strftime("%Y%m%d-%H%M%S")
 
@@ -64,6 +66,7 @@ os.chdir(root_dir)
 print("Git version:")
 cmd = "git describe --abbrev=0 --dirty --always"
 subprocess.call(cmd.split())
+print("\n======================================\n\n")
 
 # Get list of uitest dir (should contain build.xml file)
 uitests_dir = []
@@ -80,7 +83,7 @@ for uitest in uitests_dir + ["uitests-preference_network"]:
         print("Creating uitest-project")
         cmd = "android create uitest-project -n " + uitest + " -t 1 -p " + uitest
         if subprocess.call(cmd.split()) != 0:
-            print("ERROR when creating uitest-project for " + app, file=sys.stderr)
+            print(ERROR + " when creating uitest-project for " + app, file=sys.stderr)
             continue
 
     # Build project and push jar if needed
@@ -92,21 +95,22 @@ for uitest in uitests_dir + ["uitests-preference_network"]:
         rt = subprocess.call(cmd.split())
         os.chdir(root_dir)
         if rt != 0:
-            print("ERROR when building jar for " + app, file=sys.stderr)
+            print(ERROR + "when building jar for " + app, file=sys.stderr)
             continue
         # push the new jar
         cmd = "adb push " + jar_file + " " + android_home + "/" + uitest + ".jar"
         if subprocess.call(cmd.split()) != 0:
-            print("ERROR when pushing jar for " + app, file=sys.stderr)
+            print(ERROR + "when pushing jar for " + app, file=sys.stderr)
             continue
 
+print("\n======================================\n\n")
 
 ################################################################################
 
 def adb_shell(cmd):
     adb_cmd = "adb shell " + cmd
     if subprocess.call(adb_cmd.split()) != 0:
-        print("ERROR when launching this cmd on the devise: " + cmd, file=sys.stderr)
+        print(ERROR + " when launching this cmd on the devise: " + cmd, file=sys.stderr)
         return False
     return True
 
@@ -126,7 +130,7 @@ def launch(app, net, out_base = output_dir):
     os.makedirs(out_dir)
     cmd = "adb pull " + android_home + "/traces/ " + os.path.abspath(out_dir)
     if subprocess.call(cmd.split()) != 0:
-        print("ERROR when pulling traces for " + app, file=sys.stderr)
+        print(ERROR + " when pulling traces for " + app, file=sys.stderr)
 
     # Move previous traces on the device
     cmd = "mv " + android_home + "/traces/* " + android_home + "/traces_" + net
@@ -202,7 +206,7 @@ def delay_cmd(value):
 def router_shell(cmd):
     router_cmd = "sshpass -p 'root' ssh root@" + IP_ROUTER + " " + cmd
     if subprocess.call(router_cmd.split()) != 0:
-        print("ERROR when launching this cmd on the router: " + cmd, file=sys.stderr)
+        print(ERROR + " when launching this cmd on the router: " + cmd, file=sys.stderr)
         return False
     return True
 
@@ -233,8 +237,8 @@ random.shuffle(net_list)
 
 # Check router OK and insert mod + delete rules
 if CTRL_WIFI:
-    if (not router_shell("echo OK"))
-        return 1
+    if (not router_shell("echo OK")):
+        exit(1)
     router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
     router_shell("tc qdisc delete dev " + IFACE_ROUTER + " root")
 
@@ -281,4 +285,4 @@ for net in net_list:
 # Save the traces and purge the phone
 cmd = "bash save_traces_purge_phone.sh " + arg_dir
 if subprocess.call(cmd.split()) != 0:
-    print("ERROR when using save_traces_purge_phone with " + arg_dir, file=sys.stderr)
+    print(ERROR + " when using save_traces_purge_phone with " + arg_dir, file=sys.stderr)
