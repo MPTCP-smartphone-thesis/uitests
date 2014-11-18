@@ -19,3 +19,9 @@ Of course, you'll need to install all supported apps:
 * Youtube you need a Google account, skip the initial menu (how to use Youtube)
 
 If you want to use our scripts, you will need to install `adb` (e.g. from `android-tools-adb` package), `ant` and `android` and they should be available without using the full path (available in `$PATH`).
+
+On the device, you will need to install `tcpdump` binary in `/system/xbin/`:
+
+    mount -o remount,rw /system
+    cp /PATH/TO/tcpdump /system/xbin/
+    chmod 777 /system/xbin/tcpdump
