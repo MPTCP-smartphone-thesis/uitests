@@ -13,10 +13,10 @@ Of course, you'll need to install all supported apps:
 * Facebook: You need to be connected with a Facebook account
 * Firefox Beta: Go to Settings / Privacy / Clear Private Data / Always clear when quitting (check that you'll clear everything, you need Firefox 33+)
 * Messenger: You need to be connected with a Facebook account and have at least one contact
-* Shazam
+* Shazam: You need to skip the initial menu
 * Snapchat: You need to create this file: `uitests-snapchat/src/login/LoginClass.java` with two `public static` methods which return a `String`: `getUsername()`, `getPassword()`.
-* Spotify You need to be connected with a Spotify account
-* Youtube you need a Google account, skip the initial menu (how to use Youtube)
+* Spotify: You need to be connected with a Spotify account
+* Youtube: You need a Google account, skip the initial menu (how to use Youtube)
 
 If you want to use our scripts, you will need to install `adb` (e.g. from `android-tools-adb` package), `ant` and `android` and they should be available without using the full path (available in `$PATH`).
 
