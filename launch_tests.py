@@ -138,10 +138,11 @@ def launch_all(uitests_dir, net):
 
 
 # rmnet: 4G/3G/2G
-# both: wlan + rmnet4
+# both[234]: wlan + rmnet[234]
+# With TC:
 #      - L5p: Losses of 5%
-#      - D10ms: Delay of 10ms
-Network = Enum('Network', 'both wlan rmnet4 rmnet3 rmnet2 bothL5p bothL15p bothL5pD100ms bothD10ms bothD100ms bothD1000ms')
+#      - D10m: Delay of 10ms
+Network = Enum('Network', 'wlan both4 both3 both2 rmnet4 rmnet3 rmnet2 both4TCData both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
 
 # All kinds of networks
 net_list = list(Network)
