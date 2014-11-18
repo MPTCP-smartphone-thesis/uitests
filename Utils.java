@@ -131,7 +131,7 @@ public class Utils {
 				settingsApp.clickAndWaitForNewWindow();
 				}
 			catch (UiObjectNotFoundException e) {
-				appViews.scrollForward();
+				appViews.scrollToEnd(10);
 			}
 		}
 
