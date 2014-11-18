@@ -37,6 +37,10 @@ DEVEL = False
 PURGE = True
 # If we can control WiFi router
 CTRL_WIFI = True
+# Ip of the router
+IP_ROUTER = "192.168.10.1"
+# IFace to modify on the router
+IFACE_ROUTER = "wlan0"
 # Home dir on Android
 android_home = "/storage/sdcard0"
 
@@ -177,6 +181,42 @@ def both(version, prefer_wifi=True):
         prefer_iface(DATA)
     change_pref_net(version)
 
+## Net: router
+
+def get_value_between(s, start, end):
+    index = s.find(start)
+    if index >= 0:
+        return s[index+1:s.index(end, index+1)]
+    return False
+
+def loss_cmd(value):
+    if value:
+        return " loss " + value + "%"
+    return ""
+
+def delay_cmd(value):
+    if value:
+        return " delay " + value + "ms"
+    return ""
+
+def router_shell(cmd):
+    router_cmd = "sshpass -p 'root' ssh root@" + IP_ROUTER + " " + cmd
+    if subprocess.call(router_cmd.split()) != 0:
+        print("ERROR when launching this cmd on the router: " + cmd, file=sys.stderr)
+        return False
+    return True
+
+TC_ADDED = False # status of qdisc
+def enable_tc(netem):
+    cmd = "tc qdisc " + ("change" if TC_ADDED else "add") + " dev " + IFACE_ROUTER + " root " + netem
+    router_shell(cmd)
+    TC_ADDED = True
+
+def disable_tc():
+    if TC_ADDED:
+        router_shell("tc qdisc delete dev " + IFACE_ROUTER + " root")
+        TC_ADDED = False
+
 ################################################################################
 
 
@@ -224,6 +264,17 @@ for net in net_list:
     else:
         print('unknown: SKIP')
         continue
+
+    # Network of the router
+    if tc:
+        # Losses
+        netem = loss_cmd(get_value_between(tc, 'L', 'p'))
+        # Delay
+        netem += delay_cmd(get_value_between(tc, 'L', 'p'))
+        if netem:
+            enable_tc(netem)
+    elif CTRL_WIFI:
+        disable_tc()
 
     launch_all(uitests_dir, net.name)
 
