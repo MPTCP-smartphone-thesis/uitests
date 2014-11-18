@@ -120,8 +120,8 @@ def adb_shell_root(cmd):
 
 # Launch test for one app and pull files
 def launch(app, net, out_base = output_dir):
-    print("Launching tests for " + app + " at " + str(int(time.time())) + " for " + net)
-    cmd = "uiautomator runtest " + android_home + "/uitests-" + app + " -c " + app + ".LaunchSettings"
+    print("\n ### Launching tests for " + app + " at " + str(int(time.time())) + " for " + net + " ###\n")
+    cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings"
     if not adb_shell(cmd): return
 
     # Save files: 'traces' external dir already contains the app name
@@ -146,7 +146,7 @@ def launch_all(uitests_dir, net):
 
     for uitest in uitests_dir:
         app = uitest[8:]
-        launch(app)
+        launch(app, net)
 
 ## Net: devise
 WIFI = 'wifi'
@@ -154,7 +154,7 @@ DATA = 'data'
 
 # net should be: '4', '3' or '2'
 def change_pref_net(version):
-    cmd = "uiautomator runtest " + android_home + "/uitests-" + app + " -c " + app + ".LaunchSettings -e network-status " + version + "G"
+    cmd = "uiautomator runtest " + android_home + "/uitests-preference_network.jar -c preference_network.LaunchSettings -e network-status " + version + "G"
     return adb_shell(cmd)
 
 # 'wifi', 'enable'
