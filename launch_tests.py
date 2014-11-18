@@ -35,7 +35,7 @@ from enum import Enum
 DEVEL = False
 # switch to False to not purge files
 PURGE = True
-# If we can control WiFi router
+# If we can control WiFi router: don't forget to check ssh connexion is OK
 CTRL_WIFI = True
 # Ip of the router
 IP_ROUTER = "192.168.10.1"
@@ -204,7 +204,7 @@ def delay_cmd(value):
     return ""
 
 def router_shell(cmd):
-    router_cmd = "sshpass -p 'root' ssh root@" + IP_ROUTER + " " + cmd
+    router_cmd = "sshpass -p root ssh root@" + IP_ROUTER + " " + cmd
     if subprocess.call(router_cmd.split()) != 0:
         print(ERROR + " when launching this cmd on the router: " + cmd, file=sys.stderr)
         return False
@@ -224,6 +224,16 @@ def disable_tc():
 ################################################################################
 
 
+# Check router OK and insert mod + delete rules
+if CTRL_WIFI:
+    print("Checking router connexion")
+    if (not router_shell("echo OK")):
+        print("Not able to be connected to the router, exit")
+        exit(1)
+    print("Reset Netem (tc), ignore errors")
+    router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
+    router_shell("tc qdisc delete dev " + IFACE_ROUTER + " root")
+
 # rmnet: 4G/3G/2G
 # both[234]: wlan + rmnet[234]
 # With TC:
@@ -234,17 +244,12 @@ Network = Enum('Network', 'wlan both4 both3 both2 rmnet4 rmnet3 rmnet2 both4TCDa
 # All kinds of networks
 net_list = list(Network)
 random.shuffle(net_list)
-
-# Check router OK and insert mod + delete rules
-if CTRL_WIFI:
-    if (not router_shell("echo OK")):
-        exit(1)
-    router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
-    router_shell("tc qdisc delete dev " + IFACE_ROUTER + " root")
+print("\nNetwork list:")
+print(*(net.name for net in net_list))
 
 for net in net_list:
     name = net.name
-    print('Network mode: ' + name)
+    print("\n========== Network mode: + name ===========\n\n")
     index = name.find('TC')
     if index >= 0:
         if not CTRL_WIFI:
@@ -281,6 +286,8 @@ for net in net_list:
         disable_tc()
 
     launch_all(uitests_dir, net.name)
+
+print("\n================ DONE =================\n\n")
 
 # Save the traces and purge the phone
 cmd = "bash save_traces_purge_phone.sh " + arg_dir
