@@ -59,17 +59,16 @@ public class Utils {
 	 *            Time to kill the process (in seconds)
 	 */
 	public static void launchTcpdump(String app, int timeout) {
-		Date now = new Date();
+		long now = new Date().getTime();
 		String[] commands = {
 				"mkdir -p " + traceBase + "/" + app,
 				"cd " + traceBase + "/" + app,
 				"timeout -t " + timeout + " tcpdump -i wlan0 -w "
-						+ now.getTime()
-						+ "_wlan0"
-						+ ".pcap & echo $! > ../../currentPid",
+						+ now + "_wlan0"
+						+ ".pcap & echo $! > ../currentPidWLan",
 				"timeout -t " + timeout + " tcpdump -i rmnet0 -w "
-						+ now.getTime() + "_rmnet0"
-						+ ".pcap & echo $! > ../../currentPid" };
+						+ now + "_rmnet0"
+						+ ".pcap & echo $! > ../currentPidRMNet" };
 		Utils.runAsRoot(commands);
 	}
 
