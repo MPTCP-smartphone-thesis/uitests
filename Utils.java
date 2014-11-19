@@ -60,15 +60,15 @@ public class Utils {
 	 */
 	public static void launchTcpdump(String app, int timeout) {
 		long now = new Date().getTime();
+		String dir = traceBase + "/" + app;
 		String[] commands = {
-				"mkdir -p " + traceBase + "/" + app,
-				"cd " + traceBase + "/" + app,
-				"timeout -t " + timeout + " tcpdump -i wlan0 -w "
-						+ now + "_wlan0"
-						+ ".pcap & echo $! > ../currentPidWLan",
+				"mkdir -p " + dir,
+				"timeout -t " + timeout + " tcpdump -i wlan0 -w " + dir + "/"
+						+ app + "_" + now + "_wlan0"
+						+ ".pcap & echo $! > " + traceBase + "/currentPidWLan",
 				"timeout -t " + timeout + " tcpdump -i rmnet0 -w "
-						+ now + "_rmnet0"
-						+ ".pcap & echo $! > ../currentPidRMNet" };
+						+ app + "_" + now + "_rmnet0"
+						+ ".pcap & echo $! > " + traceBase + "/currentPidRMNet" };
 		Utils.runAsRoot(commands);
 	}
 
