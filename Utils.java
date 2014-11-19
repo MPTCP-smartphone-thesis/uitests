@@ -76,8 +76,8 @@ public class Utils {
 	 * Kill the tcpdump process launched
 	 */
 	public static void killTcpdump() {
-		String[] commands = { "kill `cat " + traceBase + "currentPidWLan`",
-		                      "kill `cat " + traceBase + "currentPidRMNet`" };
+		String[] commands = { "kill `cat " + traceBase + "/currentPidWLan`",
+		                      "kill `cat " + traceBase + "/currentPidRMNet`" };
 		Utils.runAsRoot(commands);
 	}
 
