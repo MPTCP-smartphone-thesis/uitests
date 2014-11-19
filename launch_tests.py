@@ -39,8 +39,8 @@ PURGE = True
 CTRL_WIFI = True
 # Ip of the router
 IP_ROUTER = "192.168.10.1"
-# IFace to modify on the router
-IFACE_ROUTER = "wlan0"
+# IFaces to modify on the router
+IFACE_ROUTER = ['wlan0','wlan1']
 # Home dir on Android
 android_home = "/storage/sdcard0"
 
@@ -225,11 +225,17 @@ def router_shell(cmd):
     return True
 
 def enable_netem(netem):
-    cmd = "tc qdisc add dev " + IFACE_ROUTER + " root netem " + netem
-    return router_shell(cmd)
+    rc = True
+    for iface in IFACE_ROUTER:
+        cmd = "tc qdisc add dev " + iface + " root netem " + netem
+        rc &= router_shell(cmd)
+    return rc
 
 def disable_netem():
-    return router_shell("tc qdisc delete dev " + IFACE_ROUTER + " root")
+    rc = True
+    for iface in IFACE_ROUTER:
+        rc &= router_shell("tc qdisc delete dev " + iface + " root")
+    return rc
 
 ################################################################################
 
