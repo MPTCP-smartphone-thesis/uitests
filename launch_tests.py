@@ -44,6 +44,9 @@ IFACE_ROUTER = ['wlan0','wlan1']
 # User and password
 USER_ROUTER = "root"
 PASSWORD_ROUTER = "root"
+# Reboot the phone at the end
+REBOOT = True
+
 # Home dir on Android
 android_home = "/storage/sdcard0"
 
@@ -313,6 +316,10 @@ print("\n================ DONE =================\n\n")
 
 print("Remove traces located on the phone")
 adb_shell("rm -r /storage/sdcard0/traces*")
+
+print("Reboot the phone") # to avoid possible Android bugs
+if REBOOT and if subprocess.call("adb reboot".split()) != 0:
+    print(ERROR + " when rebooting the phone", file=sys.stderr)
 
 # backup traces
 cmd = "bash backup_traces.sh " + arg_dir
