@@ -38,9 +38,12 @@ PURGE = True
 # If we can control WiFi router: don't forget to check ssh connexion is OK
 CTRL_WIFI = True
 # Ip of the router
-IP_ROUTER = "192.168.10.1"
+IP_ROUTER = "192.168.1.1"
 # IFaces to modify on the router
 IFACE_ROUTER = ['wlan0','wlan1']
+# User and password
+USER_ROUTER = "root"
+PASSWORD_ROUTER = "root"
 # Home dir on Android
 android_home = "/storage/sdcard0"
 
@@ -218,7 +221,7 @@ def delay_cmd(value):
     return ""
 
 def router_shell(cmd):
-    router_cmd = "sshpass -p root ssh root@" + IP_ROUTER + " " + cmd
+    router_cmd = "sshpass -p " + PASSWORD_ROUTER + " ssh " + USER_ROUTER + "@" + IP_ROUTER + " " + cmd
     if subprocess.call(router_cmd.split()) != 0:
         print(ERROR + " when launching this cmd on the router: " + cmd, file=sys.stderr)
         return False
