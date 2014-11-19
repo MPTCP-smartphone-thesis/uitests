@@ -311,7 +311,10 @@ for net in net_list:
 
 print("\n================ DONE =================\n\n")
 
-# Save the traces and purge the phone
-cmd = "bash save_traces_purge_phone.sh " + arg_dir
+print("Remove traces located on the phone")
+adb_shell("rm -r /storage/sdcard0/traces*")
+
+# backup traces
+cmd = "bash backup_traces.sh " + arg_dir
 if subprocess.call(cmd.split()) != 0:
-    print(ERROR + " when using save_traces_purge_phone with " + arg_dir, file=sys.stderr)
+    print(ERROR + " when using backup_traces.sh with " + arg_dir, file=sys.stderr)
