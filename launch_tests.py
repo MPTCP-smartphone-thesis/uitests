@@ -118,27 +118,30 @@ def adb_shell_root(cmd):
     su_cmd = 'su sh -c "' + cmd + '"'
     return adb_shell(su_cmd)
 
-# Launch test for one app and pull files
-def launch(app, net, out_base = output_dir):
+# Launch test for one app and pull files after each test (if there is a bug)
+def launch(app, net, out_dir):
     print("\n ### Launching tests for " + app + " at " + str(int(time.time())) + " for " + net + " ###\n")
     cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings"
     if not adb_shell(cmd): return
 
     # Save files: 'traces' external dir already contains the app name
     print("Pull files")
-    out_dir = os.path.join(out_base, net)
-    os.makedirs(out_dir)
     cmd = "adb pull " + android_home + "/traces/ " + os.path.abspath(out_dir)
     if subprocess.call(cmd.split()) != 0:
         print(ERROR + " when pulling traces for " + app, file=sys.stderr)
+    # Files will be saved in ~/Thesis/TCPDump/20141119-195517/net/youtube/youtube_1456465416_wlan0.pcap
 
     # Move previous traces on the device
     cmd = "mv " + android_home + "/traces/* " + android_home + "/traces_" + net
     if not adb_shell(cmd): return
 
-def launch_all(uitests_dir, net):
+def launch_all(uitests_dir, net, out_base=output_dir):
     cmd = "mkdir -p " + android_home + "/traces_" + net
     if not adb_shell(cmd): return
+
+    out_dir = os.path.join(out_base, net)
+    if (not os.path.isdir(out_dir)):
+        os.mkdir(out_dir)
 
     # random: to avoid having the same order
     random.shuffle(uitests_dir)
@@ -148,7 +151,18 @@ def launch_all(uitests_dir, net):
         app = uitest[8:]
         launch(app, net)
 
-## Net: devise
+    # Compress files
+    print("Compressing files")
+    for app_dir in os.listdir(out_dir):
+        for trace in os.listdir(os.path.join(out_dir, app_dir)):
+            if (trace.endswith('.pcap')):
+                trace_path = os.path.abspath(os.path.join(out_dir, app_dir, trace))
+                print("Compressing " + trace_path + " to " + trace_path + ".gz")
+                cmd = 'gzip -9 ' + trace_path # or xz/7z format?
+                if subprocess.call(cmd.split()) != 0:
+                    print(ERROR + " when pulling traces for " + app, file=sys.stderr)
+
+## Net: devices
 WIFI = 'wifi'
 DATA = 'data'
 
