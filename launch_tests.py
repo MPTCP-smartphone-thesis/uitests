@@ -135,17 +135,18 @@ def launch(app, net, out_dir):
     cmd = "adb pull " + android_home + "/traces/ " + os.path.abspath(out_dir)
     if subprocess.call(cmd.split()) != 0:
         print(ERROR + " when pulling traces for " + app, file=sys.stderr)
-    # Files will be saved in ~/Thesis/TCPDump/20141119-195517/net/youtube/youtube_1456465416_wlan0.pcap
+    # Files will be saved in ~/Thesis/TCPDump/20141119-195517/MPTCP/NET/youtube/youtube_1456465416_wlan0.pcap
 
     # Move previous traces on the device
     cmd = "mv " + android_home + "/traces/* " + android_home + "/traces_" + net
     if not adb_shell(cmd): return
 
-def launch_all(uitests_dir, net, out_base=output_dir):
+def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
     cmd = "mkdir -p " + android_home + "/traces_" + net
     if not adb_shell(cmd): return
 
-    out_dir = os.path.join(out_base, net)
+    # out_dir: ~/Thesis/TCPDump/20141119-195517/MPTCP/NET
+    out_dir = os.path.join(out_base, mptcp_dir, net)
     if (not os.path.isdir(out_dir)):
         os.mkdir(out_dir)
 
@@ -155,7 +156,7 @@ def launch_all(uitests_dir, net, out_base=output_dir):
 
     for uitest in uitests_dir:
         app = uitest[8:]
-        launch(app, net)
+        launch(app, net, out_dir)
 
     # Compress files
     print("Compressing files")
@@ -243,6 +244,14 @@ def disable_netem():
         rc &= router_shell("tc qdisc delete dev " + iface + " root")
     return rc
 
+def enable_mptcp():
+    # TODO
+    return
+
+def disable_mptcp():
+    # TODO
+    return
+
 ################################################################################
 
 
@@ -263,54 +272,67 @@ if CTRL_WIFI:
 #      - D10m: Delay of 10ms
 Network = Enum('Network', 'wlan both4 both3 both2 rmnet4 rmnet3 rmnet2 both4Data both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
 
-# All kinds of networks
-net_list = list(Network)
-random.shuffle(net_list)
-print("\nNetwork list:")
-print(*(net.name for net in net_list))
+# With or without mptcp
+mptcp = [True, False]
+random.shuffle(mptcp)
 
-for net in net_list:
-    name = net.name
-    print("\n========== Network mode: " + name + " ===========\n\n")
-    index = name.find('TC')
-    if index >= 0:
-        if not CTRL_WIFI:
-            print('We do not control the WiFi router, skip this test')
+for with_mptcp in mptcp:
+    # Check MPTCP
+    if with_mptcp:
+        enable_mptcp()
+        mptcp_dir = "MPTCP"
+    else:
+        disable_mptcp()
+        mptcp_dir = "TCP"
+
+    # All kinds of networks
+    net_list = list(Network)
+    random.shuffle(net_list)
+    print("\nNetwork list:")
+    print(*(net.name for net in net_list))
+
+    for net in net_list:
+        name = net.name
+        print("\n========== Network mode: " + name + " ===========\n\n")
+        index = name.find('TC')
+        if index >= 0:
+            if not CTRL_WIFI:
+                print('We do not control the WiFi router, skip this test')
+                continue
+            tc = name[index+2:]
+            name = name[0:index]
+        else:
+            tc = False
+
+        # Network of the devise
+        if net == Network.wlan:
+            enable_iface(WIFI)
+            disable_iface(DATA)
+        elif net == Network.both4Data: # prefer data
+            both('4', prefer_wifi=False)
+        elif name.startswith('both'):
+            both(name[4])
+        elif name.startswith('rmnet'):
+            rmnet(name[5])
+        else:
+            print('unknown: SKIP')
             continue
-        tc = name[index+2:]
-        name = name[0:index]
-    else:
-        tc = False
 
-    # Network of the devise
-    if net == Network.wlan:
-        enable_iface(WIFI)
-        disable_iface(DATA)
-    elif net == Network.both4Data: # prefer data
-        both('4', prefer_wifi=False)
-    elif name.startswith('both'):
-        both(name[4])
-    elif name.startswith('rmnet'):
-        rmnet(name[5])
-    else:
-        print('unknown: SKIP')
-        continue
+        # Network of the router
+        if tc:
+            # Losses
+            netem = loss_cmd(get_value_between(tc, 'L', 'p'))
+            # Delay
+            netem += delay_cmd(get_value_between(tc, 'L', 'p'))
+            if netem:
+                enable_netem(netem)
 
-    # Network of the router
-    if tc:
-        # Losses
-        netem = loss_cmd(get_value_between(tc, 'L', 'p'))
-        # Delay
-        netem += delay_cmd(get_value_between(tc, 'L', 'p'))
-        if netem:
-            enable_netem(netem)
+        # Launch test
+        launch_all(uitests_dir, net.name, mptcp_dir)
 
-    # Launch test
-    launch_all(uitests_dir, net.name)
-
-    # Delete Netem
-    if tc and CTRL_WIFI:
-        disable_netem()
+        # Delete Netem
+        if tc and CTRL_WIFI:
+            disable_netem()
 
 print("\n================ DONE =================\n\n")
 
