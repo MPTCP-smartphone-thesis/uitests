@@ -58,7 +58,7 @@
 	path = uitests-preference_network
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-preference_network.git
 	branch = master
-[submodule "uitests-multipath-control"]
-	path = uitests-multipath-control
-	url = git@github.com:MPTCP-smartphone-thesis/uitests-multipath-control.git
+[submodule "uitests-multipath_control"]
+	path = uitests-multipath_control
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-multipath_control.git
 	branch = master
