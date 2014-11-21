@@ -164,7 +164,7 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
     # out_dir: ~/Thesis/TCPDump/20141119-195517/MPTCP/NET
     out_dir = os.path.join(out_base, mptcp_dir, net)
     if (not os.path.isdir(out_dir)):
-        os.mkdir(out_dir)
+        os.makedirs(out_dir)
 
     # random: to avoid having the same order
     random.shuffle(uitests_dir)
