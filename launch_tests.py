@@ -196,9 +196,12 @@ def restart_proxy():
     cmd = "uiautomator runtest " + android_home + "/uitests-ssh_tunnel.jar -c ssh_tunnel.LaunchSettings"
     if not adb_shell(cmd): return False
     time.sleep(5)
-    adb_shell(cmd_ping) ## we could have prob when launching it for the 1st time
-    if not adb_shell(cmd_ping): return False
-    return True
+    if adb_shell(cmd_ping): return True ## we could have prob when launching it for the 1st time
+    return adb_shell(cmd_ping)
+
+def stop_proxy():
+    cmd = "uiautomator runtest " + android_home + "/uitests-ssh_tunnel.jar -c ssh_tunnel.LaunchSettings -e action stop"
+    return adb_shell(cmd)
 
 # net should be: '4', '3' or '2'
 def change_pref_net(version):
@@ -306,9 +309,11 @@ for with_mptcp in mptcp:
         if not WITH_MPTCP:
             print("MPTCP not supported, skip")
             continue
+        stop_proxy() ## prevent error when enabling mptcp
         multipath_control("enable")
         mptcp_dir = "MPTCP"
     else:
+        stop_proxy() ## prevent error when disabling mptcp
         multipath_control("disable")
         mptcp_dir = "TCP"
 
@@ -331,6 +336,8 @@ for with_mptcp in mptcp:
                 continue
             tc = name[index+2:]
             name = name[0:index]
+
+        stop_proxy() ## prevent error when changing network connections
 
         # Network of the devise
         if net == Network.wlan:
