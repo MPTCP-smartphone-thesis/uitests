@@ -176,10 +176,13 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
 
     # Compress files
     print("Compressing files")
-    for app_dir in os.listdir(out_dir):
-        for trace in os.listdir(os.path.join(out_dir, app_dir)):
+    for app in os.listdir(out_dir):
+        app_dir = os.path.abspath(os.path.join(out_dir, app))
+        if not os.path.isdir(app_dir): # we can have pid files
+            continue
+        for trace in os.listdir(app_dir):
             if (trace.endswith('.pcap')):
-                trace_path = os.path.abspath(os.path.join(out_dir, app_dir, trace))
+                trace_path = os.path.join(app_dir, trace)
                 print("Compressing " + trace_path + " to " + trace_path + ".gz")
                 cmd = 'gzip -9 ' + trace_path # or xz/7z format?
                 if subprocess.call(cmd.split()) != 0:
