@@ -191,12 +191,13 @@ DATA = 'data'
 
 # relaunch SSH-Tunnel and check the connection via a ping
 def restart_proxy():
+    cmd_ping = "ping -c 5 " + EXT_HOST
+    adb_shell(cmd_ping) ## to avoid strange DNS problems
     cmd = "uiautomator runtest " + android_home + "/uitests-ssh_tunnel.jar -c ssh_tunnel.LaunchSettings"
     if not adb_shell(cmd): return False
     time.sleep(5)
-    cmd = "ping -c 5 " + EXT_HOST
-    adb_shell(cmd) ## we could have problems when launching it for the 1st time
-    if not adb_shell(cmd): return False
+    adb_shell(cmd_ping) ## we could have prob when launching it for the 1st time
+    if not adb_shell(cmd_ping): return False
     return True
 
 # net should be: '4', '3' or '2'
