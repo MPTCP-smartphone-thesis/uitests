@@ -1,5 +1,5 @@
 #! /bin/bash
-[ "$1" != "" ] && TRACE_DIR=$1 || TRACE_DIR="~/Thesis/TCPDump"
+[ "$1" != "" ] && TRACE_DIR=$1 || TRACE_DIR="/home/mptcp/Thesis/TCPDump"
 [ "$2" != "" ] && DEST_DIR=$2 || DEST_DIR="/home/mptcp/smartphone"
 [ "$3" != "" ] && SSH_USER=$3 || SSH_USER="mptcpdata"
 
