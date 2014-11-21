@@ -29,6 +29,8 @@ If you want to use our scripts, you will need to install `adb` (e.g. from `andro
 
 You also need to check that you can correctly be connected to the router (or change `CTRL_WIFI` in `launch_tests.py`) via SSH with the parameters set in `launch_tests.py`.
 
+If you want to use `backup_traces.sh`, you need to add an entry `mptcpdata` in `~/.ssh/config` and load your SSH key in your SSH Agent (via ssh-add).
+
 
 On the device
 -------------
