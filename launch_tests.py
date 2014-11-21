@@ -48,6 +48,8 @@ PASSWORD_ROUTER = "root"
 REBOOT = True
 # Backup your traces by launching backup_traces.sh script
 BACKUP_TRACES = True
+# Tests with (and without) MPTCP support
+WITH_MPTCP = True
 # External host to ping in order to check that everything is ok
 EXT_HOST = "ns328523.ip-37-187-114.eu"
 
@@ -300,11 +302,16 @@ random.shuffle(mptcp)
 for with_mptcp in mptcp:
     # Check MPTCP
     if with_mptcp:
+        if not WITH_MPTCP:
+            print("MPTCP not supported, skip")
+            continue
         multipath_control("enable")
         mptcp_dir = "MPTCP"
     else:
         multipath_control("disable")
         mptcp_dir = "TCP"
+
+    print("\n============ Kernel mode: " + mptcp_dir + " =========\n\n")
 
     # All kinds of networks
     net_list = list(Network)

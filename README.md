@@ -40,10 +40,12 @@ You will also need to be a _developer_ and authorize the control from the host m
 
 You should remove the lockscreen and not have a too short timeout before going to the sleep mode. If you decide to reboot the phone at the end of the script (`REBOOT` variable), do not lock the SIM card.
 
+You also need to install Multipath Control app and install and setup SSHTunnel to have a MPTCP proxy. You can disable the support of MPTCP in `launch_tests.py`.
+
 You will need to install `tcpdump` binary in `/system/xbin/`:
 
     mount -o remount,rw /system
     cp /PATH/TO/tcpdump /system/xbin/
     chmod 777 /system/xbin/tcpdump
 
-Note: it's maybe better to not auto-update your apps (Play Store settings) and install adblock (to avoid ads being display during the tests).
+Note: it's maybe better to not auto-update your apps (Play Store settings) and install adblock (to avoid ads being displayed during the tests).
