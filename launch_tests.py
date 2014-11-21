@@ -46,6 +46,8 @@ USER_ROUTER = "root"
 PASSWORD_ROUTER = "root"
 # Reboot the phone at the end
 REBOOT = True
+# Backup your traces by launching backup_traces.sh script
+BACKUP_TRACES = True
 
 # Home dir on Android
 android_home = "/storage/sdcard0"
@@ -344,6 +346,7 @@ if REBOOT and if subprocess.call("adb reboot".split()) != 0:
     print(ERROR + " when rebooting the phone", file=sys.stderr)
 
 # backup traces
+print("Backup traces") # better to backup files
 cmd = "bash backup_traces.sh " + arg_dir
-if subprocess.call(cmd.split()) != 0:
+if BACKUP_TRACES and subprocess.call(cmd.split()) != 0:
     print(ERROR + " when using backup_traces.sh with " + arg_dir, file=sys.stderr)
