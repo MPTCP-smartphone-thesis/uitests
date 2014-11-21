@@ -25,7 +25,7 @@ Of course, you'll need to install all supported apps:
 On the host machine
 -------------------
 
-If you want to use our scripts, you will need to install `adb` (e.g. from `android-tools-adb` package), `ant` and `android` and they should be available without using the full path (available in `$PATH`).
+If you want to use our scripts, you will need to install `adb` (e.g. from `android-tools-adb` package), `ant`, `openjdk-7-jdk`, `git` and `android` and they should be available without using the full path (available in `$PATH`).
 
 You also need to check that you can correctly be connected to the router (or change `CTRL_WIFI` in `launch_tests.py`) via SSH with the parameters set in `launch_tests.py`. You will also need `sshpass` tool
 
