@@ -25,6 +25,7 @@
 
 import os
 import random
+import shutil # rmtree
 import subprocess
 import sys
 import time
@@ -113,12 +114,18 @@ for uitest in uitests_dir + uitests_exceptions:
     if DEVEL or not os.path.isfile(jar_file):
         print("Build ant and push jar")
         os.chdir(uitest)
+
+        # remove bin dir if DEVEL
+        if DEVEL and os.path.isdir('bin'):
+            shutil.rmtree('bin')
+
         cmd = "ant build"
         rt = subprocess.call(cmd.split())
         os.chdir(root_dir)
         if rt != 0:
             print(ERROR + "when building jar for " + app, file=sys.stderr)
             continue
+
         # push the new jar
         cmd = "adb push " + jar_file + " " + android_home + "/" + uitest + ".jar"
         if subprocess.call(cmd.split()) != 0:
