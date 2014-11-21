@@ -62,3 +62,7 @@
 	path = uitests-multipath_control
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-multipath_control.git
 	branch = master
+[submodule "uitests-ssh_tunnel"]
+	path = uitests-ssh_tunnel
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-ssh_tunnel.git
+	branch = master
