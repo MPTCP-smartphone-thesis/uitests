@@ -296,6 +296,7 @@ for with_mptcp in mptcp:
     for net in net_list:
         name = net.name
         print("\n========== Network mode: " + name + " ===========\n\n")
+        tc = False
         index = name.find('TC')
         if index >= 0:
             if not CTRL_WIFI:
@@ -303,8 +304,6 @@ for with_mptcp in mptcp:
                 continue
             tc = name[index+2:]
             name = name[0:index]
-        else:
-            tc = False
 
         # Network of the devise
         if net == Network.wlan:
@@ -325,7 +324,7 @@ for with_mptcp in mptcp:
             # Losses
             netem = loss_cmd(get_value_between(tc, 'L', 'p'))
             # Delay
-            netem += delay_cmd(get_value_between(tc, 'L', 'p'))
+            netem += delay_cmd(get_value_between(tc, 'D', 'm'))
             if netem:
                 enable_netem(netem)
 
@@ -333,7 +332,7 @@ for with_mptcp in mptcp:
         launch_all(uitests_dir, net.name, mptcp_dir)
 
         # Delete Netem
-        if tc and CTRL_WIFI:
+        if tc:
             disable_netem()
 
 print("\n================ DONE =================\n\n")
