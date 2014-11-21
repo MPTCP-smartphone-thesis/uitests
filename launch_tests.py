@@ -120,7 +120,7 @@ print("\n======================================\n\n")
 
 def adb_shell(cmd):
     adb_cmd = "adb shell " + cmd
-    if subprocess.call(adb_cmd.split()) != 0:
+    if subprocess.call(adb_cmd.split(), timeout=960) != 0: # timeout of 16 minutes
         print(ERROR + " when launching this cmd on the devise: " + cmd, file=sys.stderr)
         return False
     return True
