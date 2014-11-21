@@ -48,7 +48,11 @@ PASSWORD_ROUTER = "root"
 REBOOT = True
 # Backup your traces by launching backup_traces.sh script
 BACKUP_TRACES = True
+# External host to ping in order to check that everything is ok
+EXT_HOST = "ns328523.ip-37-187-114.eu"
 
+# Exceptions for uitests: which are useful just to prepare tests
+uitests_exceptions = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel"]
 # Home dir on Android
 android_home = "/storage/sdcard0"
 
@@ -76,17 +80,22 @@ cmd = "git describe --abbrev=0 --dirty --always"
 subprocess.call(cmd.split())
 print("\n======================================\n\n")
 
+# should start with uitests, not an exception and with build.xml file
+def is_valid_uitest(dir):
+    if not dir.startswith('uitests-'):
+        return False
+    if dir in uitests_exceptions:
+        return False
+    return os.path.isfile(os.path.join(dir, 'build.xml'))
+
 # Get list of uitest dir (should contain build.xml file)
 uitests_dir = []
 for file in os.listdir('.'):
-    if file.startswith('uitests-') \
-       and not file == "uitests-preference_network" \
-       and not file == "uitests-multipath_control" \
-       and os.path.isfile(os.path.join(file, 'build.xml')):
+    if is_valid_uitest(file):
         uitests_dir.append(file)
 
 # Prepare the tests (build the jar if needed)
-for uitest in uitests_dir + ["uitests-preference_network", "uitests-multipath_control"]:
+for uitest in uitests_dir + uitests_exceptions:
     app = uitest[8:]
     print("Checking requirements for " + app)
     # Create project if needed
@@ -177,6 +186,16 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
 ## Net: devices
 WIFI = 'wifi'
 DATA = 'data'
+
+# relaunch SSH-Tunnel and check the connection via a ping
+def restart_proxy():
+    cmd = "uiautomator runtest " + android_home + "/uitests-ssh_tunnel.jar -c ssh_tunnel.LaunchSettings"
+    if not adb_shell(cmd): return False
+    time.sleep(5)
+    cmd = "ping -c 5 " + EXT_HOST
+    adb_shell(cmd) ## we could have problems when launching it for the 1st time
+    if not adb_shell(cmd): return False
+    return True
 
 # net should be: '4', '3' or '2'
 def change_pref_net(version):
@@ -319,6 +338,12 @@ for with_mptcp in mptcp:
             print('unknown: SKIP')
             continue
 
+        print("Wait 5 seconds and restart proxy")
+        time.sleep(5)
+        if not restart_proxy():
+            print(ERROR + " when preparing the proxy", file=sys.stderr)
+            continue
+
         # Network of the router
         if tc:
             # Losses
@@ -341,7 +366,7 @@ print("Remove traces located on the phone")
 adb_shell("rm -r /storage/sdcard0/traces*")
 
 print("Reboot the phone") # to avoid possible Android bugs
-if REBOOT and if subprocess.call("adb reboot".split()) != 0:
+if REBOOT and subprocess.call("adb reboot".split()) != 0:
     print(ERROR + " when rebooting the phone", file=sys.stderr)
 
 # backup traces
