@@ -77,11 +77,14 @@ print("\n======================================\n\n")
 # Get list of uitest dir (should contain build.xml file)
 uitests_dir = []
 for file in os.listdir('.'):
-    if file.startswith('uitests-') and not file == "uitests-preference_network" and os.path.isfile(os.path.join(file, 'build.xml')):
+    if file.startswith('uitests-') \
+       and not file == "uitests-preference_network" \
+       and not file == "uitests-multipath_control" \
+       and os.path.isfile(os.path.join(file, 'build.xml')):
         uitests_dir.append(file)
 
 # Prepare the tests (build the jar if needed)
-for uitest in uitests_dir + ["uitests-preference_network"]:
+for uitest in uitests_dir + ["uitests-preference_network", "uitests-multipath_control"]:
     app = uitest[8:]
     print("Checking requirements for " + app)
     # Create project if needed
@@ -244,13 +247,10 @@ def disable_netem():
         rc &= router_shell("tc qdisc delete dev " + iface + " root")
     return rc
 
-def enable_mptcp():
-    # TODO
-    return
-
-def disable_mptcp():
-    # TODO
-    return
+# 'enable' or 'disable'
+def multipath_control(action):
+    cmd = "uiautomator runtest " + android_home + "/uitests-multipath_control.jar -c multipath_control.LaunchSettings -e action " + action
+    return adb_shell(cmd)
 
 ################################################################################
 
@@ -279,10 +279,10 @@ random.shuffle(mptcp)
 for with_mptcp in mptcp:
     # Check MPTCP
     if with_mptcp:
-        enable_mptcp()
+        multipath_control("enable")
         mptcp_dir = "MPTCP"
     else:
-        disable_mptcp()
+        multipath_control("disable")
         mptcp_dir = "TCP"
 
     # All kinds of networks
