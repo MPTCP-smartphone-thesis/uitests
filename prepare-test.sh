@@ -4,7 +4,7 @@
 DEV=0
 
 DIR=$(pwd)
-[ -n "$1" ] && PROJ_NAME="$1" || read -p "Name of your uitest project? (e.g. 'snapchat') " PROJ_NAME
+[ -n "$1" ] && PROJ_NAME="$1" && shift || read -p "Name of your uitest project? (e.g. 'snapchat') " PROJ_NAME
 [ ! -f "$PROJ_NAME/local.properties" ] && NEW_UIPROJ='Y' || read -p "Create new uitest project? [y/N] " NEW_UIPROJ
 
 if [ "$DEV" = "1" -o "$NEW_UIPROJ" = 'Y' -o "$NEW_UIPROJ" = 'y' ]; then
@@ -24,4 +24,4 @@ adb push uitests-$PROJ_NAME.jar  /storage/sdcard0/uitests-$PROJ_NAME.jar || exit
 cd $DIR
 
 echo -e "\n\t==== Launch the test ===="
-adb shell uiautomator runtest /storage/sdcard0/uitests-$PROJ_NAME.jar -c $PROJ_NAME.LaunchSettings
+adb shell uiautomator runtest /storage/sdcard0/uitests-$PROJ_NAME.jar -c $PROJ_NAME.LaunchSettings $@
