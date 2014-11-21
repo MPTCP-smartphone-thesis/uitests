@@ -128,7 +128,7 @@ public class Utils {
 			try {
 				settingsApp = appViews.getChildByText(new UiSelector()
 						.className(android.widget.TextView.class.getName()),
-						appText, i < 10); // do not scroll, did in the catch
+						appText, i > 10); // do not scroll, did in the catch
 				succeed = true;
 				settingsApp.clickAndWaitForNewWindow();
 				}
