@@ -58,6 +58,8 @@ EXT_HOST = "ns328523.ip-37-187-114.eu"
 uitests_exceptions = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel"]
 # Home dir on Android
 android_home = "/storage/sdcard0"
+# The default directory to save traces on host, if not provided by args
+DEFAULT_DIR = "~/Thesis/TCPDump"
 
 ERROR = "\n\t*** ERROR "
 
@@ -68,7 +70,7 @@ now_dir = time.strftime("%Y%m%d-%H%M%S")
 if len(sys.argv) > 1:
     arg_dir = sys.argv[1]
 else:
-    arg_dir = "~/Thesis/TCPDump"
+    arg_dir = DEFAULT_DIR
 output_dir = os.path.join(os.path.expanduser(arg_dir), now_dir)
 if (not os.path.isdir(output_dir)):
     os.makedirs(output_dir)
