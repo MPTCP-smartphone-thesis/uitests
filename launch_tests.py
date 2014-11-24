@@ -55,7 +55,7 @@ WITH_MPTCP = True
 EXT_HOST = "ns328523.ip-37-187-114.eu"
 
 # Exceptions for uitests: which are useful just to prepare tests
-uitests_exceptions = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel"]
+uitests_exceptions = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app"]
 # Home dir on Android
 android_home = "/storage/sdcard0"
 
@@ -153,6 +153,17 @@ def launch(app, net, out_dir):
     print("\n ### Launching tests for " + app + " at " + str(int(time.time())) + " for " + net + " ###\n")
     cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings"
     success = adb_shell(cmd)
+
+    # Kill the app and TCPDump (e.g. if there is a bug with the previous test)
+    app_name_file = os.path.join("uitests-" + app, "app_name.txt")
+    try:
+        file = open(app_name_file, 'r')
+        app_name = file.readline().replace('\n', '')
+        file.close()
+    except:
+        app_name = app.capitalize()
+    cmd = "uiautomator runtest " + android_home + "/uitests-kill_app.jar -c kill_app.LaunchSettings -e app " + app_name
+    adb_shell(cmd)
 
     # no need to pull useless traces
     if not success:
