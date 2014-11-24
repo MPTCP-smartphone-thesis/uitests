@@ -101,8 +101,9 @@ for file in os.listdir('.'):
 for uitest in uitests_dir + uitests_exceptions:
     app = uitest[8:]
     print("Checking requirements for " + app)
+    need_creation = DEVEL or not os.path.isfile(os.path.join(uitest, 'local.properties'))
     # Create project if needed
-    if DEVEL or not os.path.isfile(os.path.join(uitest, 'local.properties')):
+    if need_creation:
         print("Creating uitest-project")
         cmd = "android create uitest-project -n " + uitest + " -t 1 -p " + uitest
         if subprocess.call(cmd.split()) != 0:
@@ -111,12 +112,12 @@ for uitest in uitests_dir + uitests_exceptions:
 
     # Build project and push jar if needed
     jar_file = os.path.join(uitest, 'bin', uitest + '.jar')
-    if DEVEL or not os.path.isfile(jar_file):
+    if need_creation or not os.path.isfile(jar_file):
         print("Build ant and push jar")
         os.chdir(uitest)
 
-        # remove bin dir if DEVEL
-        if DEVEL and os.path.isdir('bin'):
+        # remove bin dir
+        if os.path.isdir('bin'):
             shutil.rmtree('bin')
 
         cmd = "ant build"
