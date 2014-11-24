@@ -63,12 +63,10 @@ public class Utils {
 		String dir = traceBase + "/" + app;
 		String[] commands = {
 				"mkdir -p " + dir,
-				"timeout -t " + timeout + " tcpdump -i wlan0 -w " + dir + "/"
-						+ app + "_" + now + "_wlan0"
-						+ ".pcap & echo $! > " + traceBase + "/currentPidWLan",
-				"timeout -t " + timeout + " tcpdump -i rmnet0 -w "
-						+ app + "_" + now + "_rmnet0"
-						+ ".pcap & echo $! > " + traceBase + "/currentPidRMNet" };
+				"timeout -t " + timeout +
+					" tcpdump -i wlan0:rmnet0 -w " + dir + "/"
+						+ app + "_" + now + ".pcap &"
+					+ " echo $! > " + traceBase + "/tcpdump.pid" };
 		Utils.runAsRoot(commands);
 	}
 
@@ -76,8 +74,9 @@ public class Utils {
 	 * Kill the tcpdump process launched
 	 */
 	public static void killTcpdump() {
-		String[] commands = { "kill `cat " + traceBase + "/currentPidWLan`",
-		                      "kill `cat " + traceBase + "/currentPidRMNet`" };
+		String[] commands = {
+			"kill `cat " + traceBase + "/tcpdump.pid`",
+			"rm -f " + traceBase + "/tcpdump.pid" };
 		Utils.runAsRoot(commands);
 	}
 
