@@ -152,18 +152,24 @@ def adb_shell_root(cmd):
 def launch(app, net, out_dir):
     print("\n ### Launching tests for " + app + " at " + str(int(time.time())) + " for " + net + " ###\n")
     cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings"
-    if not adb_shell(cmd): return
+    success = adb_shell(cmd)
+
+    # no need to pull useless traces
+    if not success:
+        cmd = "rm -rf " + android_home + "/traces/*"
+        adb_shell(cmd)
+        return False
 
     # Save files: 'traces' external dir already contains the app name
     print("Pull files")
     cmd = "adb pull " + android_home + "/traces/ " + os.path.abspath(out_dir)
     if subprocess.call(cmd.split()) != 0:
         print(ERROR + " when pulling traces for " + app, file=sys.stderr)
-    # Files will be saved in ~/Thesis/TCPDump/20141119-195517/MPTCP/NET/youtube/youtube_1456465416_wlan0.pcap
+    # Files will be saved in ~/Thesis/TCPDump/20141119-195517/MPTCP/NET/youtube/youtube_1456465416.pcap
 
     # Move previous traces on the device
     cmd = "mv " + android_home + "/traces/* " + android_home + "/traces_" + net
-    if not adb_shell(cmd): return
+    return adb_shell(cmd)
 
 def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
     cmd = "mkdir -p " + android_home + "/traces_" + net
