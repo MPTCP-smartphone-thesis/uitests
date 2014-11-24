@@ -141,10 +141,14 @@ print("\n======================================\n\n")
 
 def adb_shell(cmd):
     adb_cmd = "adb shell " + cmd
-    if subprocess.call(adb_cmd.split(), timeout=960) != 0: # timeout of 16 minutes
-        print(ERROR + " when launching this cmd on the devise: " + cmd, file=sys.stderr)
+    try:
+        if subprocess.call(adb_cmd.split(), timeout=960) != 0: # timeout of 16 minutes
+            print(ERROR + " when launching this cmd on the devise: " + cmd, file=sys.stderr)
+            return False
+        return True
+    except:
+        print(ERROR + " (timeout) when launching this cmd on the devise: " + cmd, file=sys.stderr)
         return False
-    return True
 
 def adb_shell_root(cmd):
     su_cmd = 'su sh -c "' + cmd + '"'
