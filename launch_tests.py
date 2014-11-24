@@ -55,7 +55,7 @@ WITH_MPTCP = True
 EXT_HOST = "ns328523.ip-37-187-114.eu"
 
 # Exceptions for uitests: which are useful just to prepare tests
-uitests_exceptions = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel"]
+uitests_exceptions = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app"]
 # Home dir on Android
 android_home = "/storage/sdcard0"
 # The default directory to save traces on host, if not provided by args
@@ -103,8 +103,9 @@ for file in os.listdir('.'):
 for uitest in uitests_dir + uitests_exceptions:
     app = uitest[8:]
     print("Checking requirements for " + app)
+    need_creation = DEVEL or not os.path.isfile(os.path.join(uitest, 'local.properties'))
     # Create project if needed
-    if DEVEL or not os.path.isfile(os.path.join(uitest, 'local.properties')):
+    if need_creation:
         print("Creating uitest-project")
         cmd = "android create uitest-project -n " + uitest + " -t 1 -p " + uitest
         if subprocess.call(cmd.split()) != 0:
@@ -113,12 +114,12 @@ for uitest in uitests_dir + uitests_exceptions:
 
     # Build project and push jar if needed
     jar_file = os.path.join(uitest, 'bin', uitest + '.jar')
-    if DEVEL or not os.path.isfile(jar_file):
+    if need_creation or not os.path.isfile(jar_file):
         print("Build ant and push jar")
         os.chdir(uitest)
 
-        # remove bin dir if DEVEL
-        if DEVEL and os.path.isdir('bin'):
+        # remove bin dir
+        if os.path.isdir('bin'):
             shutil.rmtree('bin')
 
         cmd = "ant build"
@@ -153,18 +154,35 @@ def adb_shell_root(cmd):
 def launch(app, net, out_dir):
     print("\n ### Launching tests for " + app + " at " + str(int(time.time())) + " for " + net + " ###\n")
     cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings"
-    if not adb_shell(cmd): return
+    success = adb_shell(cmd)
+
+    # Kill the app and TCPDump (e.g. if there is a bug with the previous test)
+    app_name_file = os.path.join("uitests-" + app, "app_name.txt")
+    try:
+        file = open(app_name_file, 'r')
+        app_name = file.readline().replace('\n', '')
+        file.close()
+    except:
+        app_name = app.capitalize()
+    cmd = "uiautomator runtest " + android_home + "/uitests-kill_app.jar -c kill_app.LaunchSettings -e app " + app_name
+    adb_shell(cmd)
+
+    # no need to pull useless traces
+    if not success:
+        cmd = "rm -rf " + android_home + "/traces/*"
+        adb_shell(cmd)
+        return False
 
     # Save files: 'traces' external dir already contains the app name
     print("Pull files")
     cmd = "adb pull " + android_home + "/traces/ " + os.path.abspath(out_dir)
     if subprocess.call(cmd.split()) != 0:
         print(ERROR + " when pulling traces for " + app, file=sys.stderr)
-    # Files will be saved in ~/Thesis/TCPDump/20141119-195517/MPTCP/NET/youtube/youtube_1456465416_wlan0.pcap
+    # Files will be saved in ~/Thesis/TCPDump/20141119-195517/MPTCP/NET/youtube/youtube_1456465416.pcap
 
     # Move previous traces on the device
     cmd = "mv " + android_home + "/traces/* " + android_home + "/traces_" + net
-    if not adb_shell(cmd): return
+    return adb_shell(cmd)
 
 def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
     cmd = "mkdir -p " + android_home + "/traces_" + net
