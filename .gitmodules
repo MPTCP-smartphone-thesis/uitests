@@ -66,3 +66,7 @@
 	path = uitests-ssh_tunnel
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-ssh_tunnel.git
 	branch = master
+[submodule "uitests-kill_app"]
+	path = uitests-kill_app
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-kill_app.git
+	branch = master
