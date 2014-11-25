@@ -95,6 +95,7 @@ public class Utils {
 				e.printStackTrace();
 			}
 		}
+		t.getUiDevice().pressHome(); // go back home
 	}
 
 	public static boolean openApp(UiAutomatorTestCase t, String appText,
