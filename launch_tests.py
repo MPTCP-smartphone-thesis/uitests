@@ -71,7 +71,8 @@ if len(sys.argv) > 1:
     arg_dir = sys.argv[1]
 else:
     arg_dir = DEFAULT_DIR
-output_dir = os.path.join(os.path.expanduser(arg_dir), now_dir)
+arg_dir_exp = os.path.expanduser(arg_dir)
+output_dir = os.path.join(arg_dir_exp, now_dir)
 if (not os.path.isdir(output_dir)):
     os.makedirs(output_dir)
 print("Save tcpdump files in " + output_dir)
@@ -420,6 +421,6 @@ if REBOOT and subprocess.call("adb reboot".split()) != 0:
 
 # backup traces
 print("Backup traces") # better to backup files
-cmd = "bash backup_traces.sh " + arg_dir
+cmd = "bash backup_traces.sh " + arg_dir_exp
 if BACKUP_TRACES and subprocess.call(cmd.split()) != 0:
-    print(ERROR + " when using backup_traces.sh with " + arg_dir, file=sys.stderr)
+    print(ERROR + " when using backup_traces.sh with " + arg_dir_exp, file=sys.stderr)
