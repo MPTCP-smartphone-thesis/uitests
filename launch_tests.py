@@ -63,12 +63,24 @@ DEFAULT_DIR = "~/Thesis/TCPDump"
 
 ##############
 
+if sys.stdout.isatty():
+    blue      = "\033[1;34m" # + bold
+    white_std = "\033[0;39m"
+else:
+    blue = white_std = ''
+
+if sys.stderr.isatty():
+    red       = "\033[1;31m" # + bold
+    white_err = "\033[0;39m"
+else:
+    err = white_err = ''
+
 # custom print
 def my_print(msg):
-    print("\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n")
+    print(blue + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n" + normal)
 
 def my_print_err(msg):
-    print("\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n", file=sys.stderr)
+    print(red + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + normal, file=sys.stderr)
 
 ##############
 
