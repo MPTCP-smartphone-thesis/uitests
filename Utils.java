@@ -134,6 +134,8 @@ public class Utils {
 				else
 					appViews.flingBackward();
 			}
+			if (i > 15)
+				throw new UiObjectNotFoundException("App not found")
 			i++;
 		}
 
