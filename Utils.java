@@ -56,12 +56,12 @@ public class Utils {
 	 * @param app
 	 *            The folder to save trace
 	 */
-	public static void launchTcpdump(String app) {
+	public static void launchTcpdump(String app, String iface) {
 		long now = new Date().getTime();
 		String dir = traceBase + "/" + app;
 		String[] commands = {
 				"mkdir -p " + dir,
-				"tcpdump -i wlan0:rmnet0 -w " + dir + "/"
+				"tcpdump -i " + iface + " -w " + dir + "/"
 						+ app + "_" + now + ".pcap &"
 					+ " echo $! > " + traceBase + "/tcpdump.pid" };
 		Utils.runAsRoot(commands);
