@@ -3,9 +3,15 @@
 
 [ "$1" != "" ] && IF=$1 || IF="veth3426f38"
 
-> /home/mptcp/smartphone/.tcpdump-start 
-while inotifywait -e modify /home/mptcp/smartphone/.tcpdump-start; do
+BASE="$HOME/smartphone"
+FILE="$BASE/.tcpdump-start"
+OUT="$BASE-server"
+PID="$BASE/.tcpdump-pid"
+
+> $FILE
+while inotifywait -e modify "$FILE"; do
    # The last line of .tcpdump-start contains the name of the application
-   CURR_APP=$(cat /home/mptcp/smartphone/.tcpdump-start | tail -n 1)
-   tcpdump -i $IF -w "/home/mptcp/smartphone-server/${CURR_APP}.pcap" & | echo $! >> /home/mptcp/smartphone/.tcpdump-pid
+   CURR_APP=$(tail -n 1 "$FILE" || echo "UNKNOWN")
+   tcpdump -i $IF -w "${OUT}/${CURR_APP}.pcap" &
+   echo $! >> "$PID"
 done
