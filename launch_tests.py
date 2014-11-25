@@ -157,8 +157,14 @@ def adb_shell_root(cmd):
 
 # Launch test for one app and pull files after each test (if there is a bug)
 def launch(app, net, out_dir):
+    if name.startswith('wlan'):
+        iface = "wlan0"
+    elif name.startswith('rmnet'):
+        iface = "rmnet0"
+    else:
+        iface = "wlan0:rmnet0"
     print("\n *** Launching tests for " + app + " at " + str(int(time.time())) + " for " + net + " ***\n")
-    cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings"
+    cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings -e iface " + iface
     success = adb_shell(cmd)
 
     # Kill the app and TCPDump (e.g. if there is a bug with the previous test)
