@@ -402,7 +402,7 @@ for with_mptcp in mptcp:
     net_list = list(Network)
     random.shuffle(net_list)
     my_print("Network list:")
-    my_print(*(net.name for net in net_list))
+    print(*(net.name for net in net_list))
 
     for net in net_list:
         name = net.name
