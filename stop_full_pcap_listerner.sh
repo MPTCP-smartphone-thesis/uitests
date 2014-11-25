@@ -1,5 +1,5 @@
 #! /bin/bash
-# Usage: .stop_pcap_when_test_completed.sh
+# Usage: ./stop_full_pcap_listener.sh
 
 > /home/mptcp/smartphone/.tcpdump-stop
 while inotifywait -e modify /home/mptcp/smartphone/.tcpdump-stop; do

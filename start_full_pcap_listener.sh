@@ -1,5 +1,5 @@
 #! /bin/bash
-# Usage: ./create_pcap_when_test_started.sh [interface]
+# Usage: ./start_full_pcap_listener.sh [interface]
 
 [ "$1" != "" ] && IF=$1 || IF="veth3426f38"
 

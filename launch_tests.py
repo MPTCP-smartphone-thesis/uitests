@@ -155,17 +155,33 @@ def adb_shell_root(cmd):
     su_cmd = 'su sh -c "' + cmd + '"'
     return adb_shell(su_cmd)
 
+# Launch full capture on the server
+def manage_capture_distant(mode, app, net, time_now):
+    print("Send request to the server to " + mode + " a full capture")
+    arg_pcap = app + "_" + net + "_" + time_now
+    cmd = "bash " + mode + "_full_pcap_distant.sh " + arg_pcap
+    if subprocess.call(cmd.split()) != 0:
+        print(ERROR + " when using " + mode + "_full_pcap_distant.sh with " + arg_pcap, file=sys.stderr)
+
 # Launch test for one app and pull files after each test (if there is a bug)
 def launch(app, net, out_dir):
+    time_now = str(int(time.time()))
+
+    # Start full capture on the proxy
+    manage_capture_distant("start", app, net, time_now)
+
     if name.startswith('wlan'):
         iface = "wlan0"
     elif name.startswith('rmnet'):
         iface = "rmnet0"
     else:
         iface = "wlan0:rmnet0"
-    print("\n *** Launching tests for " + app + " at " + str(int(time.time())) + " for " + net + " ***\n")
+    print("\n *** Launching tests for " + app + " at " + time_now + " for " + net + " ***\n")
     cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings -e iface " + iface
     success = adb_shell(cmd)
+
+    # Stop full capture on the proxy
+    manage_capture_distant("stop", app, net, time_now)
 
     # Kill the app and TCPDump (e.g. if there is a bug with the previous test)
     app_name_file = os.path.join("uitests-" + app, "app_name.txt")
