@@ -339,7 +339,7 @@ if CTRL_WIFI:
 # With TC:
 #      - L5p: Losses of 5%
 #      - D10m: Delay of 10ms
-Network = Enum('Network', 'wlan both4 both3 both2 rmnet4 rmnet3 rmnet2 both4Data both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
+Network = Enum('Network', 'wlan both4 both3 rmnet4 rmnet3 both4Data both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
 
 # With or without mptcp
 mptcp = [True, False]
