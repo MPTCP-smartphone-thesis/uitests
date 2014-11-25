@@ -70,3 +70,7 @@
 	path = uitests-kill_app
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-kill_app.git
 	branch = master
+[submodule "uitests-firefoxspdy"]
+	path = uitests-firefoxspdy
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-firefoxspdy.git
+	branch = master
