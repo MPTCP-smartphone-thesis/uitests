@@ -52,19 +52,16 @@ public class Utils {
 
 	/**
 	 * Launch Tcpdump on the device and save the trace in the folder app
-	 * 
+	 *
 	 * @param app
 	 *            The folder to save trace
-	 * @param timeout
-	 *            Time to kill the process (in seconds)
 	 */
-	public static void launchTcpdump(String app, int timeout) {
+	public static void launchTcpdump(String app) {
 		long now = new Date().getTime();
 		String dir = traceBase + "/" + app;
 		String[] commands = {
 				"mkdir -p " + dir,
-				"timeout -t " + timeout +
-					" tcpdump -i wlan0:rmnet0 -w " + dir + "/"
+				"tcpdump -i wlan0:rmnet0 -w " + dir + "/"
 						+ app + "_" + now + ".pcap &"
 					+ " echo $! > " + traceBase + "/tcpdump.pid" };
 		Utils.runAsRoot(commands);
