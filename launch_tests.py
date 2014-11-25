@@ -157,7 +157,7 @@ def adb_shell_root(cmd):
 
 # Launch test for one app and pull files after each test (if there is a bug)
 def launch(app, net, out_dir):
-    print("\n ### Launching tests for " + app + " at " + str(int(time.time())) + " for " + net + " ###\n")
+    print("\n *** Launching tests for " + app + " at " + str(int(time.time())) + " for " + net + " ***\n")
     cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings"
     success = adb_shell(cmd)
 
@@ -169,6 +169,7 @@ def launch(app, net, out_dir):
         file.close()
     except:
         app_name = app.capitalize()
+    print("\nKill app " + app_name + "\n")
     cmd = "uiautomator runtest " + android_home + "/uitests-kill_app.jar -c kill_app.LaunchSettings -e app " + app_name
     adb_shell(cmd)
 
@@ -179,7 +180,7 @@ def launch(app, net, out_dir):
         return False
 
     # Save files: 'traces' external dir already contains the app name
-    print("Pull files")
+    print("\nPull files to " + out_dir + "\n")
     cmd = "adb pull " + android_home + "/traces/ " + os.path.abspath(out_dir)
     if subprocess.call(cmd.split()) != 0:
         print(ERROR + " when pulling traces for " + app, file=sys.stderr)
