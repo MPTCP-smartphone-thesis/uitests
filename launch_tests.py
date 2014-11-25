@@ -61,9 +61,18 @@ android_home = "/storage/sdcard0"
 # The default directory to save traces on host, if not provided by args
 DEFAULT_DIR = "~/Thesis/TCPDump"
 
-ERROR = "\n\t*** ERROR "
+##############
 
-print("Starting tests " + time.ctime())
+# custom print
+def my_print(msg):
+    print("\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n")
+
+def my_print_err(msg):
+    print("\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n", file=sys.stderr)
+
+##############
+
+my_print("Starting tests " + time.ctime())
 now_dir = time.strftime("%Y%m%d-%H%M%S")
 
 # Prepare output dir
@@ -75,13 +84,13 @@ arg_dir_exp = os.path.expanduser(arg_dir)
 output_dir = os.path.join(arg_dir_exp, now_dir)
 if (not os.path.isdir(output_dir)):
     os.makedirs(output_dir)
-print("Save tcpdump files in " + output_dir)
+my_print("Save tcpdump files in " + output_dir)
 
 # force to be in the right dir
 root_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(root_dir)
 
-print("Git version:")
+my_print("Git version:")
 cmd = "git describe --abbrev=0 --dirty --always"
 subprocess.call(cmd.split())
 print("\n======================================\n\n")
@@ -103,20 +112,20 @@ for file in os.listdir('.'):
 # Prepare the tests (build the jar if needed)
 for uitest in uitests_dir + uitests_exceptions:
     app = uitest[8:]
-    print("Checking requirements for " + app)
+    my_print("Checking requirements for " + app)
     need_creation = DEVEL or not os.path.isfile(os.path.join(uitest, 'local.properties'))
     # Create project if needed
     if need_creation:
-        print("Creating uitest-project")
+        my_print("Creating uitest-project")
         cmd = "android create uitest-project -n " + uitest + " -t 1 -p " + uitest
         if subprocess.call(cmd.split()) != 0:
-            print(ERROR + " when creating uitest-project for " + app, file=sys.stderr)
+            my_print_err("when creating uitest-project for " + app)
             continue
 
     # Build project and push jar if needed
     jar_file = os.path.join(uitest, 'bin', uitest + '.jar')
     if need_creation or not os.path.isfile(jar_file):
-        print("Build ant and push jar")
+        my_print("Build ant and push jar")
         os.chdir(uitest)
 
         # remove bin dir
@@ -127,13 +136,13 @@ for uitest in uitests_dir + uitests_exceptions:
         rt = subprocess.call(cmd.split())
         os.chdir(root_dir)
         if rt != 0:
-            print(ERROR + "when building jar for " + app, file=sys.stderr)
+            my_print_err("when building jar for " + app)
             continue
 
         # push the new jar
         cmd = "adb push " + jar_file + " " + android_home + "/" + uitest + ".jar"
         if subprocess.call(cmd.split()) != 0:
-            print(ERROR + "when pushing jar for " + app, file=sys.stderr)
+            my_print_err("when pushing jar for " + app)
             continue
 
 print("\n======================================\n\n")
@@ -144,11 +153,11 @@ def adb_shell(cmd):
     adb_cmd = "adb shell " + cmd
     try:
         if subprocess.call(adb_cmd.split(), timeout=960) != 0: # timeout of 16 minutes
-            print(ERROR + " when launching this cmd on the device: " + cmd, file=sys.stderr)
+            my_print_err("when launching this cmd on the device: " + cmd)
             return False
         return True
     except:
-        print(ERROR + " (timeout) when launching this cmd on the device: " + cmd, file=sys.stderr)
+        my_print_err("(timeout) when launching this cmd on the device: " + cmd)
         return False
 
 def adb_shell_root(cmd):
@@ -157,11 +166,11 @@ def adb_shell_root(cmd):
 
 # Launch full capture on the server
 def manage_capture_distant(mode, app, net, time_now):
-    print("Send request to the server to " + mode + " a full capture")
+    my_print("Send request to the server to " + mode + " a full capture")
     arg_pcap = app + "_" + net + "_" + time_now
     cmd = "bash " + mode + "_full_pcap_distant.sh " + arg_pcap
     if subprocess.call(cmd.split()) != 0:
-        print(ERROR + " when using " + mode + "_full_pcap_distant.sh with " + arg_pcap, file=sys.stderr)
+        my_print_err("when using " + mode + "_full_pcap_distant.sh with " + arg_pcap)
 
 # Launch test for one app and pull files after each test (if there is a bug)
 def launch(app, net, out_dir):
@@ -176,7 +185,7 @@ def launch(app, net, out_dir):
         iface = "rmnet0"
     else:
         iface = "wlan0:rmnet0"
-    print("\n *** Launching tests for " + app + " at " + time_now + " for " + net + " ***\n")
+    my_print("*** Launching tests for " + app + " at " + time_now + " for " + net + " ***")
     cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings -e iface " + iface
     success = adb_shell(cmd)
 
@@ -191,7 +200,7 @@ def launch(app, net, out_dir):
         file.close()
     except:
         app_name = app.capitalize()
-    print("\nKill app " + app_name + "\n")
+    my_print("Kill app " + app_name)
     cmd = "uiautomator runtest " + android_home + "/uitests-kill_app.jar -c kill_app.LaunchSettings -e app " + app_name
     adb_shell(cmd)
 
@@ -202,10 +211,10 @@ def launch(app, net, out_dir):
         return False
 
     # Save files: 'traces' external dir already contains the app name
-    print("\nPull files to " + out_dir + "\n")
+    my_print("Pull files to " + out_dir)
     cmd = "adb pull " + android_home + "/traces/ " + os.path.abspath(out_dir)
     if subprocess.call(cmd.split()) != 0:
-        print(ERROR + " when pulling traces for " + app, file=sys.stderr)
+        my_print_err("when pulling traces for " + app)
     # Files will be saved in ~/Thesis/TCPDump/20141119-195517/MPTCP/NET/youtube/youtube_1456465416.pcap
 
     # Move previous traces on the device
@@ -223,14 +232,14 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
 
     # random: to avoid having the same order
     random.shuffle(uitests_dir)
-    print("Launch all tests for " + net + " with random list: " + str(uitests_dir))
+    my_print("Launch all tests for " + net + " with random list: " + str(uitests_dir))
 
     for uitest in uitests_dir:
         app = uitest[8:]
         launch(app, net, out_dir)
 
     # Compress files
-    print("Compressing files")
+    my_print("Compressing files")
     for app in os.listdir(out_dir):
         app_dir = os.path.abspath(os.path.join(out_dir, app))
         if not os.path.isdir(app_dir): # we can have pid files
@@ -238,10 +247,10 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
         for trace in os.listdir(app_dir):
             if (trace.endswith('.pcap')):
                 trace_path = os.path.join(app_dir, trace)
-                print("Compressing " + trace_path + " to " + trace_path + ".gz")
+                my_print("Compressing " + trace_path + " to " + trace_path + ".gz")
                 cmd = 'gzip -9 ' + trace_path # or xz/7z format?
                 if subprocess.call(cmd.split()) != 0:
-                    print(ERROR + " when pulling traces for " + app, file=sys.stderr)
+                    my_print_err(" when pulling traces for " + app)
 
 ## Net: devices
 WIFI = 'wifi'
@@ -268,7 +277,7 @@ def change_pref_net(version):
 
 # 'wifi', 'enable'
 def manage_net(iface, status):
-    print(status + " " + iface)
+    my_print(status + " " + iface)
     return adb_shell_root('svc ' + iface + ' ' + status)
 
 def enable_iface(iface):
@@ -315,7 +324,7 @@ def delay_cmd(value):
 def router_shell(cmd):
     router_cmd = "sshpass -p " + PASSWORD_ROUTER + " ssh " + USER_ROUTER + "@" + IP_ROUTER + " " + cmd
     if subprocess.call(router_cmd.split()) != 0:
-        print(ERROR + " when launching this cmd on the router: " + cmd, file=sys.stderr)
+        my_print_err("when launching this cmd on the router: " + cmd)
         return False
     return True
 
@@ -342,11 +351,11 @@ def multipath_control(action):
 
 # Check router OK and insert mod + delete rules
 if CTRL_WIFI:
-    print("Checking router connexion")
+    my_print("Checking router connexion")
     if (not router_shell("echo OK")):
-        print("Not able to be connected to the router, exit")
+        my_print_err("Not able to be connected to the router, exit")
         exit(1)
-    print("Reset Netem (tc), ignore errors")
+    my_print("Reset Netem (tc), ignore errors")
     router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
     disable_netem()
 
@@ -365,7 +374,7 @@ for with_mptcp in mptcp:
     # Check MPTCP
     if with_mptcp:
         if not WITH_MPTCP:
-            print("MPTCP not supported, skip")
+            my_print("MPTCP not supported, skip")
             continue
         stop_proxy() ## prevent error when enabling mptcp
         multipath_control("enable")
@@ -375,22 +384,22 @@ for with_mptcp in mptcp:
         multipath_control("disable")
         mptcp_dir = "TCP"
 
-    print("\n============ Kernel mode: " + mptcp_dir + " =========\n\n")
+    my_print("============ Kernel mode: " + mptcp_dir + " =========\n")
 
     # All kinds of networks
     net_list = list(Network)
     random.shuffle(net_list)
-    print("\nNetwork list:")
-    print(*(net.name for net in net_list))
+    my_print("Network list:")
+    my_print(*(net.name for net in net_list))
 
     for net in net_list:
         name = net.name
-        print("\n========== Network mode: " + name + " ===========\n\n")
+        my_print("========== Network mode: " + name + " ===========\n")
         tc = False
         index = name.find('TC')
         if index >= 0:
             if not CTRL_WIFI:
-                print('We do not control the WiFi router, skip this test')
+                my_print_err('We do not control the WiFi router, skip this test')
                 continue
             tc = name[index+2:]
             name = name[0:index]
@@ -408,13 +417,13 @@ for with_mptcp in mptcp:
         elif name.startswith('rmnet'):
             rmnet(name[5])
         else:
-            print('unknown: SKIP')
+            my_print_err('unknown: SKIP')
             continue
 
-        print("Wait 5 seconds and restart proxy")
+        my_print("Wait 5 seconds and restart proxy")
         time.sleep(5)
         if not restart_proxy():
-            print(ERROR + " when preparing the proxy", file=sys.stderr)
+            my_print_err(" when preparing the proxy")
             continue
 
         # Network of the router
@@ -433,17 +442,17 @@ for with_mptcp in mptcp:
         if tc:
             disable_netem()
 
-print("\n================ DONE =================\n\n")
+my_print("================ DONE =================\n")
 
-print("Remove traces located on the phone")
+my_print("Remove traces located on the phone")
 adb_shell("rm -r /storage/sdcard0/traces*")
 
-print("Reboot the phone") # to avoid possible Android bugs
+my_print("Reboot the phone") # to avoid possible Android bugs
 if REBOOT and subprocess.call("adb reboot".split()) != 0:
-    print(ERROR + " when rebooting the phone", file=sys.stderr)
+    my_print_err(" when rebooting the phone")
 
 # backup traces
-print("Backup traces") # better to backup files
+my_print("Backup traces") # better to backup files
 cmd = "bash backup_traces.sh " + arg_dir_exp
 if BACKUP_TRACES and subprocess.call(cmd.split()) != 0:
-    print(ERROR + " when using backup_traces.sh with " + arg_dir_exp, file=sys.stderr)
+    my_print_err(" when using backup_traces.sh with " + arg_dir_exp)
