@@ -77,10 +77,10 @@ else:
 
 # custom print
 def my_print(msg):
-    print(blue + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n" + normal)
+    print(blue + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n" + white_std)
 
 def my_print_err(msg):
-    print(red + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + normal, file=sys.stderr)
+    print(red + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + white_err, file=sys.stderr)
 
 ##############
 
