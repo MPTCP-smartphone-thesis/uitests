@@ -121,6 +121,7 @@ public class Utils {
 		boolean succeed = false;
 		UiObject settingsApp;
 		int i = 0;
+		boolean forward = true;
 		while (!succeed) {
 			try {
 				settingsApp = appViews.getChildByText(new UiSelector()
@@ -130,10 +131,10 @@ public class Utils {
 				settingsApp.clickAndWaitForNewWindow();
 				}
 			catch (UiObjectNotFoundException e) {
-				if (i < 7)
-					appViews.flingForward(); // move to one new panel each time
+				if (forward)
+					forward = appViews.flingForward(); // move to one new panel each time
 				else
-					appViews.flingBackward();
+					forward = ! appViews.flingBackward();
 			}
 			if (i > 15)
 				throw new UiObjectNotFoundException("App not found");
