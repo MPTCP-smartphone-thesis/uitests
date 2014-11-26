@@ -76,7 +76,7 @@ else:
     GREEN = BLUE = WHITE_STD = ''
 
 if sys.stderr.isatty():
-    red       = "\033[1;31m" # + bold
+    RED       = "\033[1;31m" # + bold
     WHITE_ERR = "\033[0;39m"
 else:
     err = WHITE_ERR = ''
@@ -86,7 +86,7 @@ def my_print(msg):
     print(GREEN + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n" + WHITE_STD)
 
 def my_print_err(msg):
-    print(red + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + WHITE_ERR, file=sys.stderr)
+    print(RED + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + WHITE_ERR, file=sys.stderr)
 
 ##############
 
