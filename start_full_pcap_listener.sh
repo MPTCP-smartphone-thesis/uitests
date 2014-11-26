@@ -3,7 +3,7 @@
 
 [ "$1" != "" ] && IF=$1 || IF="veth3426f38"
 
-BASE="$HOME/smartphone"
+BASE="/home/mptcp/smartphone"
 FILE="$BASE/.tcpdump-start"
 OUT="$BASE-server"
 PID="$BASE/.tcpdump-pid"
