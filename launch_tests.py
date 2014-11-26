@@ -225,14 +225,13 @@ def adb_shell_root(cmd):
     return adb_shell(su_cmd)
 
 # relaunch SSH-Tunnel and check the connection via a ping
-def restart_proxy(sleep=0):
+def restart_proxy(sleep=1):
     my_print("Restart proxy: ping")
-    cmd_ping = "ping -c 2 " + EXT_HOST
+    cmd_ping = "ping -c 4 " + EXT_HOST
     adb_shell(cmd_ping) ## to avoid strange DNS problems
     my_print("Restart proxy: ssh tunnel")
     if not adb_shell(False, uiautomator='ssh_tunnel'): return False
-    if sleep > 0:
-        time.sleep(sleep)
+    time.sleep(sleep)
     my_print("Restart proxy: reping")
     if adb_shell(cmd_ping): return True ## we could have prob when launching it for the 1st time
     return adb_shell(cmd_ping)
