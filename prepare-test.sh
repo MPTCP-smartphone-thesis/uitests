@@ -3,6 +3,8 @@
 # if DEV == 1: relaunch uitest-project all the time
 DEV=0
 
+LOG=adb.log
+
 DIR=$(pwd)
 [ -n "$1" ] && PROJ_NAME="$1" && shift || read -p "Name of your uitest project? (e.g. 'snapchat') " PROJ_NAME
 [ ! -f "$PROJ_NAME/local.properties" ] && NEW_UIPROJ='Y' || read -p "Create new uitest project? [y/N] " NEW_UIPROJ
@@ -24,4 +26,8 @@ adb push uitests-$PROJ_NAME.jar  /storage/sdcard0/uitests-$PROJ_NAME.jar || exit
 cd $DIR
 
 echo -e "\n\t==== Launch the test ===="
-adb shell uiautomator runtest /storage/sdcard0/uitests-$PROJ_NAME.jar -c $PROJ_NAME.LaunchSettings $@
+# Neither adb shell nor uiautomator return error code; inspect its output to detect failures
+adb shell "> /storage/sdcard0/$LOG"
+adb shell "uiautomator runtest /storage/sdcard0/uitests-$PROJ_NAME.jar -c $PROJ_NAME.LaunchSettings $@ | tee /storage/sdcard0/$LOG"
+adb pull /storage/sdcard0/$LOG
+! grep FAILURES!!! $LOG
