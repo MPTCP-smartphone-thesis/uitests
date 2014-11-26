@@ -376,6 +376,9 @@ if CTRL_WIFI:
     router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
     disable_netem()
 
+my_print("Remove previous traces located on the phone")
+adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
+
 # rmnet: 4G/3G/2G
 # both[234]: wlan + rmnet[234]
 # With TC:
