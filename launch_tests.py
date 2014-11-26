@@ -443,7 +443,7 @@ adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 # With TC:
 #      - L5p: Losses of 5%
 #      - D10m: Delay of 10ms
-Network = Enum('Network', 'wlan both4 both3 rmnet4 rmnet3 both4Data both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
+Network = Enum('Network', 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
 
 # With or without mptcp
 mptcp = [True, False]
@@ -489,8 +489,8 @@ for with_mptcp in mptcp:
         if net == Network.wlan:
             enable_iface(WIFI)
             disable_iface(DATA)
-        elif net == Network.both4Data: # prefer data
-            both('4', prefer_wifi=False)
+        # elif net == Network.both4Data: # prefer data
+        #     both('4', prefer_wifi=False)
         elif name.startswith('both'):
             both(name[4])
         elif name.startswith('rmnet'):
