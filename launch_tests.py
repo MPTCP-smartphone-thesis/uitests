@@ -51,8 +51,8 @@ REBOOT = True
 BACKUP_TRACES = True
 # Tests with (and without) MPTCP support
 WITH_MPTCP = True
-# Timeout for each test which is launched: 2'30
-TIMEOUT = 150
+# Timeout for each test which is launched: 3
+TIMEOUT = 60*3
 # External host to ping in order to check that everything is ok
 EXT_HOST = "ns328523.ip-37-187-114.eu"
 
