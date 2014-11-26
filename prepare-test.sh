@@ -15,6 +15,7 @@ if [ "$DEV" = "1" -o "$NEW_UIPROJ" = 'Y' -o "$NEW_UIPROJ" = 'y' ]; then
 fi
 
 cd uitests-$PROJ_NAME
+rm -rf bin
 ant build || exit 1
 
 which adb > /dev/null || (echo "ADB not found: add it to your PATH" && exit 1)
