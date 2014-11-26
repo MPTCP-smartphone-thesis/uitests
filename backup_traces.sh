@@ -8,4 +8,4 @@ RC=0
 # need to add an entry 'mptcpdata' in ~/.ssh/config and load your SSH key in your SSH Agent (via ssh-add)
 # or use sshpass: rsync $TRACE_DIR --rsh='sshpass -p PASSWORD ssh -l USER' host.example.com:path
 echo "Launch RSync"
-rsync -az $TRACE_DIR -e "ssh $SSH_USER:$DEST_DIR"
+rsync -az --progress $TRACE_DIR $SSH_USER:$DEST_DIR
