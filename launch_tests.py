@@ -191,7 +191,7 @@ def adb_shell(cmd, uiautomator=False, args=False):
     thread.start()
 
     # print each line, keep the last one
-    while proc.poll() != None:
+    while proc.poll() == None:
         line = proc.stdout.readline()
         last_line = line.rstrip()
         if uiautomator and last_line.startswith('FAILURES!!!'):
@@ -250,13 +250,13 @@ def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
         else:
             iface = "wlan0:rmnet0"
 
-        adb_shell_root('mkdir -p ' + android_pcap_dir)
+        adb_shell('mkdir -p ' + android_pcap_dir)
 
         pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
         return adb_shell_root('tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp & echo $! > ' + ANDROID_TCPDUMP_PID)
     else:
         success = adb_shell_root('test -f ' + ANDROID_TCPDUMP_PID + ' && kill `cat ' + ANDROID_TCPDUMP_PID + '`')
-        adb_shell_root('rm -f ' + ANDROID_TCPDUMP_PID)
+        adb_shell('rm -f ' + ANDROID_TCPDUMP_PID)
         return success
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
