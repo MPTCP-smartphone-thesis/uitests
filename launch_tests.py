@@ -57,32 +57,35 @@ TIMEOUT = 150
 EXT_HOST = "ns328523.ip-37-187-114.eu"
 
 # Exceptions for uitests: which are useful just to prepare tests
-uitests_exceptions = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app"]
+UITESTS_EXCEPTIONS = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app"]
 # Home dir on Android
-android_home = "/storage/sdcard0"
+ANDROID_HOME = "/storage/sdcard0"
+ANDROID_TRACE_OUT = ANDROID_HOME + '/traces'
+ANDROID_TCPDUMP_PID = ANDROID_TRACE_OUT + '/.tcpdump.pid'
 # The default directory to save traces on host, if not provided by args
 DEFAULT_DIR = "~/Thesis/TCPDump"
 
 ##############
 
 if sys.stdout.isatty():
-    blue      = "\033[1;34m" # + bold
-    white_std = "\033[0;39m"
+    GREEN     = "\033[1;33m" # + bold
+    BLUE      = "\033[0;34m"
+    WHITE_STD = "\033[0;39m"
 else:
-    blue = white_std = ''
+    GREEN = BLUE = WHITE_STD = ''
 
 if sys.stderr.isatty():
     red       = "\033[1;31m" # + bold
-    white_err = "\033[0;39m"
+    WHITE_ERR = "\033[0;39m"
 else:
-    err = white_err = ''
+    err = WHITE_ERR = ''
 
 # custom print
 def my_print(msg):
-    print(blue + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n" + white_std)
+    print(GREEN + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n" + WHITE_STD)
 
 def my_print_err(msg):
-    print(red + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + white_err, file=sys.stderr)
+    print(red + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + WHITE_ERR, file=sys.stderr)
 
 ##############
 
@@ -113,7 +116,7 @@ print("\n======================================\n\n")
 def is_valid_uitest(dir):
     if not dir.startswith('uitests-'):
         return False
-    if dir in uitests_exceptions:
+    if dir in UITESTS_EXCEPTIONS:
         return False
     return os.path.isfile(os.path.join(dir, 'build.xml'))
 
@@ -124,7 +127,7 @@ for file in os.listdir('.'):
         uitests_dir.append(file)
 
 # Prepare the tests (build the jar if needed)
-for uitest in uitests_dir + uitests_exceptions:
+for uitest in uitests_dir + UITESTS_EXCEPTIONS:
     app = uitest[8:]
     my_print("Checking requirements for " + app)
     need_creation = DEVEL or not os.path.isfile(os.path.join(uitest, 'local.properties'))
@@ -154,7 +157,7 @@ for uitest in uitests_dir + uitests_exceptions:
             continue
 
         # push the new jar
-        cmd = "adb push " + jar_file + " " + android_home + "/" + uitest + ".jar"
+        cmd = "adb push " + jar_file + " " + ANDROID_HOME + "/" + uitest + ".jar"
         if subprocess.call(cmd.split()) != 0:
             my_print_err("when pushing jar for " + app)
             continue
@@ -215,12 +218,12 @@ def launch(app, net, out_dir):
     except:
         app_name = app.capitalize()
     my_print("Kill app " + app_name)
-    cmd = "uiautomator runtest " + android_home + "/uitests-kill_app.jar -c kill_app.LaunchSettings -e app " + app_name
+    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-kill_app.jar -c kill_app.LaunchSettings -e app " + app_name
     adb_shell(cmd)
 
     # no need to pull useless traces
     if not success:
-        cmd = "rm -rf " + android_home + "/traces/*"
+        cmd = "rm -rf " + ANDROID_TRACE_OUT + '/' + app
         adb_shell(cmd)
         return False
 
@@ -286,7 +289,7 @@ def stop_proxy():
 
 # net should be: '4', '3' or '2'
 def change_pref_net(version):
-    cmd = "uiautomator runtest " + android_home + "/uitests-preference_network.jar -c preference_network.LaunchSettings -e network-status " + version + "G"
+    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-preference_network.jar -c preference_network.LaunchSettings -e network-status " + version + "G"
     return adb_shell(cmd)
 
 # 'wifi', 'enable'
@@ -357,7 +360,7 @@ def disable_netem():
 
 # 'enable' or 'disable'
 def multipath_control(action):
-    cmd = "uiautomator runtest " + android_home + "/uitests-multipath_control.jar -c multipath_control.LaunchSettings -e action " + action
+    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-multipath_control.jar -c multipath_control.LaunchSettings -e action " + action
     return adb_shell(cmd)
 
 ################################################################################
@@ -459,7 +462,7 @@ for with_mptcp in mptcp:
 my_print("================ DONE =================\n")
 
 my_print("Remove traces located on the phone")
-adb_shell("rm -r /storage/sdcard0/traces*")
+adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
 my_print("Reboot the phone") # to avoid possible Android bugs
 if REBOOT and subprocess.call("adb reboot".split()) != 0:
