@@ -195,13 +195,16 @@ def adb_shell(cmd, uiautomator=False, args=False):
         line = proc.stdout.readline()
         if line != '':
             last_line = line.rstrip()
-            
-            print(BLUE + last_line + WHITE_STD)
+            if uiautomator and last_line.startswith('FAILURES!!!'):
+                error = TRUE
+                print(RED + last_line + WHITE_ERR, , file=sys.stderr)
+            else:
+                print(BLUE + last_line + WHITE_STD)
         else:
             break
 
     rc = proc.poll()
-    if rc != 0:
+    if rc != 0 or error:
         my_print_err("when launching this cmd on the device: " + full_cmd + " - rc: " + str(rc))
         return False
 
