@@ -197,7 +197,7 @@ def adb_shell(cmd, uiautomator=False, args=False):
             last_line = line.rstrip()
             if uiautomator and last_line.startswith('FAILURES!!!'):
                 error = TRUE
-                print(RED + last_line + WHITE_ERR, , file=sys.stderr)
+                print(RED + last_line + WHITE_ERR, file=sys.stderr)
             else:
                 print(BLUE + last_line + WHITE_STD)
         else:
