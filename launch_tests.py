@@ -167,15 +167,27 @@ print("\n======================================\n\n")
 ################################################################################
 
 def adb_shell(cmd):
-    adb_cmd = "adb shell " + cmd
+    # adb shell doesn't return the last exit code...
+    adb_cmd = ['adb', 'shell', cmd + '; echo $?']
+    last_line = '1'
+
+    proc = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE)
+
+    # print each line, keep the last one
+    while True:
+        line = proc.stdout.readline()
+        if line != '':
+            last_line = line.rstrip()
+            print(BLUE + last_line + WHITE_STD)
+        else:
+            break
+
     try:
-        if subprocess.call(adb_cmd.split(), timeout=TIMEOUT) != 0: # timeout of > 1 minute
-            my_print_err("when launching this cmd on the device: " + cmd)
-            return False
-        return True
-    except:
-        my_print_err("(timeout) when launching this cmd on the device: " + cmd)
+        rc = int(last_line)
+    except ValueError as e:
+        my_print_err("when launching this cmd on the device: " + cmd)
         return False
+    return rc == 0
 
 def adb_shell_root(cmd):
     su_cmd = 'su sh -c "' + cmd + '"'
