@@ -121,7 +121,11 @@ public class Utils {
 		boolean succeed = false;
 		UiObject settingsApp;
 		int i = 0;
-		boolean forward = true;
+		/*
+		 * It seems there is a bug: flingForward ou scrollToEnd don't go to the
+		 * end... stillOne: we should use forward ones again...
+		 */
+		boolean stillOne = true, forward = true;
 		while (!succeed) {
 			try {
 				settingsApp = appViews.getChildByText(new UiSelector()
@@ -131,10 +135,25 @@ public class Utils {
 				settingsApp.clickAndWaitForNewWindow();
 				}
 			catch (UiObjectNotFoundException e) {
-				if (forward)
-					forward = appViews.flingForward(); // move to one new panel each time
-				else
-					forward = ! appViews.flingBackward();
+				// move to one new panel each time
+				if (forward) {
+					if (! stillOne) {
+						forward = false; // backward
+						stillOne = true; // we continue to search in the new way
+						appViews.flingForward();
+					}
+					else
+						stillOne = appViews.flingForward();
+				}
+				else {
+					if (! stillOne) {
+						forward = true; // forward
+						stillOne = true;
+						appViews.flingBackward();
+					}
+					else
+						stillOne = appViews.flingBackward();
+				}
 			}
 			if (i > 15)
 				throw new UiObjectNotFoundException("App not found");
