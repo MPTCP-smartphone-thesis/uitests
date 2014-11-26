@@ -123,39 +123,24 @@ public class Utils {
 		int i = 0;
 		/*
 		 * It seems there is a bug: flingForward ou scrollToEnd don't go to the
-		 * end... stillOne: we should use forward ones again...
+		 * end...
 		 */
-		boolean stillOne = true, forward = true;
 		while (!succeed) {
 			try {
 				settingsApp = appViews.getChildByText(new UiSelector()
 						.className(android.widget.TextView.class.getName()),
-						appText, false); // do not scroll, did in the catch
+						appText, i >= 14); // do not scroll, did in the catch
 				succeed = true;
 				settingsApp.clickAndWaitForNewWindow();
 				}
 			catch (UiObjectNotFoundException e) {
 				// move to one new panel each time
-				if (forward) {
-					if (! stillOne) {
-						forward = false; // backward
-						stillOne = true; // we continue to search in the new way
-						appViews.flingForward();
-					}
-					else
-						stillOne = appViews.flingForward();
-				}
-				else {
-					if (! stillOne) {
-						forward = true; // forward
-						stillOne = true;
-						appViews.flingBackward();
-					}
-					else
-						stillOne = appViews.flingBackward();
-				}
+				if (i < 7 || i >= 14)
+					appViews.flingForward();
+				else
+					appViews.flingBackward();
 			}
-			if (i > 15)
+			if (i > 20)
 				throw new UiObjectNotFoundException("App not found");
 			i++;
 		}
