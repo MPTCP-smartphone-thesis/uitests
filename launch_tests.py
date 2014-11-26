@@ -193,7 +193,7 @@ def adb_shell(cmd, uiautomator=False, args=False):
     # print each line, keep the last one
     while proc.poll() == None:
         line = proc.stdout.readline()
-        if last == '':
+        if line == '':
             continue
         last_line = line.rstrip()
         if uiautomator and last_line.startswith('FAILURES!!!'):
