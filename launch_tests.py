@@ -181,29 +181,73 @@ def adb_shell_root(cmd):
     su_cmd = 'su sh -c "' + cmd + '"'
     return adb_shell(su_cmd)
 
+# relaunch SSH-Tunnel and check the connection via a ping
+def restart_proxy(sleep=0):
+    cmd_ping = "ping -c 2 " + EXT_HOST
+    adb_shell(cmd_ping) ## to avoid strange DNS problems
+    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-ssh_tunnel.jar -c ssh_tunnel.LaunchSettings"
+    if not adb_shell(cmd): return False
+    if sleep > 0:
+        time.sleep(sleep)
+    if adb_shell(cmd_ping): return True ## we could have prob when launching it for the 1st time
+    return adb_shell(cmd_ping)
+
+def stop_proxy():
+    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-ssh_tunnel.jar -c ssh_tunnel.LaunchSettings -e action stop"
+    return adb_shell(cmd)
+
 # Launch full capture on the server
-def manage_capture_distant(mode, app, net, time_now):
+def manage_capture_server(mode, arg_pcap):
     my_print("Send request to the server to " + mode + " a full capture")
-    arg_pcap = app + "_" + net + "_" + time_now
     cmd = "bash " + mode + "_full_pcap_distant.sh " + arg_pcap
     if subprocess.call(cmd.split()) != 0:
         my_print_err("when using " + mode + "_full_pcap_distant.sh with " + arg_pcap)
 
-# Launch test for one app and pull files after each test (if there is a bug)
-def launch(app, net, out_dir):
-    time_now = str(int(time.time()))
+def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
+    if start:
+        if net.startswith('wlan'):
+            iface = "wlan0"
+        elif net.startswith('rmnet'):
+            iface = "rmnet0"
+        else:
+            iface = "wlan0:rmnet0"
 
-    # Start full capture on the proxy
-    manage_capture_distant("start", app, net, time_now)
+        adb_shell_root('mkdir -p ' + android_pcap_dir)
+
+        pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
+        return adb_shell_root('tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp & echo $! > ' + ANDROID_TCPDUMP_PID)
+    else:
+        success = adb_shell_root('kill `cat ' + ANDROID_TCPDUMP_PID + '`')
+        adb_shell_root('rm -f ' + ANDROID_TCPDUMP_PID)
+        return success
+
+# Launch/Stop full capture on the server and on the device, then restart/stop proxy
+def manage_capture(start, app, android_pcap_dir, net, time_now):
+    arg_pcap = app + "_" + net + "_" + time_now
+
+    if start: # first the server, then the device
+        manage_capture_server("start", arg_pcap)
+        manage_capture_device(True, arg_pcap, android_pcap_dir, net)
+        restart_proxy()
+    else:
+        stop_proxy()
+        manage_capture_device(False, arg_pcap, android_pcap_dir, net)
+        manage_capture_server("stop", arg_pcap)
+
+# Launch test for one app and pull files after each test (if there is a bug)
+def launch(app, net, mptcp_dir, out_dir):
+    time_now = str(int(time.time()))
+    out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net/app
+    android_pcap_dir = ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net + '/' + app
+
+    # Start full capture on the proxy and on the device
+    manage_capture(True, app, android_pcap_dir, net, time_now)
 
     my_print("*** Launching tests for [ " + app.upper() + " ] at " + time_now + " for " + net + " ***")
     cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings"
     success = adb_shell(cmd)
 
-    # Stop full capture on the proxy
-    manage_capture_distant("stop", app, net, time_now)
-
-    # Kill the app and TCPDump (e.g. if there is a bug with the previous test)
+    # Kill the app
     app_name_file = os.path.join("uitests-" + app, "app_name.txt")
     try:
         file = open(app_name_file, 'r')
@@ -215,6 +259,9 @@ def launch(app, net, out_dir):
     cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-kill_app.jar -c kill_app.LaunchSettings -e app " + app_name
     adb_shell(cmd)
 
+    # Stop full capture on the proxy and on the device
+    manage_capture(False, app, android_pcap_dir, net, time_now)
+
     # no need to pull useless traces
     if not success:
         cmd = "rm -rf " + ANDROID_TRACE_OUT + '/' + app
@@ -222,20 +269,15 @@ def launch(app, net, out_dir):
         return False
 
     # Save files: 'traces' external dir already contains the app name
-    my_print("Pull files to " + out_dir)
-    cmd = "adb pull " + android_home + "/traces/ " + os.path.abspath(out_dir)
+    if not os.path.isdir(out_dir_app):
+        os.makedirs(out_dir_app)
+    my_print("Pull files to " + out_dir_app)
+    cmd = "adb pull " + android_pcap_dir + "/ " + out_dir_app
     if subprocess.call(cmd.split()) != 0:
         my_print_err("when pulling traces for " + app)
-    # Files will be saved in ~/Thesis/TCPDump/20141119-195517/MPTCP/NET/youtube/youtube_1456465416.pcap
-
-    # Move previous traces on the device
-    cmd = "mv " + android_home + "/traces/* " + android_home + "/traces_" + net
-    return adb_shell(cmd)
+    # Files will be saved in ~/Thesis/TCPDump/20141119-195517/MPTCP/NET/youtube/youtube_NET_1456465416.pcap
 
 def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
-    cmd = "mkdir -p " + android_home + "/traces_" + net
-    if not adb_shell(cmd): return
-
     # out_dir: ~/Thesis/TCPDump/20141119-195517/MPTCP/NET
     out_dir = os.path.join(out_base, mptcp_dir, net)
     if (not os.path.isdir(out_dir)):
@@ -247,7 +289,7 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
 
     for uitest in uitests_dir:
         app = uitest[8:]
-        launch(app, net, out_dir)
+        launch(app, net, mptcp_dir, out_dir)
 
     # Compress files
     my_print("Compressing files")
@@ -266,20 +308,6 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
 ## Net: devices
 WIFI = 'wifi'
 DATA = 'data'
-
-# relaunch SSH-Tunnel and check the connection via a ping
-def restart_proxy():
-    cmd_ping = "ping -c 5 " + EXT_HOST
-    adb_shell(cmd_ping) ## to avoid strange DNS problems
-    cmd = "uiautomator runtest " + android_home + "/uitests-ssh_tunnel.jar -c ssh_tunnel.LaunchSettings"
-    if not adb_shell(cmd): return False
-    time.sleep(5)
-    if adb_shell(cmd_ping): return True ## we could have prob when launching it for the 1st time
-    return adb_shell(cmd_ping)
-
-def stop_proxy():
-    cmd = "uiautomator runtest " + android_home + "/uitests-ssh_tunnel.jar -c ssh_tunnel.LaunchSettings -e action stop"
-    return adb_shell(cmd)
 
 # net should be: '4', '3' or '2'
 def change_pref_net(version):
@@ -436,9 +464,6 @@ for with_mptcp in mptcp:
 
         my_print("Wait 5 seconds and restart proxy")
         time.sleep(5)
-        if not restart_proxy():
-            my_print_err(" when preparing the proxy")
-            continue
 
         # Network of the router
         if tc:
