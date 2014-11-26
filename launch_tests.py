@@ -70,10 +70,11 @@ DEFAULT_DIR = "~/Thesis/TCPDump"
 
 if sys.stdout.isatty():
     GREEN     = "\033[1;32m" # + bold
+    YELLOW    = "\033[0;33m"
     BLUE      = "\033[0;34m"
     WHITE_STD = "\033[0;39m"
 else:
-    GREEN = BLUE = WHITE_STD = ''
+    GREEN = YELLOW = BLUE = WHITE_STD = ''
 
 if sys.stderr.isatty():
     RED       = "\033[1;31m" # + bold
@@ -82,11 +83,11 @@ else:
     err = WHITE_ERR = ''
 
 # custom print
-def my_print(msg):
-    print(GREEN + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n" + WHITE_STD)
+def my_print(msg, start=GREEN):
+    print(start + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n" + WHITE_STD)
 
-def my_print_err(msg):
-    print(RED + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + WHITE_ERR, file=sys.stderr)
+def my_print_err(msg, start=RED):
+    print(start + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + WHITE_ERR, file=sys.stderr)
 
 ##############
 
@@ -197,7 +198,7 @@ def adb_shell(cmd, uiautomator=False, args=False):
             continue
         last_line = line.rstrip()
         if uiautomator and last_line.startswith('FAILURES!!!'):
-            error = TRUE
+            error = True
             print(RED + last_line + WHITE_ERR, file=sys.stderr)
         else:
             print(BLUE + last_line + WHITE_STD)
@@ -225,15 +226,19 @@ def adb_shell_root(cmd):
 
 # relaunch SSH-Tunnel and check the connection via a ping
 def restart_proxy(sleep=0):
+    my_print("Restart proxy: ping")
     cmd_ping = "ping -c 2 " + EXT_HOST
     adb_shell(cmd_ping) ## to avoid strange DNS problems
+    my_print("Restart proxy: ssh tunnel")
     if not adb_shell(False, uiautomator='ssh_tunnel'): return False
     if sleep > 0:
         time.sleep(sleep)
+    my_print("Restart proxy: reping")
     if adb_shell(cmd_ping): return True ## we could have prob when launching it for the 1st time
     return adb_shell(cmd_ping)
 
 def stop_proxy():
+    my_print("Stop proxy")
     return adb_shell(False, uiautomator='ssh_tunnel', args='action stop')
 
 # Launch full capture on the server
@@ -245,6 +250,7 @@ def manage_capture_server(mode, arg_pcap):
 
 def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
     if start:
+        my_print("Capture traces on the device")
         if net.startswith('wlan'):
             iface = "wlan0"
         elif net.startswith('rmnet'):
@@ -257,6 +263,7 @@ def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
         pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
         return adb_shell_root('tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp & echo $! > ' + ANDROID_TCPDUMP_PID)
     else:
+        my_print("Stop capturing traces on the device")
         success = adb_shell_root('test -f ' + ANDROID_TCPDUMP_PID + ' && kill `cat ' + ANDROID_TCPDUMP_PID + '`')
         adb_shell('rm -f ' + ANDROID_TCPDUMP_PID)
         return success
@@ -283,7 +290,7 @@ def launch(app, net, mptcp_dir, out_dir):
     # Start full capture on the proxy and on the device
     manage_capture(True, app, android_pcap_dir, net, time_now)
 
-    my_print("*** Launching tests for [ " + app.upper() + " ] at " + time_now + " for " + net + " ***")
+    my_print("*** Launching tests for [ " + YELLOW + app.upper() + GREEN + " ] at " + time_now + " for " + net + " ***")
     success = adb_shell(False, uiautomator=app)
 
     # Kill the app
@@ -302,7 +309,8 @@ def launch(app, net, mptcp_dir, out_dir):
 
     # no need to pull useless traces
     if not success:
-        cmd = "rm -rf " + ANDROID_TRACE_OUT + '/' + app
+        my_print("Error during the test, remove traces")
+        cmd = "rm -rf " + android_pcap_dir
         adb_shell(cmd)
         return False
 
@@ -349,6 +357,7 @@ DATA = 'data'
 
 # net should be: '4', '3' or '2'
 def change_pref_net(version):
+    my_print("Settings: prefer " + version + "G")
     arg = "network-status " + version + "G"
     return adb_shell(False, uiautomator='preference_network', args=arg)
 
@@ -399,6 +408,7 @@ def delay_cmd(value):
     return ""
 
 def router_shell(cmd):
+    my_print("Router: exec: " + cmd)
     router_cmd = "sshpass -p " + PASSWORD_ROUTER + " ssh " + USER_ROUTER + "@" + IP_ROUTER + " " + cmd
     if subprocess.call(router_cmd.split()) != 0:
         my_print_err("when launching this cmd on the router: " + cmd)
@@ -420,6 +430,7 @@ def disable_netem():
 
 # 'enable' or 'disable'
 def multipath_control(action):
+    my_print("Multipath Control: " + action)
     return adb_shell(False, uiautomator='multipath_control', args='action '+action)
 
 ################################################################################
