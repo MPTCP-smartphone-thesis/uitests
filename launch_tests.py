@@ -199,10 +199,13 @@ def adb_shell(cmd, uiautomator=False, args=False):
             print(RED + last_line + WHITE_ERR, file=sys.stderr)
         else:
             print(BLUE + last_line + WHITE_STD)
-        try:
-            last_number = int(last_line)
-        except ValueError as e:
-            pass
+        if len(last_line) < 4:
+            try:
+                number = int(last_line)
+                if number >= 0 or number <= 255:
+                    last_number = number
+            except ValueError as e:
+                pass
 
     rc = proc.returncode
     if rc != 0 or error:
