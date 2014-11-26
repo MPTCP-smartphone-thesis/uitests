@@ -19,7 +19,7 @@ Of course, you'll need to install all supported apps:
 * Shazam: You need to skip the initial menu
 * Snapchat: You need to create this file: `uitests-snapchat/src/login/LoginClass.java` with two `public static` methods which return a `String`: `getUsername()`, `getPassword()`.
 * Spotify: You need to be connected with a Spotify account and need to change the quality to a better one.
-* Youtube: You need a Google account, skip the initial menu (how to use Youtube)
+* Youtube: You need a Google account, skip the initial menu (how to use Youtube). You also need to go in the menu of YouTube, Settings / General and uncheck "Limit mobile data usage"
 
 
 On the host machine
