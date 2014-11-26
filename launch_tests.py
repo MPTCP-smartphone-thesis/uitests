@@ -166,9 +166,14 @@ print("\n======================================\n\n")
 
 ################################################################################
 
-def adb_shell(cmd):
-    # adb shell doesn't return the last exit code...
-    adb_cmd = ['adb', 'shell', cmd + '; echo $?']
+def adb_shell(cmd, uiautomator=False, args=False):
+    if uiautomator:
+        full_cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + app + ".LaunchSettings"
+        if args:
+            full_cmd += " -e "
+    else:
+        full_cmd = cmd
+    adb_cmd = ['adb', 'shell', full_cmd + '; echo $?']
     last_line = '1'
 
     proc = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE)
@@ -197,16 +202,14 @@ def adb_shell_root(cmd):
 def restart_proxy(sleep=0):
     cmd_ping = "ping -c 2 " + EXT_HOST
     adb_shell(cmd_ping) ## to avoid strange DNS problems
-    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-ssh_tunnel.jar -c ssh_tunnel.LaunchSettings"
-    if not adb_shell(cmd): return False
+    if not adb_shell(False, uiautomator='ssh_tunnel'): return False
     if sleep > 0:
         time.sleep(sleep)
     if adb_shell(cmd_ping): return True ## we could have prob when launching it for the 1st time
     return adb_shell(cmd_ping)
 
 def stop_proxy():
-    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-ssh_tunnel.jar -c ssh_tunnel.LaunchSettings -e action stop"
-    return adb_shell(cmd)
+    return adb_shell(False, uiautomator='ssh_tunnel', args='action stop')
 
 # Launch full capture on the server
 def manage_capture_server(mode, arg_pcap):
@@ -256,8 +259,7 @@ def launch(app, net, mptcp_dir, out_dir):
     manage_capture(True, app, android_pcap_dir, net, time_now)
 
     my_print("*** Launching tests for [ " + app.upper() + " ] at " + time_now + " for " + net + " ***")
-    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings"
-    success = adb_shell(cmd)
+    success = adb_shell(False, uiautomator=app)
 
     # Kill the app
     app_name_file = os.path.join("uitests-" + app, "app_name.txt")
@@ -268,8 +270,7 @@ def launch(app, net, mptcp_dir, out_dir):
     except:
         app_name = app.capitalize()
     my_print("Kill app " + app_name)
-    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-kill_app.jar -c kill_app.LaunchSettings -e app " + app_name
-    adb_shell(cmd)
+    adb_shell(False, uiautomator='kill_app', args='app '+app_name)
 
     # Stop full capture on the proxy and on the device
     manage_capture(False, app, android_pcap_dir, net, time_now)
@@ -323,8 +324,8 @@ DATA = 'data'
 
 # net should be: '4', '3' or '2'
 def change_pref_net(version):
-    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-preference_network.jar -c preference_network.LaunchSettings -e network-status " + version + "G"
-    return adb_shell(cmd)
+    arg = "network-status " + version + "G"
+    return adb_shell(False, uiautomator='preference_network', args=arg)
 
 # 'wifi', 'enable'
 def manage_net(iface, status):
@@ -394,8 +395,7 @@ def disable_netem():
 
 # 'enable' or 'disable'
 def multipath_control(action):
-    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-multipath_control.jar -c multipath_control.LaunchSettings -e action " + action
-    return adb_shell(cmd)
+    return adb_shell(False, uiautomator='multipath_control', args='action '+action)
 
 ################################################################################
 
