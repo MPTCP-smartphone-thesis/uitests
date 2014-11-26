@@ -182,7 +182,7 @@ def adb_shell(cmd, uiautomator=False, args=False):
     else:
         full_cmd = cmd
     adb_cmd = ['adb', 'shell', full_cmd + '; echo $?']
-    last_line = '1'
+    last_number = 0
     error = False
 
     # adb shell doesn't return the last exit code...
@@ -191,29 +191,28 @@ def adb_shell(cmd, uiautomator=False, args=False):
     thread.start()
 
     # print each line, keep the last one
-    while True:
+    while proc.poll() != None:
         line = proc.stdout.readline()
-        if line != '':
-            last_line = line.rstrip()
-            if uiautomator and last_line.startswith('FAILURES!!!'):
-                error = TRUE
-                print(RED + last_line + WHITE_ERR, file=sys.stderr)
-            else:
-                print(BLUE + last_line + WHITE_STD)
+        last_line = line.rstrip()
+        if uiautomator and last_line.startswith('FAILURES!!!'):
+            error = TRUE
+            print(RED + last_line + WHITE_ERR, file=sys.stderr)
         else:
-            break
+            print(BLUE + last_line + WHITE_STD)
+        try:
+            last_number = int(last_line)
+        except ValueError as e:
+            pass
 
-    rc = proc.poll()
+    rc = proc.returncode
     if rc != 0 or error:
         my_print_err("when launching this cmd on the device: " + full_cmd + " - rc: " + str(rc))
         return False
 
-    try:
-        rc = int(last_line)
-    except ValueError as e:
-        my_print_err("when launching this cmd on the device: " + full_cmd + " - last line: " + last_line)
+    if last_number != 0
+        my_print_err("when launching this cmd on the device: " + full_cmd + " - last number: " + last_line)
         return False
-    return rc == 0
+    return True
 
 def adb_shell_root(cmd):
     su_cmd = 'su sh -c "' + cmd + '"'
