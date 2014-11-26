@@ -69,7 +69,7 @@ DEFAULT_DIR = "~/Thesis/TCPDump"
 ##############
 
 if sys.stdout.isatty():
-    GREEN     = "\033[1;33m" # + bold
+    GREEN     = "\033[1;32m" # + bold
     BLUE      = "\033[0;34m"
     WHITE_STD = "\033[0;39m"
 else:
@@ -252,7 +252,7 @@ def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
         pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
         return adb_shell_root('tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp & echo $! > ' + ANDROID_TCPDUMP_PID)
     else:
-        success = adb_shell_root('kill `cat ' + ANDROID_TCPDUMP_PID + '`')
+        success = adb_shell_root('test -f ' + ANDROID_TCPDUMP_PID + ' && kill `cat ' + ANDROID_TCPDUMP_PID + '`')
         adb_shell_root('rm -f ' + ANDROID_TCPDUMP_PID)
         return success
 
