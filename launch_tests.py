@@ -51,6 +51,8 @@ REBOOT = True
 BACKUP_TRACES = True
 # Tests with (and without) MPTCP support
 WITH_MPTCP = True
+# Timeout for each test which is launched: 2'30
+TIMEOUT = 150
 # External host to ping in order to check that everything is ok
 EXT_HOST = "ns328523.ip-37-187-114.eu"
 
@@ -164,7 +166,7 @@ print("\n======================================\n\n")
 def adb_shell(cmd):
     adb_cmd = "adb shell " + cmd
     try:
-        if subprocess.call(adb_cmd.split(), timeout=960) != 0: # timeout of 16 minutes
+        if subprocess.call(adb_cmd.split(), timeout=TIMEOUT) != 0: # timeout of > 1 minute
             my_print_err("when launching this cmd on the device: " + cmd)
             return False
         return True
