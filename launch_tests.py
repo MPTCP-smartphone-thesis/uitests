@@ -178,7 +178,7 @@ def adb_shell(cmd, uiautomator=False, args=False):
     if uiautomator:
         full_cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + app + ".LaunchSettings"
         if args:
-            full_cmd += " -e "
+            full_cmd += " -e " + args
     else:
         full_cmd = cmd
     adb_cmd = ['adb', 'shell', full_cmd + '; echo $?']
