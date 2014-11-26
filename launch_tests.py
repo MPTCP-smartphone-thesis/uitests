@@ -196,14 +196,8 @@ def launch(app, net, out_dir):
     # Start full capture on the proxy
     manage_capture_distant("start", app, net, time_now)
 
-    if name.startswith('wlan'):
-        iface = "wlan0"
-    elif name.startswith('rmnet'):
-        iface = "rmnet0"
-    else:
-        iface = "wlan0:rmnet0"
-    my_print("*** Launching tests for " + app + " at " + time_now + " for " + net + " ***")
-    cmd = "uiautomator runtest " + android_home + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings -e iface " + iface
+    my_print("*** Launching tests for [ " + app.upper() + " ] at " + time_now + " for " + net + " ***")
+    cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + app + ".jar -c " + app + ".LaunchSettings"
     success = adb_shell(cmd)
 
     # Stop full capture on the proxy
