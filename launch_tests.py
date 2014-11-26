@@ -176,7 +176,7 @@ def adb_shell_timeout(proc):
 
 def adb_shell(cmd, uiautomator=False, args=False):
     if uiautomator:
-        full_cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + app + ".LaunchSettings"
+        full_cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + uiautomator + ".LaunchSettings"
         if args:
             full_cmd += " -e " + args
     else:
