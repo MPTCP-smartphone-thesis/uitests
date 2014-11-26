@@ -28,6 +28,7 @@ import random
 import shutil # rmtree
 import subprocess
 import sys
+import threading
 import time
 
 from enum import Enum
@@ -166,6 +167,13 @@ print("\n======================================\n\n")
 
 ################################################################################
 
+def adb_shell_timeout(proc):
+    try:
+        proc.wait(TIMEOUT)
+    except:
+        my_print_err("(timeout) when launching this cmd on the device: " + str(proc.args))
+        proc.terminate()
+
 def adb_shell(cmd, uiautomator=False, args=False):
     if uiautomator:
         full_cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + app + ".LaunchSettings"
@@ -175,22 +183,32 @@ def adb_shell(cmd, uiautomator=False, args=False):
         full_cmd = cmd
     adb_cmd = ['adb', 'shell', full_cmd + '; echo $?']
     last_line = '1'
+    error = False
 
-    proc = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE)
+    # adb shell doesn't return the last exit code...
+    proc = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, universal_newlines=True)
+    thread = threading.Thread(target=adb_shell_timeout, args=(proc,))
+    thread.start()
 
     # print each line, keep the last one
     while True:
         line = proc.stdout.readline()
         if line != '':
             last_line = line.rstrip()
+            
             print(BLUE + last_line + WHITE_STD)
         else:
             break
 
+    rc = proc.poll()
+    if rc != 0:
+        my_print_err("when launching this cmd on the device: " + full_cmd + " - rc: " + str(rc))
+        return False
+
     try:
         rc = int(last_line)
     except ValueError as e:
-        my_print_err("when launching this cmd on the device: " + cmd)
+        my_print_err("when launching this cmd on the device: " + full_cmd + " - last line: " + last_line)
         return False
     return rc == 0
 
