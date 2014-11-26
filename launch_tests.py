@@ -209,7 +209,7 @@ def adb_shell(cmd, uiautomator=False, args=False):
         my_print_err("when launching this cmd on the device: " + full_cmd + " - rc: " + str(rc))
         return False
 
-    if last_number != 0
+    if last_number != 0:
         my_print_err("when launching this cmd on the device: " + full_cmd + " - last number: " + last_line)
         return False
     return True
