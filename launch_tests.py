@@ -62,7 +62,6 @@ UITESTS_EXCEPTIONS = ["uitests-preference_network", "uitests-multipath_control",
 # Home dir on Android
 ANDROID_HOME = "/storage/sdcard0"
 ANDROID_TRACE_OUT = ANDROID_HOME + '/traces'
-ANDROID_TCPDUMP_PID = ANDROID_TRACE_OUT + '/.tcpdump.pid'
 # The default directory to save traces on host, if not provided by args
 DEFAULT_DIR = "~/Thesis/TCPDump"
 
@@ -266,12 +265,16 @@ def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
         adb_shell('mkdir -p ' + android_pcap_dir)
 
         pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
-        return adb_shell_root('tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp & echo $! > ' + ANDROID_TCPDUMP_PID)
+        return adb_shell_root('tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp')
     else:
         my_print("Stop capturing traces on the device")
-        success = adb_shell_root('test -f ' + ANDROID_TCPDUMP_PID + ' && kill `cat ' + ANDROID_TCPDUMP_PID + '`')
-        adb_shell('rm -f ' + ANDROID_TCPDUMP_PID)
-        return success
+        ps_out = adb_shell('ps | grep tcpdump', out=True)
+        if ps_out:
+            for line in ps_out:
+                if 'tcpdump' in line:
+                    pid = line.split()[1]
+                    return adb_shell_root('kill ' + pid)
+        return False
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
 def manage_capture(start, app, android_pcap_dir, net, time_now):
