@@ -27,7 +27,7 @@ On the host machine
 
 If you want to use our scripts, you will need to install `adb` (e.g. from `android-tools-adb` package), `ant`, `openjdk-7-jdk`, `git` and `android` and they should be available without using the full path (available in `$PATH`).
 
-You also need to check that you can correctly be connected to the router (or change `CTRL_WIFI` in `launch_tests.py`) via SSH with the parameters set in `launch_tests.py`. You will also need `sshpass` tool
+You also need to check that you can correctly be connected to the router (or change `CTRL_WIFI` in `launch_tests.py`) via SSH with the parameters set in `launch_tests.py`. You will also need `sshpass` tool. If you're using a proxy, it can be interesting to change `EXT_HOST` variable.
 
 If you want to use `backup_traces.sh`, you need to add an entry `mptcpdata` in `~/.ssh/config` and load your SSH key in your SSH Agent (via ssh-add).
 
@@ -49,3 +49,9 @@ You will need to install `tcpdump` binary in `/system/xbin/`:
     chmod 777 /system/xbin/tcpdump
 
 Note: it's maybe better to not auto-update your apps (Play Store settings) and install adblock (to avoid ads being displayed during the tests).
+
+
+`launch_tests.py` script
+========================
+
+Some constant are used on the top of the script. If you want to change it, feel free to rewrite them `launch_tests_conf.py` file (next to `launch_tests.py` file).

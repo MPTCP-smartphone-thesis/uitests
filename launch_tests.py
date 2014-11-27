@@ -65,6 +65,14 @@ ANDROID_TRACE_OUT = ANDROID_HOME + '/traces'
 # The default directory to save traces on host, if not provided by args
 DEFAULT_DIR = "~/Thesis/TCPDump"
 
+# force to be in the right dir
+root_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(root_dir)
+
+# load external config
+if os.path.isfile('launch_tests_conf.py'):
+    from launch_tests_conf import *
+
 ##############
 
 if sys.stdout.isatty():
@@ -103,10 +111,6 @@ output_dir = os.path.join(arg_dir_exp, now_dir)
 if (not os.path.isdir(output_dir)):
     os.makedirs(output_dir)
 my_print("Save tcpdump files in " + output_dir)
-
-# force to be in the right dir
-root_dir = os.path.dirname(os.path.abspath(__file__))
-os.chdir(root_dir)
 
 my_print("Git version:")
 cmd = "git describe --abbrev=0 --dirty --always"
