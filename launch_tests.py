@@ -301,7 +301,7 @@ def launch(app, net, mptcp_dir, out_dir):
     except:
         app_name = app.capitalize()
     my_print("Kill app " + app_name)
-    adb_shell(False, uiautomator='kill_app', args='app '+app_name)
+    adb_shell(False, uiautomator='kill_app', args='app '+app_name.replace(' ', '#'))
 
     # Stop full capture on the proxy and on the device
     manage_capture(False, app, android_pcap_dir, net, time_now)
