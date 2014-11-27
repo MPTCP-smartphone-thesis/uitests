@@ -175,7 +175,7 @@ def adb_shell_timeout(proc):
         my_print_err("(timeout) when launching this cmd on the device: " + str(proc.args))
         proc.terminate()
 
-def adb_shell(cmd, uiautomator=False, args=False):
+def adb_shell(cmd, uiautomator=False, args=False, out=False):
     if uiautomator:
         full_cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + uiautomator + ".LaunchSettings"
         if args:
@@ -185,6 +185,10 @@ def adb_shell(cmd, uiautomator=False, args=False):
     adb_cmd = ['adb', 'shell', full_cmd + '; echo $?']
     last_number = 0
     error = False
+    if out:
+        result = []
+    else:
+        result = True
 
     # adb shell doesn't return the last exit code...
     proc = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, universal_newlines=True)
@@ -200,6 +204,8 @@ def adb_shell(cmd, uiautomator=False, args=False):
         if uiautomator and last_line.startswith('FAILURES!!!'):
             error = True
             print(RED + last_line + WHITE_ERR, file=sys.stderr)
+        elif out:
+            result += [last_line]
         else:
             print(BLUE + last_line + WHITE_STD)
         if len(last_line) < 4:
@@ -218,7 +224,7 @@ def adb_shell(cmd, uiautomator=False, args=False):
     if last_number != 0:
         my_print_err("when launching this cmd on the device: " + full_cmd + " - last number: " + last_line)
         return False
-    return True
+    return result
 
 def adb_shell_root(cmd):
     su_cmd = 'su sh -c "' + cmd + '"'
