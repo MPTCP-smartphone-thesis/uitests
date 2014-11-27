@@ -271,7 +271,7 @@ def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
         adb_shell('mkdir -p ' + android_pcap_dir)
 
         pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
-        return adb_shell_root('tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp')
+        return adb_shell_root('tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp &')
     else:
         my_print("Stop capturing traces on the device")
         ps_out = adb_shell('ps | grep tcpdump', out=True)
