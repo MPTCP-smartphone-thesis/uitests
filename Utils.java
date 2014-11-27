@@ -80,7 +80,10 @@ public class Utils {
 		Utils.runAsRoot(commands);
 	}
 
-	public static boolean killApp(UiAutomatorTestCase t, String appText) {
+	/**
+	 * Kill app by swiping it in the RecentApps panel
+	 */
+	public static boolean swipeApp(UiAutomatorTestCase t, String appText) {
 		t.getUiDevice().pressHome(); // if we're already in recent apps
 		try {
 			t.getUiDevice().pressRecentApps();
@@ -126,6 +129,11 @@ public class Utils {
 			t.getUiDevice().pressBack();
 		}
 	}
+	
+	public static void killApp(String packageName) {
+		String[] commands = { "am force-stop " + packageName };
+		Utils.runAsRoot(commands);
+	}
 
 	public static boolean openApp(UiAutomatorTestCase t, String appText,
 			String packageName) throws UiObjectNotFoundException {
@@ -135,7 +143,7 @@ public class Utils {
 		} catch (RemoteException e1) { // not a big deal
 			e1.printStackTrace();
 		}
-		killApp(t, appText);
+		killApp(packageName);
 		t.getUiDevice().pressHome();
 
 		UiObject allAppsButton = new UiObject(
