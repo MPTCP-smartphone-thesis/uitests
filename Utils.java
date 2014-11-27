@@ -228,6 +228,19 @@ public class Utils {
 		}
 	}
 
+	/**
+	 * Click on the className UiObject containing as child the text text
+	 */
+	public static boolean click(UiScrollable list, String className, String text) {
+		try {
+			UiObject item = list.getChildByText(
+					new UiSelector().className(className), text, true);
+			return item.click();
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+
 	public static boolean clickOnTheMiddle(UiAutomatorTestCase t) {
 		return t.getUiDevice().click(t.getUiDevice().getDisplayWidth() / 2,
 				t.getUiDevice().getDisplayHeight() / 2);
