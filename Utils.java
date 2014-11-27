@@ -23,6 +23,8 @@ public class Utils {
 	public static final String homeDir = "/storage/sdcard0";
 	public static final String traceBase = homeDir + "/traces";
 
+	public static final int SPAM_BACK = 10;
+
 	public static void runAsRoot(String[] cmds) {
 		try {
 			Process p = Runtime.getRuntime().exec("su");
@@ -109,6 +111,20 @@ public class Utils {
 			swipeToEnd(app, t.getUiDevice(), Orientation.LEFT, 10);
 		t.getUiDevice().pressHome(); // go back home
 		return success;
+	}
+
+	public static void customAssertTrue(UiAutomatorTestCase t, String msg,
+			boolean succeeded) {
+		if (!succeeded) {
+			returnToHomeScreen(t);
+			UiAutomatorTestCase.assertTrue("msg", false);
+		}
+	}
+
+	public static void returnToHomeScreen(UiAutomatorTestCase t) {
+		for (int i = 0; i < SPAM_BACK; i++) {
+			t.getUiDevice().pressBack();
+		}
 	}
 
 	public static boolean openApp(UiAutomatorTestCase t, String appText,
