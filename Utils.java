@@ -8,6 +8,7 @@ import java.util.List;
 import android.os.RemoteException;
 
 import com.android.uiautomator.core.UiCollection;
+import com.android.uiautomator.core.UiDevice;
 import com.android.uiautomator.core.UiObject;
 import com.android.uiautomator.core.UiObjectNotFoundException;
 import com.android.uiautomator.core.UiScrollable;
@@ -105,7 +106,7 @@ public class Utils {
 			}
 		}
 		if (success)
-			swipe(app, Orientation.RIGHT, 10);
+			swipeToEnd(app, t.getUiDevice(), Orientation.LEFT, 10);
 		t.getUiDevice().pressHome(); // go back home
 		return success;
 	}
@@ -283,6 +284,28 @@ public class Utils {
 				return obj.swipeLeft(steps);
 			case RIGHT:
 				return obj.swipeRight(steps);
+			default:
+				return false;
+			}
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+
+	public static boolean swipeToEnd(UiObject obj, UiDevice device,
+			Orientation orientation, int steps) {
+		try {
+			switch (orientation) {
+			case DOWN:
+				return obj.dragTo(obj.getBounds().centerX(),
+						device.getDisplayHeight(), steps);
+			case UP:
+				return obj.dragTo(obj.getBounds().centerX(), 0, steps);
+			case LEFT:
+				return obj.dragTo(0, obj.getBounds().centerY(), steps);
+			case RIGHT:
+				return obj.dragTo(device.getDisplayWidth(), obj.getBounds()
+						.centerY(), steps);
 			default:
 				return false;
 			}
