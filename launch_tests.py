@@ -308,15 +308,15 @@ def launch(app, net, mptcp_dir, out_dir):
     success = adb_shell(False, uiautomator=app)
 
     # Kill the app
-    app_name_file = os.path.join("uitests-" + app, "app_name.txt")
+    pkg_name_file = os.path.join("uitests-" + app, "pkg_name.txt")
     try:
-        file = open(app_name_file, 'r')
-        app_name = file.readline().replace('\n', '')
+        file = open(pkg_name_file, 'r')
+        pkg_name = file.readlines()[0].replace('\n', '')
         file.close()
+        my_print("Force stop app " + app + " - " + pkg_name)
+        adb_shell_root("am force-stop " + pkg_name) # root should not be needed
     except:
-        app_name = app.capitalize()
-    my_print("Kill app " + app_name)
-    adb_shell(False, uiautomator='kill_app', args='app '+app_name.replace(' ', '#'))
+        my_print_err("Not able to find pkg name and then kill " + app)
 
     # Stop full capture on the proxy and on the device
     manage_capture(False, app, android_pcap_dir, net, time_now)
