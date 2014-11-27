@@ -55,7 +55,9 @@ WITH_MPTCP = True
 # Timeout for each test which is launched: 3
 TIMEOUT = 60*3
 # External host to ping in order to check that everything is ok
-EXT_HOST = "ns328523.ip-37-187-114.eu"
+EXT_HOST = "google.com"
+# Force the use of colours in messages sent to stdout/stderr
+FORCE_COLORS = False
 
 # Exceptions for uitests: which are useful just to prepare tests
 UITESTS_EXCEPTIONS = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app"]
@@ -75,7 +77,7 @@ if os.path.isfile('launch_tests_conf.py'):
 
 ##############
 
-if sys.stdout.isatty():
+if FORCE_COLORS or sys.stdout.isatty():
     GREEN     = "\033[1;32m" # + bold
     YELLOW    = "\033[0;33m"
     BLUE      = "\033[0;34m"
@@ -83,7 +85,7 @@ if sys.stdout.isatty():
 else:
     GREEN = YELLOW = BLUE = WHITE_STD = ''
 
-if sys.stderr.isatty():
+if FORCE_COLORS or sys.stderr.isatty():
     RED       = "\033[1;31m" # + bold
     WHITE_ERR = "\033[0;39m"
 else:
