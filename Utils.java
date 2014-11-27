@@ -77,25 +77,37 @@ public class Utils {
 		Utils.runAsRoot(commands);
 	}
 
-	public static void killApp(UiAutomatorTestCase t, String appText) {
+	public static boolean killApp(UiAutomatorTestCase t, String appText) {
 		t.getUiDevice().pressHome(); // if we're already in recent apps
 		try {
 			t.getUiDevice().pressRecentApps();
 		} catch (RemoteException e) {
 			e.printStackTrace();
-			return;
+			return false;
 		}
 		t.sleep(1000);
-		List<UiObject> available = getElems("com.android.systemui:id/recents_bg_protect", "com.android.systemui:id/app_label");
-		for (UiObject uiObject : available) {
-			try {
-				if (uiObject.getText().equals(appText))
-					swipe(uiObject, Orientation.RIGHT, 5);
-			} catch (UiObjectNotFoundException e) {
-				e.printStackTrace();
+
+		boolean success = false;
+		UiObject app = Utils.getObjectWithText(appText);
+		if (success = (app == null))
+			System.out.println("Found!");
+		else {
+			List<UiObject> available = getElems(
+					"com.android.systemui:id/recents_bg_protect",
+					"com.android.systemui:id/app_label");
+			for (UiObject uiObject : available) {
+				try {
+					if (success = (uiObject.getText().equals(appText)))
+						break;
+				} catch (UiObjectNotFoundException e) {
+					System.out.println("App not found " + appText);
+				}
 			}
 		}
+		if (success)
+			swipe(app, Orientation.RIGHT, 10);
 		t.getUiDevice().pressHome(); // go back home
+		return success;
 	}
 
 	public static boolean openApp(UiAutomatorTestCase t, String appText,
