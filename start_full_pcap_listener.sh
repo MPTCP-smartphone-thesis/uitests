@@ -7,11 +7,12 @@ BASE="/home/mptcp/smartphone"
 FILE="$BASE/.tcpdump-start"
 OUT="$BASE-server"
 PID="$BASE/.tcpdump-pid"
+TIMEOUT=300 # 5 minutes
 
 > $FILE
 while inotifywait -e modify "$FILE"; do
    # The last line of .tcpdump-start contains the name of the application
    CURR_APP=$(tail -n 1 "$FILE" || echo "UNKNOWN")
-   tcpdump -i $IF -w "${OUT}/${CURR_APP}.pcap" &
+   timeout $TIMEOUT tcpdump -i $IF -w "${OUT}/${CURR_APP}.pcap" &
    echo $! >> "$PID"
 done
