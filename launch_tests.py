@@ -33,6 +33,10 @@ import time
 
 from enum import Enum
 
+##################################################
+##                    CONFIG                    ##
+##################################################
+
 # switch to True to always rebuild the jar
 DEVEL = False
 # switch to False to not purge files
@@ -75,7 +79,10 @@ os.chdir(root_dir)
 if os.path.isfile('launch_tests_conf.py'):
     from launch_tests_conf import *
 
-##############
+
+##################################################
+##                    COLORS                    ##
+##################################################
 
 if FORCE_COLORS or sys.stdout.isatty():
     GREEN     = "\033[1;32m" # + bold
@@ -98,7 +105,10 @@ def my_print(msg, start=GREEN):
 def my_print_err(msg, start=RED):
     print(start + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + WHITE_ERR, file=sys.stderr)
 
-##############
+
+##################################################
+##            PREPARE TESTS: MACHINE            ##
+##################################################
 
 my_print("Starting tests " + time.ctime())
 now_dir = time.strftime("%Y%m%d-%H%M%S")
@@ -171,7 +181,10 @@ for uitest in uitests_dir + UITESTS_EXCEPTIONS:
 
 print("\n======================================\n\n")
 
-################################################################################
+
+##################################################
+##                DEVICE: METHODS               ##
+##################################################
 
 def adb_shell_timeout(proc):
     try:
@@ -365,6 +378,11 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
                 if subprocess.call(cmd.split()) != 0:
                     my_print_err(" when pulling traces for " + app)
 
+
+##################################################
+##            DEVICE/ROUTER: NETWORK            ##
+##################################################
+
 ## Net: devices
 WIFI = 'wifi'
 DATA = 'data'
@@ -459,6 +477,11 @@ if CTRL_WIFI:
     my_print("Reset Netem (tc), ignore errors")
     router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
     disable_netem()
+
+
+##################################################
+##             DEVICE: LAUNCH TESTS             ##
+##################################################
 
 my_print("Remove previous traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
