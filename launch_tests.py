@@ -494,6 +494,11 @@ if CTRL_WIFI:
 my_print("Remove previous traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
+my_print("Check if we have 'SIM card added' warning")
+while adb_shell(False, uiautomator='kill_app', args='sim true'):
+    my_print("Wait: the smartphone is rebooting")
+    time.sleep(60)
+
 # rmnet: 4G/3G/2G
 # both[234]: wlan + rmnet[234]
 # With TC:
