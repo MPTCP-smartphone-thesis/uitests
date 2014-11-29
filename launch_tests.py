@@ -267,6 +267,7 @@ def restart_proxy(sleep=1):
         time.sleep(sleep)
     else:
         time.sleep(2)
+    return True
 
 def stop_proxy():
     my_print("Stop proxy")
@@ -310,20 +311,27 @@ def manage_capture(start, app, android_pcap_dir, net, time_now):
     if start: # first the server, then the device
         manage_capture_server("start", arg_pcap)
         manage_capture_device(True, arg_pcap, android_pcap_dir, net)
-        restart_proxy()
+        if not restart_proxy():
+            manage_capture_device(False, arg_pcap, android_pcap_dir, net)
+            manage_capture_server("stop", arg_pcap)
+            return False
+        return True
     else:
-        stop_proxy()
+        success = stop_proxy()
         manage_capture_device(False, arg_pcap, android_pcap_dir, net)
         manage_capture_server("stop", arg_pcap)
+        return success
 
 # Launch test for one app and pull files after each test (if there is a bug)
 def launch(app, net, mptcp_dir, out_dir):
-    time_now = str(int(time.time()))
+    time_now = time.strftime("%Y%m%d-%H%M%S")
     out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net/app
     android_pcap_dir = ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net + '/' + app
 
     # Start full capture on the proxy and on the device
-    manage_capture(True, app, android_pcap_dir, net, time_now)
+    if not manage_capture(True, app, android_pcap_dir, net, time_now):
+        my_print_err("Error proxy: Skip test of " + app.upper())
+        return
 
     my_print("*** Launching tests for [ " + YELLOW + app.upper() + GREEN + " ] at " + time_now + " for " + net + " ***")
     success = adb_shell(False, uiautomator=app)
