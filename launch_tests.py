@@ -370,7 +370,9 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
 
     for uitest in uitests_dir:
         app = uitest[8:]
+        time_before = time.time()
         launch(app, net, mptcp_dir, out_dir)
+        my_print('UITest for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
 
     # Compress files
     my_print("Compressing files")
