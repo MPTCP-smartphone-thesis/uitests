@@ -309,7 +309,7 @@ def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
         adb_shell_root(cmd)
         time.sleep(0.5)
         while not adb_get_pid('tcpdump'):
-            if (i > 4)
+            if (i > 4):
                 my_print_err("Not able to start tcpdump!")
                 return False
             i += 1
