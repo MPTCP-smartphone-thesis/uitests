@@ -291,6 +291,11 @@ def adb_reboot(wait=True):
     if wait:
         time.sleep(60)
         adb_check_reboot_sim()
+        try:
+            subprocess.call("adb wait-for-device".split(), timeout=300) # 5min
+        except:
+            my_print_err("Device not found... Exit")
+            sys.exit(1)
     return True
 
 # relaunch SSH-Tunnel and check the connection via a ping
@@ -577,6 +582,10 @@ for i in range(5): # check 5 time, max 30sec: should be enough
 if not LAST_UPTIME:
     my_print_err("Not able to contact the device... Stop")
     sys.exit(1)
+
+my_print("adb: restart server")
+subprocess.call("adb kill-server".split())
+subprocess.call("adb start-server".split())
 
 my_print("Remove previous traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
