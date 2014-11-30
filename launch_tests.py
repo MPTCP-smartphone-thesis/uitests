@@ -279,10 +279,19 @@ def adb_check_reboot_sim():
         rebooted = True
 
     up = adb_check_reboot()
-    if not LAST_UPTIME or LAST_UPTIME < time.strptime("30", "%S"):
-        my_print("Uptime is lower than 30 sec, wait 30 seconds more")
+    if LAST_UPTIME and LAST_UPTIME < time.strptime("45", "%S"):
+        my_print("Uptime is lower than 45 sec, wait 30 seconds more")
         time.sleep(30)
-    return rebooted or up
+    return rebooted or up or not LAST_UPTIME
+
+def adb_reboot(wait=True):
+    if REBOOT and subprocess.call("adb reboot".split()) != 0:
+        my_print_err(" when rebooting the phone")
+        return False
+    if wait:
+        time.sleep(60)
+        adb_check_reboot_sim()
+    return True
 
 # relaunch SSH-Tunnel and check the connection via a ping
 def restart_proxy(sleep=1):
@@ -569,9 +578,6 @@ if not LAST_UPTIME:
     my_print_err("Not able to contact the device... Stop")
     sys.exit(1)
 
-# check if we have rebooted and remove Sim's warning
-adb_check_reboot_sim()
-
 my_print("Remove previous traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
@@ -592,10 +598,8 @@ for with_mptcp in mptcp:
         if not WITH_MPTCP:
             my_print("MPTCP not supported, skip")
             continue
-        multipath_control("enable")
         mptcp_dir = "MPTCP"
     else:
-        multipath_control("disable")
         mptcp_dir = "TCP"
 
     my_print("============ Kernel mode: " + mptcp_dir + " =========\n")
@@ -609,6 +613,17 @@ for with_mptcp in mptcp:
     for net in net_list:
         name = net.name
         my_print("========== Network mode: " + name + " ===========\n")
+
+        # Reboot the device: avoid bugs...
+        my_print("Reboot the phone: avoid possible bugs")
+        if not adb_reboot():
+            continue
+        if with_mptcp:
+            multipath_control("enable")
+        else:
+            multipath_control("disable")
+
+        # Check if we need to simulate errors
         tc = False
         index = name.find('TC')
         if index >= 0:
@@ -617,17 +632,6 @@ for with_mptcp in mptcp:
                 continue
             tc = name[index+2:]
             name = name[0:index]
-
-        # Check if the device has rebooted:
-        if adb_check_reboot_sim():
-            # it has rebooted... re-enable MPTCP
-            my_print_err("It seems your device has rebooted...")
-            if with_mptcp:
-                multipath_control("enable")
-            else:
-                multipath_control("disable")
-        else:
-            stop_proxy() ## prevent error when changing network connections
 
         # Network of the device
         if net == Network.wlan:
@@ -667,9 +671,9 @@ my_print("================ DONE =================\n")
 my_print("Remove traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
+
 my_print("Reboot the phone") # to avoid possible Android bugs
-if REBOOT and subprocess.call("adb reboot".split()) != 0:
-    my_print_err(" when rebooting the phone")
+adb_reboot(wait=False)
 
 # backup traces
 my_print("Backup traces") # better to backup files
