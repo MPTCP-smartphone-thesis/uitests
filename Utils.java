@@ -351,21 +351,36 @@ public class Utils {
 		}
 	}
 
-	public static boolean setText(String id, String text) {
+	/**
+	 * Set `text` to object with id `id` and clear text before
+	 */
+	public static boolean setText(String id, String text, boolean clear) {
 		try {
-			return setText(getObject(id), text);
+			return setText(getObject(id), text, clear);
+		} catch (UiObjectNotFoundException e) {
+			return false;
+		}
+	}
+
+	public static boolean setText(String id, String text) {
+		return setText(id, text, true);
+	}
+
+	/**
+	 * Set `text` to object `obj` and clear text before
+	 */
+	public static boolean setText(UiObject obj, String text, boolean clear) {
+		try {
+			if (clear)
+				obj.clearTextField();
+			return obj.setText(text);
 		} catch (UiObjectNotFoundException e) {
 			return false;
 		}
 	}
 
 	public static boolean setText(UiObject obj, String text) {
-		try {
-			obj.clearTextField();
-			return obj.setText(text);
-		} catch (UiObjectNotFoundException e) {
-			return false;
-		}
+		return setText(obj, text, true);
 	}
 
 	public static boolean hasText(String id, String text) {
