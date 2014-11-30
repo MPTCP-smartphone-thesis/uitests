@@ -291,11 +291,14 @@ def adb_reboot(wait=True):
     if wait:
         time.sleep(60)
         adb_check_reboot_sim()
-        try:
-            subprocess.call("adb wait-for-device".split(), timeout=300) # 5min
-        except:
-            my_print_err("Device not found... Exit")
-            sys.exit(1)
+        for i in range(4): # max 2h
+            try:
+                subprocess.call("adb wait-for-device".split(), timeout=1800)
+                return True
+            except:
+                my_print_err("Device not found... Retry " + str(i))
+        my_print_err("Device not found... EXIT")
+        sys.exit(1)
     return True
 
 # relaunch SSH-Tunnel and check the connection via a ping
