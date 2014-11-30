@@ -459,6 +459,12 @@ def both(version, prefer_wifi=True):
         prefer_iface(DATA)
     change_pref_net(version)
 
+# 'enable' or 'disable'
+def multipath_control(action):
+    stop_proxy() ## prevent error when enabling mptcp
+    my_print("Multipath Control: " + action)
+    return adb_shell(False, uiautomator='multipath_control', args='action '+action)
+
 ## Net: router
 
 def get_value_between(s, start, end):
@@ -497,11 +503,6 @@ def disable_netem():
     for iface in IFACE_ROUTER:
         rc &= router_shell("tc qdisc delete dev " + iface + " root")
     return rc
-
-# 'enable' or 'disable'
-def multipath_control(action):
-    my_print("Multipath Control: " + action)
-    return adb_shell(False, uiautomator='multipath_control', args='action '+action)
 
 ################################################################################
 
@@ -546,11 +547,9 @@ for with_mptcp in mptcp:
         if not WITH_MPTCP:
             my_print("MPTCP not supported, skip")
             continue
-        stop_proxy() ## prevent error when enabling mptcp
         multipath_control("enable")
         mptcp_dir = "MPTCP"
     else:
-        stop_proxy() ## prevent error when disabling mptcp
         multipath_control("disable")
         mptcp_dir = "TCP"
 
