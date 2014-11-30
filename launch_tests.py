@@ -256,6 +256,11 @@ def adb_get_uptime():
         my_print_err("Not able to get the uptime")
         return False
 
+def adb_restart():
+    my_print("adb: restart server")
+    subprocess.call("adb kill-server".split())
+    subprocess.call("adb start-server".split())
+
 LAST_UPTIME = ()
 # return True if has rebooted or error
 def adb_check_reboot():
@@ -297,6 +302,7 @@ def adb_reboot(wait=True):
                 return True
             except:
                 my_print_err("Device not found... Retry " + str(i))
+                adb_restart()
         my_print_err("Device not found... EXIT")
         sys.exit(1)
     return True
@@ -586,9 +592,7 @@ if not LAST_UPTIME:
     my_print_err("Not able to contact the device... Stop")
     sys.exit(1)
 
-my_print("adb: restart server")
-subprocess.call("adb kill-server".split())
-subprocess.call("adb start-server".split())
+adb_restart()
 
 my_print("Remove previous traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
