@@ -261,7 +261,7 @@ def adb_restart():
         ps_out = subprocess.check_output("ps -xwwo user,pid,cmd".split(), universal_newlines=True).splitlines()
         for line in ps_out:
             ps = line.split(maxsplit=2)
-            if ps[2].startswith("adb ") and "fork-server" in ps[2]
+            if ps[2].startswith("adb ") and "fork-server" in ps[2]:
                 if ps[0] != os.getenv('USER'):
                     my_print_err("adb owned by another user: not restarting it")
                     return False
