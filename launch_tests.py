@@ -280,6 +280,14 @@ def manage_capture_server(mode, arg_pcap):
     if subprocess.call(cmd.split()) != 0:
         my_print_err("when using " + mode + "_full_pcap_distant.sh with " + arg_pcap)
 
+def adb_get_pid(proc_name):
+    ps_out = adb_shell('ps | grep ' + proc_name, out=True)
+    if ps_out:
+        for line in ps_out:
+            if proc_name in line:
+                return line.split()[1]
+    return False
+
 def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
     if start:
         my_print("Capture traces on the device")
@@ -291,17 +299,29 @@ def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
             iface = "wlan0:rmnet0"
 
         adb_shell('mkdir -p ' + android_pcap_dir)
+        time.sleep(0.1)
 
         pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
-        return adb_shell_root('tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp &')
+        cmd = 'tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp &'
+        i = 0
+
+        # it seems tcpdump is not launched each time and no error is produced
+        adb_shell_root(cmd)
+        time.sleep(0.5)
+        while not adb_get_pid('tcpdump'):
+            if (i > 4)
+                my_print_err("Not able to start tcpdump!")
+                return False
+            i += 1
+            adb_shell_root(cmd)
+            time.sleep(0.5)
+        return True
     else:
         my_print("Stop capturing traces on the device")
-        ps_out = adb_shell('ps | grep tcpdump', out=True)
-        if ps_out:
-            for line in ps_out:
-                if 'tcpdump' in line:
-                    pid = line.split()[1]
-                    return adb_shell_root('kill ' + pid)
+        pid = adb_get_pid('tcpdump')
+        if pid:
+            return adb_shell_root('kill ' + pid)
+        my_print_err("Not able to kill tcpdump")
         return False
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
