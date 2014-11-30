@@ -262,6 +262,7 @@ def adb_check_reboot():
     uptime = adb_get_uptime()
     if not uptime: return True
 
+    global LAST_UPTIME
     old_up = LAST_UPTIME
     LAST_UPTIME = uptime
 
