@@ -617,7 +617,16 @@ for with_mptcp in mptcp:
             tc = name[index+2:]
             name = name[0:index]
 
-        stop_proxy() ## prevent error when changing network connections
+        # Check if the device has rebooted:
+        if adb_check_reboot_sim():
+            # it has rebooted... re-enable MPTCP
+            my_print_err("It seems your device has rebooted...")
+            if with_mptcp:
+                multipath_control("enable")
+            else:
+                multipath_control("disable")
+        else:
+            stop_proxy() ## prevent error when changing network connections
 
         # Network of the device
         if net == Network.wlan:
