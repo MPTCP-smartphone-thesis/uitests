@@ -52,6 +52,8 @@ USER_ROUTER = "root"
 PASSWORD_ROUTER = "root"
 # Reboot the phone before each batch of uitests and at the end of the script
 ADB_REBOOT = True
+# Restart ADB before each batch of uitests
+ADB_RESTART = True
 # Backup your traces by launching backup_traces.sh script
 BACKUP_TRACES = True
 # Tests with (and without) MPTCP support
@@ -257,9 +259,10 @@ def adb_get_uptime():
         return False
 
 def adb_restart():
-    my_print("adb: restart server")
-    subprocess.call("adb kill-server".split())
-    subprocess.call("adb start-server".split())
+    if ADB_RESTART:
+        my_print("adb: restart server")
+        subprocess.call("adb kill-server".split())
+        subprocess.call("adb start-server".split())
 
 LAST_UPTIME = ()
 # return True if has rebooted or error
