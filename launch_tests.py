@@ -50,8 +50,8 @@ IFACE_ROUTER = ['wlan0','wlan1']
 # User and password
 USER_ROUTER = "root"
 PASSWORD_ROUTER = "root"
-# Reboot the phone at the end
-REBOOT = True
+# Reboot the phone before each batch of uitests and at the end of the script
+ADB_REBOOT = True
 # Backup your traces by launching backup_traces.sh script
 BACKUP_TRACES = True
 # Tests with (and without) MPTCP support
@@ -290,7 +290,7 @@ def adb_check_reboot_sim():
     return rebooted or up or not LAST_UPTIME
 
 def adb_reboot(wait=True):
-    if REBOOT and subprocess.call("adb reboot".split()) != 0:
+    if ADB_REBOOT and subprocess.call("adb reboot".split()) != 0:
         my_print_err(" when rebooting the phone")
         return False
     if wait:
