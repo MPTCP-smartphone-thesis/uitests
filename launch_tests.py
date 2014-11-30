@@ -248,6 +248,41 @@ def adb_shell_root(cmd):
     su_cmd = 'su sh -c "' + cmd + '"'
     return adb_shell(su_cmd)
 
+def adb_get_uptime():
+    up_out = adb_shell("uptime", out=True)
+    try:
+        return time.strptime(up_out[0][9:17], "%H:%M:%S")
+    except:
+        my_print_err("Not able to get the uptime")
+        return False
+
+LAST_UPTIME = ()
+# return True if has rebooted or error
+def adb_check_reboot():
+    uptime = adb_get_uptime()
+    if not uptime: return True
+
+    old_up = LAST_UPTIME
+    LAST_UPTIME = uptime
+
+    return old_up > uptime # True if old == ()
+
+# return True if it has rebooted
+def adb_check_reboot_sim():
+    my_print("Check if we have 'SIM card added' warning")
+    rebooted = False
+    # SIM warning
+    while adb_shell(False, uiautomator='kill_app', args='sim true', out=True): # out to hide error
+        my_print("Wait: the smartphone is rebooting")
+        time.sleep(60)
+        rebooted = True
+
+    up = adb_check_reboot()
+    if not LAST_UPTIME or LAST_UPTIME < time.strptime("30", "%S"):
+        my_print("Uptime is lower than 30 sec, wait 30 seconds more")
+        time.sleep(30)
+    return rebooted or up
+
 # relaunch SSH-Tunnel and check the connection via a ping
 def restart_proxy(sleep=1):
     my_print("Restart proxy: ping")
@@ -522,13 +557,22 @@ if CTRL_WIFI:
 ##             DEVICE: LAUNCH TESTS             ##
 ##################################################
 
+my_print("Check device is up")
+for i in range(5): # check 5 time, max 30sec: should be enough
+    adb_check_reboot()
+    if LAST_UPTIME:
+        break
+    time.sleep(6)
+
+if not LAST_UPTIME:
+    my_print_err("Not able to contact the device... Stop")
+    sys.exit(1)
+
+# check if we have rebooted and remove Sim's warning
+adb_check_reboot_sim()
+
 my_print("Remove previous traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
-
-my_print("Check if we have 'SIM card added' warning")
-while adb_shell(False, uiautomator='kill_app', args='sim true'):
-    my_print("Wait: the smartphone is rebooting")
-    time.sleep(60)
 
 # rmnet: 4G/3G/2G
 # both[234]: wlan + rmnet[234]
