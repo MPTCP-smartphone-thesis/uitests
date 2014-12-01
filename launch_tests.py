@@ -273,6 +273,14 @@ def adb_restart():
     if subprocess.call("adb start-server".split()) != 0: return False
     return True
 
+# kill_adb_restart_usb_listener.sh need to be launched as root
+def adb_restart_root():
+    file = open('.adb_reboot', 'a')
+    file.write(time.ctime() + '\n')
+    file.close()
+    time.sleep(15)
+    return subprocess.call("adb start-server".split()) != 0
+
 LAST_UPTIME = ()
 # return True if has rebooted or error
 def adb_check_reboot():
@@ -302,20 +310,60 @@ def adb_check_reboot_sim():
     return rebooted or up or not LAST_UPTIME
 
 def adb_reboot(wait=True):
-    if ADB_REBOOT and subprocess.call("adb reboot".split()) != 0:
-        my_print_err(" when rebooting the phone")
-        return False
-    if wait:
-        time.sleep(60)
-        adb_restart() # restart: avoid permission problems
-        adb_check_reboot_sim()
-        for i in range(4): # max 2h
+    if not ADB_REBOOT:
+        return True
+
+    success = True
+    # Try to reboot it, max 3 times
+    for i in range(3):
+        success = subprocess.call("adb reboot".split()) == 0
+        if success:
+            break
+        my_print_err("when rebooting the phone... Retry " + str(i))
+        # device not found... restart ADB, maybe it can help
+        adb_restart()
+
+    # Even after 3 times, we were not able to reboot. Try with an external script
+    if wait and not success:
+        timeout = False
+        for i in range(5): # limit waiting time
+            if i > 0 and not timeout:
+                time.sleep(30*60)
+            adb_restart_root()
             try:
-                subprocess.call("adb wait-for-device".split(), timeout=1800)
-                return True
+                timeout = False
+                success = subprocess.call("adb reboot".split(), timeout=1800) == 0
+                if success:
+                    break
             except:
+                timeout = True
                 my_print_err("Device not found... Retry " + str(i))
-                adb_restart()
+        if not success:
+            my_print_err("Device not found... EXIT")
+            sys.exit(1)
+
+    if wait:
+        my_print("The device has rebooted, wait 60 sec")
+        time.sleep(60)
+        if not adb_restart(): # restart: avoid permission problems
+            adb_restart_root() # try root if problem
+
+        # check sim card warning
+        adb_check_reboot_sim()
+        timeout = False
+        for i in range(5): # limit waiting time
+            if i > 0 and not timeout:
+                time.sleep(30*60)
+            try:
+                timeout = False
+                if subprocess.call("adb wait-for-device".split(), timeout=1800) == 0:
+                    adb_check_reboot_sim()
+                    return True
+            except:
+                timeout = False
+                my_print_err("Device not found... wait and retry " + str(i))
+                if not adb_restart(): # restart: avoid permission problems
+                    adb_restart_root() # try root if problem
         my_print_err("Device not found... EXIT")
         sys.exit(1)
     return True

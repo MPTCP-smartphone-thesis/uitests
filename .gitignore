@@ -2,3 +2,4 @@
 Login.java
 launch_tests_conf.py
 __pycache__
+.adb_reboot
