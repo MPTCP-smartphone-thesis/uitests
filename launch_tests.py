@@ -357,7 +357,6 @@ def adb_reboot(wait=True):
             try:
                 timeout = False
                 if subprocess.call("adb wait-for-device".split(), timeout=1800) == 0:
-                    adb_check_reboot_sim()
                     return True
             except:
                 timeout = False
