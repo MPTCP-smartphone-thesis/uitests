@@ -363,7 +363,7 @@ public class Utils {
 	}
 
 	public static boolean setText(String id, String text) {
-		return setText(id, text, true);
+		return setText(id, text, false);
 	}
 
 	/**
