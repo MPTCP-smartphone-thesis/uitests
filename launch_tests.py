@@ -307,6 +307,7 @@ def adb_reboot(wait=True):
         return False
     if wait:
         time.sleep(60)
+        adb_restart() # restart: avoid permission problems
         adb_check_reboot_sim()
         for i in range(4): # max 2h
             try:
@@ -593,6 +594,8 @@ if CTRL_WIFI:
 ##             DEVICE: LAUNCH TESTS             ##
 ##################################################
 
+adb_restart()
+
 my_print("Check device is up")
 for i in range(5): # check 5 time, max 30sec: should be enough
     adb_check_reboot()
@@ -603,8 +606,6 @@ for i in range(5): # check 5 time, max 30sec: should be enough
 if not LAST_UPTIME:
     my_print_err("Not able to contact the device... Stop")
     sys.exit(1)
-
-adb_restart()
 
 my_print("Remove previous traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
