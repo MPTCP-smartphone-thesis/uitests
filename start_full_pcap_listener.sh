@@ -10,6 +10,7 @@ PID="$BASE/.tcpdump-pid"
 TIMEOUT=300 # 5 minutes
 
 > $FILE
+chmod 777 "$FILE"
 while inotifywait -e modify "$FILE"; do
    # The last line of .tcpdump-start contains the name of the application
    CURR_APP=$(tail -n 1 "$FILE" || echo "UNKNOWN")

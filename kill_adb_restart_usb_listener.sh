@@ -7,6 +7,7 @@
 
 
 > "$FILE"
+chmod 777 "$FILE"
 while inotifywait -e modify "$FILE"; do
     echo "Kill adb server"
     adb kill-server
