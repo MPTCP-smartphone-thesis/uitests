@@ -418,7 +418,7 @@ def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
             iface = "wlan0:rmnet0"
 
         adb_shell('mkdir -p ' + android_pcap_dir)
-        time.sleep(0.1)
+        time.sleep(0.5)
 
         pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
         cmd = 'tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp &'
@@ -426,14 +426,14 @@ def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
 
         # it seems tcpdump is not launched each time and no error is produced
         adb_shell_root(cmd)
-        time.sleep(0.5)
+        time.sleep(1)
         while not adb_get_pid('tcpdump'):
-            if (i > 4):
+            if (i > 9):
                 my_print_err("Not able to start tcpdump!")
                 return False
             i += 1
             adb_shell_root(cmd)
-            time.sleep(0.5)
+            time.sleep(1)
         return True
     else:
         my_print("Stop capturing traces on the device")
@@ -449,7 +449,9 @@ def manage_capture(start, app, android_pcap_dir, net, time_now):
 
     if start: # first the server, then the device
         manage_capture_server("start", arg_pcap)
-        manage_capture_device(True, arg_pcap, android_pcap_dir, net)
+        if not manage_capture_device(True, arg_pcap, android_pcap_dir, net):
+            manage_capture_server("stop", arg_pcap)
+            return False
         if not restart_proxy():
             manage_capture_device(False, arg_pcap, android_pcap_dir, net)
             manage_capture_server("stop", arg_pcap)
