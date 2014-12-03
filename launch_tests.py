@@ -110,8 +110,12 @@ def my_print_err(msg, start=RED):
 ##            PREPARE TESTS: MACHINE            ##
 ##################################################
 
+cmd = "git describe --abbrev=0 --dirty --always"
+git_rev = subprocess.check_output(cmd.split(), universal_newlines=True).splitlines()[0]
+my_print("Git version: " + git_rev)
+
 my_print("Starting tests " + time.ctime())
-now_dir = time.strftime("%Y%m%d-%H%M%S")
+now_dir = time.strftime("%Y%m%d-%H%M%S") + "_" + git_rev
 
 # Prepare output dir
 if len(sys.argv) > 1:
@@ -123,10 +127,6 @@ output_dir = os.path.join(arg_dir_exp, now_dir)
 if (not os.path.isdir(output_dir)):
     os.makedirs(output_dir)
 my_print("Save tcpdump files in " + output_dir)
-
-my_print("Git version:")
-cmd = "git describe --abbrev=0 --dirty --always"
-subprocess.call(cmd.split())
 print("\n======================================\n\n")
 
 # should start with uitests, not an exception and with build.xml file
