@@ -17,7 +17,7 @@ Of course, you'll need to install all supported apps:
 * Firefox Beta: Go to Settings / Privacy / Clear Private Data / Always clear when quitting (check that you'll clear everything, you need Firefox 33+). You also need to install the module `Janus Proxy Configurator`
 * Messenger: You need to be connected with a Facebook account and have at least one contact and one previous discussion
 * Shazam: You need to skip the initial menu
-* Snapchat: You need to create this file: `uitests-snapchat/src/login/LoginClass.java` with two `public static` methods which return a `String`: `getUsername()`, `getPassword()`.
+* Snapchat: You need to create this file: `Login.java` with two `public static` methods which return a `String`: `getUsername()`, `getPassword()`, e.g.: have a lookt to `LoginSample.java` file.
 * Spotify: You need to be connected with a Spotify account and need to change the quality to a better one.
 * Youtube: You need a Google account, skip the initial menu (how to use Youtube). You also need to go in the menu of YouTube, Settings / General and uncheck "Limit mobile data usage"
 
