@@ -367,6 +367,14 @@ def adb_reboot(wait=True):
         sys.exit(1)
     return True
 
+def adb_get_pid(proc_name):
+ps_out = adb_shell('ps | grep ' + proc_name, out=True)
+if ps_out:
+    for line in ps_out:
+        if proc_name in line:
+            return line.split()[1]
+return False
+
 # relaunch SSH-Tunnel and check the connection via a ping
 def restart_proxy(sleep=1):
     my_print("Restart proxy: ping")
@@ -398,14 +406,6 @@ def manage_capture_server(mode, arg_pcap):
     cmd = "bash " + mode + "_full_pcap_distant.sh " + arg_pcap
     if subprocess.call(cmd.split()) != 0:
         my_print_err("when using " + mode + "_full_pcap_distant.sh with " + arg_pcap)
-
-def adb_get_pid(proc_name):
-    ps_out = adb_shell('ps | grep ' + proc_name, out=True)
-    if ps_out:
-        for line in ps_out:
-            if proc_name in line:
-                return line.split()[1]
-    return False
 
 def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
     if start:
@@ -444,8 +444,8 @@ def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
         return False
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
-def manage_capture(start, app, android_pcap_dir, net, time_now):
-    arg_pcap = app + "_" + net + "_" + time_now
+def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now):
+    arg_pcap = mptcp_dir.lower() + "_" + app + "_" + net + "_" + time_now
 
     if start: # first the server, then the device
         manage_capture_server("start", arg_pcap)
@@ -470,7 +470,7 @@ def launch(app, net, mptcp_dir, out_dir):
     android_pcap_dir = ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net + '/' + app
 
     # Start full capture on the proxy and on the device
-    if not manage_capture(True, app, android_pcap_dir, net, time_now):
+    if not manage_capture(True, mptcp_dir, app, android_pcap_dir, net, time_now):
         my_print_err("Error proxy: Skip test of " + app.upper())
         return
 
@@ -489,7 +489,7 @@ def launch(app, net, mptcp_dir, out_dir):
         my_print_err("Not able to find pkg name and then kill " + app)
 
     # Stop full capture on the proxy and on the device
-    manage_capture(False, app, android_pcap_dir, net, time_now)
+    manage_capture(False, mptcp_dir, app, android_pcap_dir, net, time_now)
 
     # no need to pull useless traces
     if not success:
