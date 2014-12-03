@@ -368,12 +368,12 @@ def adb_reboot(wait=True):
     return True
 
 def adb_get_pid(proc_name):
-ps_out = adb_shell('ps | grep ' + proc_name, out=True)
-if ps_out:
-    for line in ps_out:
-        if proc_name in line:
-            return line.split()[1]
-return False
+    ps_out = adb_shell('ps | grep ' + proc_name, out=True)
+    if ps_out:
+        for line in ps_out:
+            if proc_name in line:
+                return line.split()[1]
+    return False
 
 # relaunch SSH-Tunnel and check the connection via a ping
 def restart_proxy(sleep=1):
