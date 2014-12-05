@@ -186,6 +186,31 @@ print("\n======================================\n\n")
 ##                DEVICE: METHODS               ##
 ##################################################
 
+def adb_restart():
+    try:
+        ps_out = subprocess.check_output("ps -xwwo user,pid,cmd".split(), universal_newlines=True).splitlines()
+        for line in ps_out:
+            ps = line.split(maxsplit=2)
+            if ps[2].startswith("adb ") and "fork-server" in ps[2]:
+                if ps[0] != os.getenv('USER'):
+                    my_print_err("adb owned by another user: not restarting it")
+                    return False
+                break
+    except:
+        my_print_err("Not able to launch ps command")
+        my_print("adb: restart server")
+        if subprocess.call("adb kill-server".split()) != 0: return False
+        if subprocess.call("adb start-server".split()) != 0: return False
+        return True
+
+# kill_adb_restart_usb_listener.sh need to be launched as root
+def adb_restart_root():
+    file = open('.adb_reboot', 'a')
+    file.write(time.ctime() + '\n')
+    file.close()
+    time.sleep(15)
+    return subprocess.call("adb start-server".split()) != 0
+
 def adb_shell_timeout(proc):
     try:
         proc.wait(TIMEOUT)
@@ -193,7 +218,7 @@ def adb_shell_timeout(proc):
         my_print_err("(timeout) when launching this cmd on the device: " + str(proc.args))
         proc.terminate()
 
-def adb_shell(cmd, uiautomator=False, args=False, out=False):
+def adb_shell(cmd, uiautomator=False, args=False, out=False, restart=0):
     if uiautomator:
         full_cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + uiautomator + ".LaunchSettings"
         if args:
@@ -202,37 +227,56 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False):
         full_cmd = cmd
     adb_cmd = ['adb', 'shell', full_cmd + '; echo $?']
     last_number = 0
-    error = False
+    error = dev_not_found = False
     if out:
         result = []
     else:
         result = True
 
     # adb shell doesn't return the last exit code...
-    proc = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, universal_newlines=True)
+    proc = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     thread = threading.Thread(target=adb_shell_timeout, args=(proc,))
     thread.start()
 
+    line = line_err = True
     # print each line, keep the last one
-    while proc.poll() == None:
+    while proc.poll() == None or line or line_err:
+        line_err = proc.stderr.readline()
+        if line_err:
+            line_err_strip = line_err.rstrip()
+            if line_err_strip == 'error: device not found':
+                dev_not_found = True
+            print(RED + line_err_strip + WHITE_ERR, file=sys.stderr)
+
         line = proc.stdout.readline()
-        if line == '':
-            continue
-        last_line = line.rstrip()
-        if uiautomator and last_line.lower().startswith('failure'):
-            error = True
-            print(RED + last_line + WHITE_ERR, file=sys.stderr)
-        elif out:
-            result += [last_line]
+        if line:
+            last_line = line.rstrip()
+            if uiautomator and last_line.lower().startswith('failure'):
+                error = True
+                print(RED + last_line + WHITE_ERR, file=sys.stderr)
+            elif out:
+                result += [last_line]
+            else:
+                print(BLUE + last_line + WHITE_STD)
+            if len(last_line) < 4:
+                try:
+                    number = int(last_line)
+                    if number >= 0 or number <= 255:
+                        last_number = number
+                except ValueError as e:
+                    pass
+
+    if dev_not_found:
+        if restart == 0:
+            my_print_err("Device not found, restart adb server and retry: " + full_cmd)
+            adb_restart()
+        elif restart == 1:
+            my_print_err("Device not found, restart adb server (root) and retry: " + full_cmd)
+            adb_restart_root() # try root if problem
         else:
-            print(BLUE + last_line + WHITE_STD)
-        if len(last_line) < 4:
-            try:
-                number = int(last_line)
-                if number >= 0 or number <= 255:
-                    last_number = number
-            except ValueError as e:
-                pass
+            my_print_err("Device not found, skip this command: " + full_cmd)
+            return False
+        return adb_shell(cmd, uiautomator, args, out, restart+1)
 
     rc = proc.returncode
     if rc != 0 or error:
@@ -255,31 +299,6 @@ def adb_get_uptime():
     except:
         my_print_err("Not able to get the uptime")
         return False
-
-def adb_restart():
-    try:
-        ps_out = subprocess.check_output("ps -xwwo user,pid,cmd".split(), universal_newlines=True).splitlines()
-        for line in ps_out:
-            ps = line.split(maxsplit=2)
-            if ps[2].startswith("adb ") and "fork-server" in ps[2]:
-                if ps[0] != os.getenv('USER'):
-                    my_print_err("adb owned by another user: not restarting it")
-                    return False
-                break
-    except:
-        my_print_err("Not able to launch ps command")
-    my_print("adb: restart server")
-    if subprocess.call("adb kill-server".split()) != 0: return False
-    if subprocess.call("adb start-server".split()) != 0: return False
-    return True
-
-# kill_adb_restart_usb_listener.sh need to be launched as root
-def adb_restart_root():
-    file = open('.adb_reboot', 'a')
-    file.write(time.ctime() + '\n')
-    file.close()
-    time.sleep(15)
-    return subprocess.call("adb start-server".split()) != 0
 
 LAST_UPTIME = ()
 # return True if has rebooted or error
