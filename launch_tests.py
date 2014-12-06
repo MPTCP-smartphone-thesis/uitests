@@ -273,6 +273,10 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, restart=0):
         elif restart == 1:
             my_print_err("Device not found, restart adb server (root) and retry: " + full_cmd)
             adb_restart_root() # try root if problem
+        elif restart > 1 and restart < 6: # max 2h
+            my_print_err("Device not found, sleep 30 minutes (" + str(restart-1) + "), restart adb server (root) and retry: " + full_cmd)
+            time.sleep(1800)
+            adb_restart_root()
         else:
             my_print_err("Device not found, skip this command: " + full_cmd)
             return False
