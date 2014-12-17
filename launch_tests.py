@@ -58,6 +58,8 @@ BACKUP_TRACES = True
 WITH_TCP = True
 # Tests with (and without) MPTCP support
 WITH_MPTCP = True
+# MPTCP with FULLMESH
+WITH_FULLMESH = False
 # Timeout for each test which is launched: 3
 TIMEOUT = 60*3
 # External host to ping in order to check that everything is ok
@@ -610,10 +612,13 @@ def both(version, prefer_wifi=True):
     change_pref_net(version)
 
 # 'enable' or 'disable'
-def multipath_control(action):
+def multipath_control(action, path_mgr=False):
     stop_proxy() ## prevent error when enabling mptcp
     my_print("Multipath Control: " + action)
-    return adb_shell(False, uiautomator='multipath_control', args='action '+action)
+    mp_args = 'action ' + action
+    if path_mgr:
+        mp_args = [mp_args, 'pm ' + path_mgr]
+    return adb_shell(False, uiautomator='multipath_control', args=mp_args)
 
 ## Net: router
 
@@ -695,11 +700,17 @@ adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 #      - D10m: Delay of 10ms
 Network = Enum('Network', 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
 
+# Check MPTCP: we only have time for 2 tests
+if WITH_MPTCP and WITH_TCP and WITH_FULLMESH:
+    WITH_MPTCP = False
+
 mptcp = []
 if WITH_MPTCP:
     mptcp.append('MPTCP')
 if WITH_TCP:
     mptcp.append('TCP')
+if WITH_FULLMESH:
+    mptcp.append('MPTCP_FM')
 random.shuffle(mptcp)
 
 for mptcp_dir in mptcp:
@@ -722,6 +733,8 @@ for mptcp_dir in mptcp:
             continue
         if mptcp_dir == 'MPTCP':
             multipath_control("enable")
+        elif mptcp_dir == 'MPTCP_FM':
+            multipath_control("enable", path_mgr="fullmesh")
         else:
             multipath_control("disable")
 
