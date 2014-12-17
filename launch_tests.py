@@ -54,6 +54,8 @@ PASSWORD_ROUTER = "root"
 ADB_REBOOT = True
 # Backup your traces by launching backup_traces.sh script
 BACKUP_TRACES = True
+# Tests with TCP (without MPTCP)
+WITH_TCP = True
 # Tests with (and without) MPTCP support
 WITH_MPTCP = True
 # Timeout for each test which is launched: 3
@@ -693,19 +695,14 @@ adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 #      - D10m: Delay of 10ms
 Network = Enum('Network', 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
 
-# With or without mptcp
-mptcp = [True, False]
+mptcp = []
+if WITH_MPTCP:
+    mptcp.append('MPTCP')
+if WITH_TCP:
+    mptcp.append('TCP')
 random.shuffle(mptcp)
 
-for with_mptcp in mptcp:
-    # Check MPTCP
-    if with_mptcp:
-        if not WITH_MPTCP:
-            my_print("MPTCP not supported, skip")
-            continue
-        mptcp_dir = "MPTCP"
-    else:
-        mptcp_dir = "TCP"
+for mptcp_dir in mptcp:
 
     my_print("============ Kernel mode: " + mptcp_dir + " =========\n")
 
@@ -723,7 +720,7 @@ for with_mptcp in mptcp:
         my_print("Reboot the phone: avoid possible bugs")
         if not adb_reboot():
             continue
-        if with_mptcp:
+        if mptcp_dir == 'MPTCP':
             multipath_control("enable")
         else:
             multipath_control("disable")
