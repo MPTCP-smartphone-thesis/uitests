@@ -14,6 +14,6 @@ chmod 777 "$FILE"
 while inotifywait -e modify "$FILE"; do
    # The last line of .tcpdump-start contains the name of the application
    CURR_APP=$(tail -n 1 "$FILE" || echo "UNKNOWN")
-   timeout $TIMEOUT tcpdump -i $IF -w "${OUT}/${CURR_APP}.pcap" &
+   timeout $TIMEOUT /usr/sbin/tcpdump -i $IF -w "${OUT}/${CURR_APP}.pcap" &
    echo $! >> "$PID"
 done
