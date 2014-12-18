@@ -441,41 +441,58 @@ def manage_capture_server(mode, arg_pcap):
     if subprocess.call(cmd.split()) != 0:
         my_print_err("when using " + mode + "_full_pcap_distant.sh with " + arg_pcap)
 
-def manage_capture_device(start, arg_pcap, android_pcap_dir, net):
-    if start:
-        my_print("Capture traces on the device")
-        if net.startswith('wlan'):
-            iface = "wlan0"
-        elif net.startswith('rmnet'):
-            iface = "rmnet0"
-        else:
-            iface = "wlan0:rmnet0"
+def stop_capture_device():
+    my_print("Stop capturing traces on the device")
+    pids = adb_get_pid('tcpdump')
+    out_status = True
+    for pid in pids:
+        out_status &= adb_shell_root('kill ' + pid)
+    if out_status:
+        return True
+    my_print_err("Not able to kill tcpdump")
+    return False
 
-        adb_shell('mkdir -p ' + android_pcap_dir)
-        time.sleep(0.5)
-
-        pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
-        cmd = 'tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp &'
-        i = 0
-
-        # it seems tcpdump is not launched each time and no error is produced
+# it seems tcpdump is not launched each time and no error is produced
+def capture_device_launch(cmd, instances):
+    adb_shell_root(cmd)
+    time.sleep(1)
+    pids = adb_get_pid('tcpdump')
+    i = 0
+    while not pids or len(pids) < instances:
+        if (i > 9):
+            return False
+        i += 1
         adb_shell_root(cmd)
         time.sleep(1)
-        while not adb_get_pid('tcpdump'):
-            if (i > 9):
-                my_print_err("Not able to start tcpdump!")
-                return False
-            i += 1
-            adb_shell_root(cmd)
-            time.sleep(1)
-        return True
-    else:
-        my_print("Stop capturing traces on the device")
-        pid = adb_get_pid('tcpdump')
-        if pid:
-            return adb_shell_root('kill ' + pid)
-        my_print_err("Not able to kill tcpdump")
+        pids = adb_get_pid('tcpdump')
+    return True
+
+def start_capture_device(arg_pcap, android_pcap_dir, net):
+    my_print("Capture traces on the device")
+    if net.startswith('wlan'):
+        iface = "wlan0"
+    elif net.startswith('rmnet'):
+        iface = "rmnet0"
+    else: # both
+        iface = "wlan0:rmnet0"
+
+    adb_shell('mkdir -p ' + android_pcap_dir)
+    time.sleep(0.5)
+
+    pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
+    cmd = 'tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp &'
+
+    if not launch_capture_device(cmd, 1):
+        my_print_err("Not able to start tcpdump!")
         return False
+
+    pcap_file_lo = android_pcap_dir + '/' + arg_pcap + '_lo.pcap'
+    cmd_lo = 'tcpdump -i lo -w ' + pcap_file_lo + ' tcp &'
+    if not launch_capture_device(cmd_lo, 2):
+        my_print_err("Not able to start tcpdump for LoopBack only!")
+        stop_capture_device()
+        return False
+    return True
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
 def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now):
@@ -483,17 +500,17 @@ def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now):
 
     if start: # first the server, then the device
         manage_capture_server("start", arg_pcap)
-        if not manage_capture_device(True, arg_pcap, android_pcap_dir, net):
+        if not start_capture_device(arg_pcap, android_pcap_dir, net):
             manage_capture_server("stop", arg_pcap)
             return False
         if not restart_proxy():
-            manage_capture_device(False, arg_pcap, android_pcap_dir, net)
+            stop_capture_device()
             manage_capture_server("stop", arg_pcap)
             return False
         return True
     else:
         success = stop_proxy()
-        manage_capture_device(False, arg_pcap, android_pcap_dir, net)
+        stop_capture_device()
         manage_capture_server("stop", arg_pcap)
         return success
 
@@ -539,10 +556,10 @@ def launch(app, net, mptcp_dir, out_dir):
     cmd = "adb pull " + android_pcap_dir + "/ " + out_dir_app
     if subprocess.call(cmd.split()) != 0:
         my_print_err("when pulling traces for " + app)
-    # Files will be saved in ~/Thesis/TCPDump/20141119-195517/MPTCP/NET/youtube/youtube_NET_1456465416.pcap
+    # Files will be saved in ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET/APP/MPTCP_APP_NET_DATE_HOUR.pcap + MPTCP_APP_NET_DATE_HOUR_lo.pcap
 
 def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
-    # out_dir: ~/Thesis/TCPDump/20141119-195517/MPTCP/NET
+    # out_dir: ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET
     out_dir = os.path.join(out_base, mptcp_dir, net)
     if (not os.path.isdir(out_dir)):
         os.makedirs(out_dir)
