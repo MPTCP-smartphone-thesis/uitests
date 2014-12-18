@@ -453,7 +453,7 @@ def stop_capture_device():
     return False
 
 # it seems tcpdump is not launched each time and no error is produced
-def capture_device_launch(cmd, instances):
+def launch_capture_device(cmd, instances):
     adb_shell_root(cmd)
     time.sleep(1)
     pids = adb_get_pid('tcpdump')
