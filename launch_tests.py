@@ -75,6 +75,11 @@ FORCE_COLORS = False
 #      - D10m: Delay of 10ms
 NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m'
 
+# Possible to restrict to these uitests (name of the directory, e.g. uitests-drive)
+RESTRICT_UITESTS = []
+# Possible to limit the number of tests, e.g. 1: only one random uitest will be used
+RESTRICT_UITESTS_NB = False
+
 # Exceptions for uitests: which are useful just to prepare tests
 UITESTS_EXCEPTIONS = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app"]
 # Home dir on Android
@@ -151,9 +156,18 @@ def is_valid_uitest(dir):
 
 # Get list of uitest dir (should contain build.xml file)
 uitests_dir = []
-for file in os.listdir('.'):
-    if is_valid_uitest(file):
-        uitests_dir.append(file)
+if RESTRICT_UITESTS: # only do some tests
+    uitests_dir = RESTRICT_UITESTS
+    my_print("Restrict to these tests: " + uitests_dir)
+else:
+    for file in os.listdir('.'):
+        if is_valid_uitest(file):
+            uitests_dir.append(file)
+
+if RESTRICT_UITESTS_NB: # limit nb of uitests
+    random.shuffle(uitests_dir)
+    uitests_dir = uitests_dir[:RESTRICT_UITESTS_NB]
+    my_print("Restrict to " + RESTRICT_UITESTS_NB + " tests: " + uitests_dir)
 
 # Prepare the tests (build the jar if needed)
 for uitest in uitests_dir + UITESTS_EXCEPTIONS:
