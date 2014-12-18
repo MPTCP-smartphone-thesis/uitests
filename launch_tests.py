@@ -67,6 +67,14 @@ EXT_HOST = "google.com"
 # Force the use of colours in messages sent to stdout/stderr
 FORCE_COLORS = False
 
+# Kind of network tests
+# rmnet: 4G/3G/2G
+# both[234]: wlan + rmnet[234]
+# With TC:
+#      - L5p: Losses of 5%
+#      - D10m: Delay of 10ms
+NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m'
+
 # Exceptions for uitests: which are useful just to prepare tests
 UITESTS_EXCEPTIONS = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app"]
 # Home dir on Android
@@ -713,12 +721,8 @@ if not LAST_UPTIME:
 my_print("Remove previous traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
-# rmnet: 4G/3G/2G
-# both[234]: wlan + rmnet[234]
-# With TC:
-#      - L5p: Losses of 5%
-#      - D10m: Delay of 10ms
-Network = Enum('Network', 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m')
+# Should start with wlan/bothX/rmnetX
+Network = Enum('Network', NETWORK_TESTS)
 
 # Check MPTCP: we only have time for 2 tests
 if WITH_MPTCP and WITH_TCP and WITH_FULLMESH:
