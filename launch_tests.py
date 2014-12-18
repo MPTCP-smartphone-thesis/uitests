@@ -263,7 +263,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, restart=0):
                 error = True
                 print(RED + last_line + WHITE_ERR, file=sys.stderr)
             elif out:
-                result += [last_line]
+                result.append(last_line)
             else:
                 print(BLUE + last_line + WHITE_STD)
             if len(last_line) < 4:
