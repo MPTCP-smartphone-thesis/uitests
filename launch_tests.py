@@ -398,12 +398,15 @@ def adb_reboot(wait=True):
         sys.exit(1)
     return True
 
-def adb_get_pid(proc_name):
+# strict: the process name == proc_name
+def adb_get_pid(proc_name, strict=False):
     ps_out = adb_shell('ps | grep ' + proc_name, out=True)
     if ps_out:
+        output = []
         for line in ps_out:
-            if proc_name in line:
-                return line.split()[1]
+            if strict and line.endswith(proc_name) or not strict and proc_name in line:
+                output.append(line.split()[1])
+        return output
     return False
 
 # relaunch SSH-Tunnel and check the connection via a ping
