@@ -429,7 +429,7 @@ def adb_get_pid(proc_name, strict=False):
             if strict and line.endswith(proc_name) or not strict and proc_name in line:
                 output.append(line.split()[1])
         return output
-    return False
+    return []
 
 # relaunch SSH-Tunnel and check the connection via a ping
 def restart_proxy(sleep=1):
