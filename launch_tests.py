@@ -113,6 +113,10 @@ if os.path.isfile('launch_tests_conf.py'):
 if WITH_SSH_TUNNEL and WITH_SHADOWSOCKS:
     WITH_SSH_TUNNEL = False
 
+# We only have time for 2 tests
+if WITH_MPTCP and WITH_TCP and WITH_FULLMESH:
+    WITH_MPTCP = False
+
 
 ##################################################
 ##                    COLORS                    ##
@@ -769,10 +773,6 @@ adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
 # Should start with wlan/bothX/rmnetX
 Network = Enum('Network', NETWORK_TESTS)
-
-# Check MPTCP: we only have time for 2 tests
-if WITH_MPTCP and WITH_TCP and WITH_FULLMESH:
-    WITH_MPTCP = False
 
 mptcp = []
 if WITH_MPTCP:
