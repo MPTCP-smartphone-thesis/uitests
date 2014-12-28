@@ -62,8 +62,12 @@ WITH_MPTCP = True
 WITH_FULLMESH = False
 # Using SSH tunnel (proxy socks via SSH)
 WITH_SSH_TUNNEL = True
+# Local port used by Redsocks with SSH Tunnel (see SSHTunnel settings)
+SSHTUNNEL_PORT = 1984
 # Using ShadowSocks proxy (cannot use both!)
 WITH_SHADOWSOCKS = False
+# Local port used by Redsocks with ShadowSocks (see ShadowSocks settings)
+SHADOWSOCKS_PORT = 1080
 # Timeout for each test which is launched: 3
 TIMEOUT = 60*3
 # External host to ping in order to check that everything is ok
@@ -527,8 +531,12 @@ def start_capture_device(arg_pcap, android_pcap_dir, net):
         my_print_err("Not able to start tcpdump!")
         return False
 
+    if not WITH_SSH_TUNNEL and not WITH_SHADOWSOCKS:
+        return True
+
     pcap_file_lo = android_pcap_dir + '/' + arg_pcap + '_lo.pcap'
-    cmd_lo = 'tcpdump -i lo -w ' + pcap_file_lo + ' tcp &'
+    port_no = SSHTUNNEL_PORT if WITH_SSH_TUNNEL else SHADOWSOCKS_PORT
+    cmd_lo = 'tcpdump -i lo -w ' + pcap_file_lo + ' tcp and not port ' + str(port_no) + ' &'
     if not launch_capture_device(cmd_lo, 2):
         my_print_err("Not able to start tcpdump for LoopBack only!")
         stop_capture_device()
