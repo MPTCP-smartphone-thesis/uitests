@@ -555,6 +555,7 @@ def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now, rm=Fa
             return False
         if not restart_proxy():
             stop_capture_device()
+            adb_shell('rm -rf ' + android_pcap_dir)
             manage_capture_server("stop", arg_pcap)
             manage_capture_server("rm", arg_pcap)
             return False
