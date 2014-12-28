@@ -486,8 +486,8 @@ def stop_proxy():
 # Launch full capture on the server
 def manage_capture_server(mode, arg_pcap):
     my_print("Send request to the server to " + mode + " a full capture")
-    cmd = "bash " + mode + "_full_pcap_distant.sh " + arg_pcap
-    if subprocess.call(cmd.split()) != 0:
+    cmd = ["bash", mode + "_full_pcap_distant.sh", arg_pcap]
+    if subprocess.call(cmd) != 0:
         my_print_err("when using " + mode + "_full_pcap_distant.sh with " + arg_pcap)
 
 def stop_capture_device():
@@ -552,7 +552,7 @@ def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now, rm=Fa
     arg_pcap = mptcp_dir.lower() + "_" + app + "_" + net + "_" + time_now
 
     if start: # first the server, then the device
-        manage_capture_server("start", arg_pcap)
+        manage_capture_server("start_sshtunnel" if WITH_SSH_TUNNEL else "start_shadowsocks", arg_pcap)
         if not start_capture_device(arg_pcap, android_pcap_dir, net):
             manage_capture_server("stop", arg_pcap)
             manage_capture_server("rm", arg_pcap)
