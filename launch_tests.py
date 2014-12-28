@@ -544,23 +544,27 @@ def start_capture_device(arg_pcap, android_pcap_dir, net):
     return True
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
-def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now):
+def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now, rm=False):
     arg_pcap = mptcp_dir.lower() + "_" + app + "_" + net + "_" + time_now
 
     if start: # first the server, then the device
         manage_capture_server("start", arg_pcap)
         if not start_capture_device(arg_pcap, android_pcap_dir, net):
             manage_capture_server("stop", arg_pcap)
+            manage_capture_server("rm", arg_pcap)
             return False
         if not restart_proxy():
             stop_capture_device()
             manage_capture_server("stop", arg_pcap)
+            manage_capture_server("rm", arg_pcap)
             return False
         return True
     else:
         success = stop_proxy()
         stop_capture_device()
         manage_capture_server("stop", arg_pcap)
+        if rm:
+            manage_capture_server("rm", arg_pcap)
         return success
 
 # Launch test for one app and pull files after each test (if there is a bug)
@@ -589,7 +593,7 @@ def launch(app, net, mptcp_dir, out_dir):
         my_print_err("Not able to find pkg name and then kill " + app)
 
     # Stop full capture on the proxy and on the device
-    manage_capture(False, mptcp_dir, app, android_pcap_dir, net, time_now)
+    manage_capture(False, mptcp_dir, app, android_pcap_dir, net, time_now, not success)
 
     # no need to pull useless traces
     if not success:
