@@ -1,0 +1,29 @@
+# ZRAM
+modprobe zram
+echo $((1024*1024*1024)) > /sys/block/zram0/disksize &&
+mkswap /dev/zram0
+swapon -p 10 /dev/zram0
+
+# MPCollect
+# Should now be launched by mpcollect user
+
+## Docker
+# SSH Tunnel: we need to dump traffic
+docker start ssh-tunnel
+IFSSHTUNNEL="${$(/sbin/ifconfig | grep veth):0:11}"
+
+# ShadowSocks: we also need to dump traffic
+docker start shadowsocks-c
+IFGREP1="${$(/sbin/ifconfig | grep veth | head -n 1):0:11}"
+[ "$IFSSHTUNNEL" != "$IFGREP" ] && IFSHADOWSOCKS="$IFGREP" || IFSHADOWSOCKS="${$(/sbin/ifconfig | grep veth | tail -n 1):0:11}"
+
+# Other:
+docker start ripe janus ssh-simple openvpn
+
+# Collect full
+/home/mbaerts/uitests/start_sshtunnel_full_pcap_listener.sh $IFSSHTUNNEL &
+/home/mbaerts/uitests/start_shadowsocks_full_pcap_listener.sh $IFSHADOWSOCKS &
+/home/mbaerts/uitests/stop_full_pcap_listener.sh &
+/home/mbaerts/uitests/rm_full_pcap_listener.sh &
+
+exit 0
