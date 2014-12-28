@@ -60,6 +60,10 @@ WITH_TCP = True
 WITH_MPTCP = True
 # MPTCP with FULLMESH
 WITH_FULLMESH = False
+# Using SSH tunnel (proxy socks via SSH)
+WITH_SSH_TUNNEL = True
+# Using ShadowSocks proxy (cannot use both!)
+WITH_SHADOWSOCKS = False
 # Timeout for each test which is launched: 3
 TIMEOUT = 60*3
 # External host to ping in order to check that everything is ok
@@ -95,6 +99,15 @@ os.chdir(root_dir)
 # load external config
 if os.path.isfile('launch_tests_conf.py'):
     from launch_tests_conf import *
+
+
+##################################################
+##                CONFIG CHECKS                 ##
+##################################################
+
+# Cannot have both SSH/Shadow socks proxy
+if WITH_SSH_TUNNEL and WITH_SHADOWSOCKS:
+    WITH_SSH_TUNNEL = False
 
 
 ##################################################
@@ -433,6 +446,9 @@ def adb_get_pid(proc_name, strict=False):
 
 # relaunch SSH-Tunnel and check the connection via a ping
 def restart_proxy(sleep=1):
+    if not WITH_SSH_TUNNEL:
+        return True
+
     my_print("Restart proxy: ping")
     if EXT_HOST:
         cmd_ping = "ping -c 4 " + EXT_HOST
@@ -453,6 +469,9 @@ def restart_proxy(sleep=1):
     return True
 
 def stop_proxy():
+    if not WITH_SSH_TUNNEL:
+        return True
+
     my_print("Stop proxy")
     return adb_shell(False, uiautomator='ssh_tunnel', args='action stop')
 
@@ -775,6 +794,9 @@ for mptcp_dir in mptcp:
             multipath_control("enable", path_mgr="fullmesh")
         else:
             multipath_control("disable")
+
+        if WITH_SHADOWSOCKS:
+            pass # TODO: check proxy. But it should be autoconnected...
 
         # Check if we need to simulate errors
         tc = False

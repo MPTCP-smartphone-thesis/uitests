@@ -40,7 +40,7 @@ You will also need to be a _developer_ and authorize the control from the host m
 
 You should remove the lockscreen and not have a too short timeout before going to the sleep mode. If you decide to reboot the phone at the end of the script (`REBOOT` variable), do not lock the SIM card.
 
-You also need to install Multipath Control app, Busybox (and install binaries) and setup SSHTunnel to have a MPTCP proxy. Note that you can disable the support of MPTCP in `launch_tests.py` and then these three apps will no longer be needed.
+You also need to install Multipath Control app, Busybox (and install binaries) and setup SSHTunnel or ShadowSocks to have a MPTCP capable proxy. Note that you can disable the support of MPTCP in `launch_tests.py` and then these three apps will no longer be needed.
 
 You will need to install `tcpdump` binary in `/system/xbin/`:
 
