@@ -1,2 +1,2 @@
 #! /bin/bash
-./start_full_pcap_listener.sh "$1" sshtunnel
+$(dirname $0)/start_full_pcap_listener.sh "$1" sshtunnel

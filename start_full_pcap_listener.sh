@@ -3,6 +3,7 @@
 #  e.g.: ./start_full_pcap_listener.sh veth0cf65f5 sshtunnel
 
 [ "$1" = "" ] && echo "No IFace: exit" && exit 1
+[ "$2" = "" ] && echo "No Mode: exit" && exit 1
 
 IF="$1"
 MODE="$2"
