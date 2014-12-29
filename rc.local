@@ -14,7 +14,7 @@ IFSSHTUNNEL="${$(/sbin/ifconfig | grep veth):0:11}"
 
 # ShadowSocks: we also need to dump traffic
 docker start shadowsocks-c
-IFGREP1="${$(/sbin/ifconfig | grep veth | head -n 1):0:11}"
+IFGREP="${$(/sbin/ifconfig | grep veth | head -n 1):0:11}"
 [ "$IFSSHTUNNEL" != "$IFGREP" ] && IFSHADOWSOCKS="$IFGREP" || IFSHADOWSOCKS="${$(/sbin/ifconfig | grep veth | tail -n 1):0:11}"
 
 # Other:
