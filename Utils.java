@@ -513,14 +513,25 @@ public class Utils {
 			int count = listView.getChildCount(new UiSelector()
 					.className(android.widget.LinearLayout.class.getName()));
 			for (int i = 0; i < count; i++) {
+				// Get linearLayout: should have at least one title
 				UiObject linearLayout = listView.getChild(new UiSelector()
 						.className(android.widget.LinearLayout.class.getName())
 						.instance(i));
+
+				/* we need at least 2 childs (title + checkbox)
+				 * workaround: can find the right title but without its checkbox
+				 */
+				if (linearLayout.getChildCount() > 1)
+					continue;
+
 				UiObject title = linearLayout.getChild(new UiSelector()
 						.resourceId("android:id/title"));
-				if (title.exists() && title.getText().equals(titleText))
+
+				// if found, get the checkbox linked to the same linearLayout
+				if (title.exists() && title.getText().equals(titleText)) {
 					return linearLayout.getChild(new UiSelector()
 							.resourceId("android:id/checkbox"));
+				}
 			}
 
 			if (lastCheck)
