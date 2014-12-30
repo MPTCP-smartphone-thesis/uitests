@@ -494,4 +494,30 @@ public class Utils {
 
 		return childs;
 	}
+
+	public static UiObject findCheckBoxInListWithTitle(String listViewId,
+			String titleText) throws UiObjectNotFoundException {
+		UiScrollable list = Utils.getScrollableWithId(listViewId);
+		list.setAsVerticalList();
+
+		while (true) {
+			UiCollection listView = new UiCollection(
+					new UiSelector().resourceId(listViewId));
+			int count = listView.getChildCount(new UiSelector()
+					.className(android.widget.LinearLayout.class.getName()));
+			for (int i = 0; i < count; i++) {
+				UiObject linearLayout = listView.getChild(new UiSelector()
+						.className(android.widget.LinearLayout.class.getName())
+						.instance(i));
+				UiObject title = linearLayout.getChild(new UiSelector()
+						.resourceId("android:id/title"));
+				if (title.exists() && title.getText().equals(titleText))
+					return linearLayout.getChild(new UiSelector()
+							.resourceId("android:id/checkbox"));
+			}
+
+			if (!Utils.scrollForward(list))
+				return null;
+		}
+	}
 }
