@@ -533,4 +533,11 @@ public class Utils {
 				|| (!enable && checkBox.isChecked()))
 			Utils.click(checkBox);
 	}
+
+	public static void listMoveUp(String listViewId)
+			throws UiObjectNotFoundException {
+		UiScrollable list = Utils.getScrollableWithId(listViewId);
+		list.setAsVerticalList();
+		list.scrollToBeginning(10);
+	}
 }
