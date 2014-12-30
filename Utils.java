@@ -520,4 +520,11 @@ public class Utils {
 				return null;
 		}
 	}
+
+	public static void checkBox(UiObject checkBox, boolean enable)
+			throws UiObjectNotFoundException {
+		if ((enable && !checkBox.isChecked())
+				|| (!enable && checkBox.isChecked()))
+			Utils.click(checkBox);
+	}
 }
