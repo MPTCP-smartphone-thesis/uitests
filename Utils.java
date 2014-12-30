@@ -48,8 +48,10 @@ public class Utils {
 	public static void createFile(String output) {
 		String[] commands = {
 				"dd if=/dev/urandom of=" + homeDir + "/random_seed bs=1 count=100000",
-				"cat " + homeDir + "/random_seed " + homeDir + "/random_seed_orig " + homeDir + "/random_seed > " + homeDir + "/"
-						+ output };
+				"cat " + homeDir + "/random_seed "
+				       + homeDir + "/random_seed_orig "
+				       + homeDir + "/random_seed"
+				       + " > " + homeDir + "/" + output };
 		Utils.runAsRoot(commands);
 	}
 
