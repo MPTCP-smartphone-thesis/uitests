@@ -18,7 +18,7 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 #
-# ./launch_tests.py [trace_dir]
+# ./launch_tests.py [CONFIG_FILE.py]
 #
 # To install on this machine: ant, adb, android, sshpass
 # Don't forget to load your SSH key for save_traces_purge_phone.sh script!
@@ -98,15 +98,20 @@ UITESTS_EXCEPTIONS = ["uitests-preference_network", "uitests-multipath_control",
 ANDROID_HOME = "/storage/sdcard0"
 ANDROID_TRACE_OUT = ANDROID_HOME + '/traces'
 # The default directory to save traces on host, if not provided by args
-DEFAULT_DIR = "~/Thesis/TCPDump"
+OUTPUT_DIR = "~/Thesis/TCPDump"
 
 # force to be in the right dir
 root_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(root_dir)
 
-# load external config
-if os.path.isfile('launch_tests_conf.py'):
-    from launch_tests_conf import *
+# load external config: can be used to change variables here above
+CONFIG_FILE_DEFAULT = 'launch_tests_conf.py'
+if len(sys.argv) > 1:
+    CONFIG_FILE = sys.argv[1]
+else:
+    CONFIG_FILE = CONFIG_FILE_DEFAULT
+if os.path.isfile(CONFIG_FILE):
+    from CONFIG_FILE[:-3] import *
 
 
 ##################################################
@@ -172,11 +177,7 @@ my_print("Starting tests " + time.ctime())
 now_dir = time.strftime("%Y%m%d-%H%M%S") + "_" + git_rev
 
 # Prepare output dir
-if len(sys.argv) > 1:
-    arg_dir = sys.argv[1]
-else:
-    arg_dir = DEFAULT_DIR
-arg_dir_exp = os.path.expanduser(arg_dir)
+arg_dir_exp = os.path.expanduser(OUTPUT_DIR)
 output_dir = os.path.join(arg_dir_exp, now_dir)
 if (not os.path.isdir(output_dir)):
     os.makedirs(output_dir)
