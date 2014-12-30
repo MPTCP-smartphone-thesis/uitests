@@ -1,6 +1,13 @@
 #!/bin/bash
 [ -n "$1" ] && IFACE="$1" || read -p "IFace to capture? (e.g. lo, wlan0, rmnet0) " IFACE
-[ -n "$2" ] && FILTER="tcp and not port $2" || ([ "$IFACE" = "lo" ] && read -p "Port used by Redsocks? (e.g. 1984, 1080) " PORT && FILTER="tcp and not port $PORT" || FILTER="tcp")
+if [ -n "$2" ]; then
+	FILTER="tcp and not port $2"
+elif [ "$IFACE" = "lo" ]; then
+	read -p "Port used by Redsocks? (e.g. 1984, 1080) " PORT
+	FILTER="tcp and not port $PORT"
+else
+	FILTER="tcp"
+fi
 echo "Capturing on $IFACE with this filter: $FILTER"
 
 adb forward tcp:31337 tcp:31337
