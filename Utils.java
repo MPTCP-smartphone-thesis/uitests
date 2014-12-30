@@ -505,6 +505,7 @@ public class Utils {
 			String titleText) throws UiObjectNotFoundException {
 		UiScrollable list = Utils.getScrollableWithId(listViewId);
 		list.setAsVerticalList();
+		boolean lastCheck = false;
 
 		while (true) {
 			UiCollection listView = new UiCollection(
@@ -522,8 +523,9 @@ public class Utils {
 							.resourceId("android:id/checkbox"));
 			}
 
-			if (!Utils.scrollForward(list))
+			if (lastCheck)
 				return null;
+			lastCheck = !Utils.scrollForward(list); // true: end of the list
 		}
 	}
 
