@@ -60,10 +60,14 @@ WITH_TCP = True
 WITH_MPTCP = True
 # MPTCP with FULLMESH
 WITH_FULLMESH = False
+# If SSH tunnel is installed
+SSH_TUNNEL_INSTALLED = True
 # Using SSH tunnel (proxy socks via SSH)
 WITH_SSH_TUNNEL = True
 # Local port used by Redsocks with SSH Tunnel (see SSHTunnel settings)
 SSHTUNNEL_PORT = 1984
+# If ShadowSocks is installed
+SHADOWSOCKS_INSTALLED = True
 # Using ShadowSocks proxy (cannot use both!)
 WITH_SHADOWSOCKS = False
 # Local port used by Redsocks with ShadowSocks (see ShadowSocks settings)
@@ -106,19 +110,6 @@ if os.path.isfile('launch_tests_conf.py'):
 
 
 ##################################################
-##                CONFIG CHECKS                 ##
-##################################################
-
-# Cannot have both SSH/Shadow socks proxy
-if WITH_SSH_TUNNEL and WITH_SHADOWSOCKS:
-    WITH_SSH_TUNNEL = False
-
-# We only have time for 2 tests
-if WITH_MPTCP and WITH_TCP and WITH_FULLMESH:
-    WITH_MPTCP = False
-
-
-##################################################
 ##                    COLORS                    ##
 ##################################################
 
@@ -142,6 +133,31 @@ def my_print(msg, start=GREEN):
 
 def my_print_err(msg, start=RED):
     print(start + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + WHITE_ERR, file=sys.stderr)
+
+
+##################################################
+##                CONFIG CHECKS                 ##
+##################################################
+
+# Cannot have both SSH/Shadow socks proxy
+if WITH_SSH_TUNNEL and WITH_SHADOWSOCKS:
+    my_print_err("Cannot have both SSHTunnel and ShadowSocks: used ShadowSocks")
+    WITH_SSH_TUNNEL = False
+
+if WITH_SSH_TUNNEL and not SSH_TUNNEL_INSTALLED:
+    my_print_err("SSHTunnel not installed: switch to ShadowSocks if installed")
+    WITH_SSH_TUNNEL = False
+    WITH_SHADOWSOCKS = SHADOWSOCKS_INSTALLED
+
+if WITH_SHADOWSOCKS and not SHADOWSOCKS_INSTALLED:
+    my_print_err("ShadowSocks not installed: switch to SSHTunnel if installed")
+    WITH_SHADOWSOCKS = False
+    WITH_SSH_TUNNEL = SSH_TUNNEL_INSTALLED
+
+# We only have time for 2 tests
+if WITH_MPTCP and WITH_TCP and WITH_FULLMESH:
+    my_print_err("Cannot launch MPTCP/TCP/MPTCP-FM: disable MPTCP")
+    WITH_MPTCP = False
 
 
 ##################################################
@@ -772,16 +788,19 @@ my_print("Remove previous traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
 if WITH_SHADOWSOCKS:
-    my_print("Used ShadowSocks: stop + kill SSHTunnel ; start + autoconnect ShadowSocks")
-    # Stop + kill ssh_tunnel
-    adb_shell(False, uiautomator='ssh_tunnel', args='action stopnotautoconnect')
-    adb_shell_root("am force-stop org.sshtunnel")
+    my_print("Using ShadowSocks:")
+    if SSH_TUNNEL_INSTALLED:
+        my_print("stop + kill SSHTunnel")
+        # Stop + kill ssh_tunnel
+        adb_shell(False, uiautomator='ssh_tunnel', args='action stopnotautoconnect')
+        adb_shell_root("am force-stop org.sshtunnel")
+    my_print("start + autoconnect ShadowSocks")
     # Start shadown socks with autoconnect (in case of random reboot)
     if not adb_shell(False, uiautomator='shadow_socks', args='action startautoconnect'):
         my_print_err('Not able to start shadowsocks... Stop')
         sys.exit(1)
-elif WITH_SSH_TUNNEL:
-    my_print("Used SSHTunnel: stop + kill ShadowSocks")
+elif WITH_SSH_TUNNEL and SHADOWSOCKS_INSTALLED:
+    my_print("Using SSHTunnel: stop + kill ShadowSocks")
     # Stop + kill ShadowSocks
     adb_shell(False, uiautomator='shadow_socks', args='action stopnotautoconnect')
     adb_shell_root("am force-stop com.github.shadowsocks")
