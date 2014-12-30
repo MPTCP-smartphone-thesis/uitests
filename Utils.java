@@ -286,6 +286,29 @@ public class Utils {
 		}
 	}
 
+	public static boolean clickAndWaitLoadingWindow(UiAutomatorTestCase t,
+			UiObject button, String connectingId, String connectingText,
+			boolean checkEnable)
+			throws UiObjectNotFoundException {
+
+		button.click(); // just start
+		t.sleep(500);
+
+		// Wait for connection, max 20 sec
+		for (int i = 0; i < 40; i++) {
+			if (Utils.hasObject(connectingId)
+					&& Utils.hasText(connectingText, connectingText)) {
+				System.out.println("Still connecting");
+				t.sleep(500);
+			} else if (checkEnable)
+				// no object or another message, ok, we're connected if checked
+				return button.isChecked();
+			else
+				return true;
+		}
+		return false;
+	}
+
 	public static boolean longClick(UiObject obj) {
 		try {
 			return obj.longClick();
