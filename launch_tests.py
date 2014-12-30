@@ -771,6 +771,22 @@ if not LAST_UPTIME:
 my_print("Remove previous traces located on the phone")
 adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
+if WITH_SHADOWSOCKS:
+    my_print("Used ShadowSocks: stop + kill SSHTunnel ; start + autoconnect ShadowSocks")
+    # Stop + kill ssh_tunnel
+    adb_shell(False, uiautomator='ssh_tunnel', args='action stopnotautoconnect')
+    adb_shell_root("am force-stop org.sshtunnel")
+    # Start shadown socks with autoconnect (in case of random reboot)
+    if not adb_shell(False, uiautomator='shadow_socks', args='action startautoconnect'):
+        my_print_err('Not able to start shadowsocks... Stop')
+        sys.exit(1)
+elif WITH_SSH_TUNNEL:
+    my_print("Used SSHTunnel: stop + kill ShadowSocks")
+    # Stop + kill ShadowSocks
+    adb_shell(False, uiautomator='shadow_socks', args='action stopnotautoconnect')
+    adb_shell_root("am force-stop com.github.shadowsocks")
+
+
 # Should start with wlan/bothX/rmnetX
 Network = Enum('Network', NETWORK_TESTS)
 
@@ -807,9 +823,6 @@ for mptcp_dir in mptcp:
             multipath_control("enable", path_mgr="fullmesh")
         else:
             multipath_control("disable")
-
-        if WITH_SHADOWSOCKS:
-            pass # TODO: check proxy. But it should be autoconnected...
 
         # Check if we need to simulate errors
         tc = False
