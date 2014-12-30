@@ -136,14 +136,15 @@ public class Utils {
 	}
 
 	public static boolean openApp(UiAutomatorTestCase t, String appText,
-			String packageName) throws UiObjectNotFoundException {
+			String packageName, boolean kill) throws UiObjectNotFoundException {
 		// Wake up, kill app (if found) and pressHome before opening an app
 		try {
 			t.getUiDevice().wakeUp();
 		} catch (RemoteException e1) { // not a big deal
 			e1.printStackTrace();
 		}
-		killApp(packageName);
+		if (kill)
+			killApp(packageName);
 		t.getUiDevice().pressHome();
 
 		UiObject allAppsButton = new UiObject(
@@ -187,6 +188,11 @@ public class Utils {
 				new UiSelector().packageName(packageName));
 
 		return appValidation.exists();
+	}
+
+	public static boolean openApp(UiAutomatorTestCase t, String appText,
+			String packageName) throws UiObjectNotFoundException {
+		return openApp(t, appText, packageName, true);
 	}
 
 	public static UiObject getObject(String id)
