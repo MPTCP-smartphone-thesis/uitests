@@ -74,3 +74,7 @@
 	path = uitests-firefoxspdy
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-firefoxspdy.git
 	branch = master
+[submodule "uitests-shadow_socks"]
+	path = uitests-shadow_socks
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-shadow_socks.git
+	branch = master

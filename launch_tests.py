@@ -89,7 +89,7 @@ RESTRICT_UITESTS = []
 RESTRICT_UITESTS_NB = False
 
 # Exceptions for uitests: which are useful just to prepare tests
-UITESTS_EXCEPTIONS = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app"]
+UITESTS_EXCEPTIONS = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app", "uitests-shadow_socks"]
 # Home dir on Android
 ANDROID_HOME = "/storage/sdcard0"
 ANDROID_TRACE_OUT = ANDROID_HOME + '/traces'
