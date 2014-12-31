@@ -111,7 +111,11 @@ if len(sys.argv) > 1:
 else:
     CONFIG_FILE = CONFIG_FILE_DEFAULT
 if os.path.isfile(CONFIG_FILE):
-    from CONFIG_FILE[:-3] import *
+    g = globals()
+    conf_module = __import__(CONFIG_FILE[:-3])
+    all_vars = [name for name in dir(conf_module) if not name.startswith('_')]
+    for var in all_vars:
+        g[var] = getattr(conf_module, var)
 
 
 ##################################################
