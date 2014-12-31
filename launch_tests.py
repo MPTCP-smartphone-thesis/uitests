@@ -865,10 +865,10 @@ for mptcp_dir in mptcp:
             name = name[0:index]
 
         # Network of the device
-        if net == Network.wlan:
+        if name == 'wlan': # net == Network.wlan: cannot use this dynamic enum
             enable_iface(WIFI)
             disable_iface(DATA)
-        # elif net == Network.both4Data: # prefer data
+        # elif name == 'both4Data': # net == Network.both4Data: # prefer data
         #     both('4', prefer_wifi=False)
         elif name.startswith('both'):
             both(name[4])
