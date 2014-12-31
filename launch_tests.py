@@ -651,7 +651,9 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
         app = uitest[8:]
         time_before = time.time()
         launch(app, net, mptcp_dir, out_dir)
-        my_print('UITest for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
+        global TEST_NO
+        my_print('UITest ' + str(TEST_NO) + '/' + str(NB_TESTS) + ' for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
+        TEST_NO += 1
 
     # Compress files
     my_print("Compressing files")
@@ -828,6 +830,9 @@ if WITH_TCP:
 if WITH_FULLMESH:
     mptcp.append('MPTCP_FM')
 random.shuffle(mptcp)
+
+TEST_NO = 1
+NB_TESTS = len(Network) * len(mptcp) * len(uitests_dir)
 
 for mptcp_dir in mptcp:
 
