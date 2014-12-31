@@ -804,11 +804,17 @@ if WITH_SHADOWSOCKS:
     if not adb_shell(False, uiautomator='shadow_socks', args='action startautoconnect'):
         my_print_err('Not able to start shadowsocks... Stop')
         sys.exit(1)
-elif WITH_SSH_TUNNEL and SHADOWSOCKS_INSTALLED:
-    my_print("Using SSHTunnel: stop + kill ShadowSocks")
-    # Stop + kill ShadowSocks
-    adb_shell(False, uiautomator='shadow_socks', args='action stopnotautoconnect')
-    adb_shell_root("am force-stop com.github.shadowsocks")
+elif WITH_SSH_TUNNEL:
+    if SHADOWSOCKS_INSTALLED:
+        my_print("Using SSHTunnel: stop + kill ShadowSocks")
+        # Stop + kill ShadowSocks
+        adb_shell(False, uiautomator='shadow_socks', args='action stopnotautoconnect')
+        adb_shell_root("am force-stop com.github.shadowsocks")
+    my_print("start + autoconnect sshtunnel")
+    # Start shadown socks with autoconnect (in case of random reboot)
+    if not adb_shell(False, uiautomator='ssh_tunnel', args='action startautoconnect'):
+        my_print_err('Not able to start sshtunnel... Stop')
+        sys.exit(1)
 
 
 # Should start with wlan/bothX/rmnetX
