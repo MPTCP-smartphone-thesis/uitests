@@ -131,7 +131,7 @@ public class Utils {
 			t.getUiDevice().pressBack();
 		}
 	}
-	
+
 	public static void killApp(String packageName) {
 		String[] commands = { "am force-stop " + packageName };
 		Utils.runAsRoot(commands);
@@ -457,7 +457,7 @@ public class Utils {
 			return false;
 		}
 	}
-	
+
 	public static boolean scrollForward(UiScrollable obj, int steps) {
 		try {
 			return obj.scrollForward(steps);
@@ -465,7 +465,7 @@ public class Utils {
 			return false;
 		}
 	}
-	
+
 	public static int getChildCount(UiObject obj) {
 		try {
 			return obj.getChildCount();
@@ -473,7 +473,7 @@ public class Utils {
 			return 0;
 		}
 	}
-	
+
 	public static boolean swipeLeft(UiObject obj, int steps) {
 		try {
 			return obj.swipeLeft(steps);
@@ -523,7 +523,7 @@ public class Utils {
 				/* we need at least 2 childs (title + checkbox)
 				 * workaround: can find the right title but without its checkbox
 				 */
-				if (linearLayout.getChildCount() > 1)
+				if (linearLayout.getChildCount() < 2)
 					continue;
 
 				UiObject title = linearLayout.getChild(new UiSelector()
