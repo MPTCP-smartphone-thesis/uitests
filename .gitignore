@@ -1,5 +1,6 @@
 .metadata
 Login.java
 launch_tests_conf.py
+launch_tests_conf_bad_conditions_custom.py
 __pycache__
 .adb_reboot
