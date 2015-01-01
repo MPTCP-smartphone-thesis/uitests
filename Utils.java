@@ -165,7 +165,8 @@ public class Utils {
 	}
 
 	public static boolean openApp(UiAutomatorTestCase t, String appText,
-			String packageName, boolean kill) throws UiObjectNotFoundException {
+			String packageName, String mainActivity, boolean kill)
+			throws UiObjectNotFoundException {
 		// Wake up, kill app (if found) and pressHome before opening an app
 		try {
 			t.getUiDevice().wakeUp();
@@ -175,6 +176,14 @@ public class Utils {
 		if (kill)
 			killApp(packageName);
 		t.getUiDevice().pressHome();
+
+		// Try with am if possible ; else, fallback to the manual method
+		if (mainActivity != null) {
+			String cmd = "am start -n " + packageName + "/" + mainActivity;
+			if (runAsUser(cmd, true) == 0)
+				return true;
+			System.out.println("Not able to start " + appText + " with am");
+		}
 
 		UiObject allAppsButton = new UiObject(
 				new UiSelector().description("Apps"));
@@ -217,6 +226,17 @@ public class Utils {
 				new UiSelector().packageName(packageName));
 
 		return appValidation.exists();
+	}
+
+	public static boolean openApp(UiAutomatorTestCase t, String appText,
+			String packageName, boolean kill) throws UiObjectNotFoundException {
+		return openApp(t, appText, packageName, null, kill);
+	}
+
+	public static boolean openApp(UiAutomatorTestCase t, String appText,
+			String packageName, String mainActivity)
+			throws UiObjectNotFoundException {
+		return openApp(t, appText, packageName, mainActivity, true);
 	}
 
 	public static boolean openApp(UiAutomatorTestCase t, String appText,
