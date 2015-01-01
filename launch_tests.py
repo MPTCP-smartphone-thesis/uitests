@@ -200,7 +200,7 @@ def is_valid_uitest(dir):
 uitests_dir = []
 if RESTRICT_UITESTS: # only do some tests
     uitests_dir = RESTRICT_UITESTS
-    my_print("Restrict to these tests: " + uitests_dir)
+    my_print("Restrict to these tests: " + str(uitests_dir))
 else:
     for file in os.listdir('.'):
         if is_valid_uitest(file):
@@ -209,7 +209,7 @@ else:
 if RESTRICT_UITESTS_NB: # limit nb of uitests
     random.shuffle(uitests_dir)
     uitests_dir = uitests_dir[:RESTRICT_UITESTS_NB]
-    my_print("Restrict to " + RESTRICT_UITESTS_NB + " tests: " + uitests_dir)
+    my_print("Restrict to " + RESTRICT_UITESTS_NB + " tests: " + str(uitests_dir))
 
 # Prepare the tests (build the jar if needed)
 for uitest in uitests_dir + UITESTS_EXCEPTIONS:
