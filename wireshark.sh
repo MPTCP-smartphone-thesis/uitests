@@ -17,7 +17,7 @@ adb shell "su - sh -c 'tcpdump -i $IFACE -s 1514 -w - -nS $FILTER and not port 3
 
 echo "Wait 5 seconds before launching wireshark"
 sleep 5
-netcat localhost 31337 | sudo wireshark -i - -kS &
+netcat localhost 31337 | sudo wireshark -i - -kS 2> /dev/null &
 NETCAT_PID=$!
 
 echo -e "\n\tPress Enter when it's finished\n"
