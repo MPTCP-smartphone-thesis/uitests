@@ -1,6 +1,7 @@
 package utils;
 
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +37,32 @@ public class Utils {
 			os.flush();
 		} catch (Exception e) {
 			e.getStackTrace();
+		}
+	}
+
+	/**
+	 * Run a shell command as user
+	 *
+	 * @param cmd to launch
+	 * @param wait for the end of the process
+	 * @return the return code of this command (0 if ok, -1 if cmd error)
+	 */
+	public static int runAsUser(String cmd, boolean wait) {
+		try {
+			Process p = Runtime.getRuntime().exec(cmd);
+			if (wait)
+				return p.waitFor();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
+
+	public static void runAsUser(String[] cmds, boolean wait) {
+		for (String cmd : cmds) {
+			runAsUser(cmd, wait);
 		}
 	}
 
