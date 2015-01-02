@@ -547,20 +547,20 @@ def launch_capture_device(cmd, instances):
 
 def start_capture_device(arg_pcap, android_pcap_dir, net):
     my_print("Capture traces on the device")
+    tcp_filter = 'tcp'
     if net.startswith('wlan'):
         iface = "wlan0"
     elif net.startswith('rmnet'):
         iface = "rmnet0"
-    elif arg_pcap.startswith('mptcp'): # both
-        iface = "wlan0 -i rmnet0"
-    else: # both but without MPTCP
-        iface = "wlan0:rmnet0" # choose the one which is enabled
+    else: # both
+        iface = "any"
+        tcp_filter += ' and not ip host 127.0.0.1'
 
     adb_shell('mkdir -p ' + android_pcap_dir)
     time.sleep(0.5)
 
     pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
-    cmd = 'tcpdump -i ' + iface + ' -w ' + pcap_file + ' tcp &'
+    cmd = 'tcpdump -i ' + iface + ' -w ' + pcap_file + ' ' + tcp_filter + ' &'
 
     if not launch_capture_device(cmd, 1):
         my_print_err("Not able to start tcpdump!")
