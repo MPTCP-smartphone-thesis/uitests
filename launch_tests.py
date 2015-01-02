@@ -559,7 +559,7 @@ def start_capture_device(arg_pcap, android_pcap_dir, net):
     adb_shell('mkdir -p ' + android_pcap_dir)
     time.sleep(0.5)
 
-    pcap_file = android_pcap_dir + '/' + arg_pcap + '.pcap'
+    pcap_file = android_pcap_dir + '/' + arg_pcap + '_' + iface + '.pcap'
     cmd = 'tcpdump -i ' + iface + ' -w ' + pcap_file + ' ' + tcp_filter + ' &'
 
     if not launch_capture_device(cmd, 1):
