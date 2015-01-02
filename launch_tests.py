@@ -545,7 +545,7 @@ def start_capture_device(arg_pcap, android_pcap_dir, net):
         iface = "rmnet0"
     elif arg_pcap.startswith('mptcp'): # both
         iface = "wlan0 -i rmnet0"
-    else
+    else: # both but without MPTCP
         iface = "wlan:rmnet0" # choose the one which is enabled
 
     adb_shell('mkdir -p ' + android_pcap_dir)
