@@ -41,6 +41,13 @@ from enum import Enum
 DEVEL = False
 # switch to False to not purge files on the smartphone
 PURGE_TRACES_SMARTPHONE = True
+# Reboot the phone before each batch of uitests and at the end of the script
+ADB_REBOOT = True
+# Backup your traces by launching backup_traces.sh script
+BACKUP_TRACES = True
+# Capture traces on the proxy (by using *_full_pcap_distant.sh scripts)
+CAPTURE_ON_PROXY = True
+
 # If we can control WiFi router: don't forget to check ssh connexion is OK
 CTRL_WIFI = True
 # Ip of the router
@@ -50,16 +57,14 @@ IFACE_ROUTER = ['wlan0','wlan1']
 # User and password
 USER_ROUTER = "root"
 PASSWORD_ROUTER = "root"
-# Reboot the phone before each batch of uitests and at the end of the script
-ADB_REBOOT = True
-# Backup your traces by launching backup_traces.sh script
-BACKUP_TRACES = True
+
 # Tests with TCP (without MPTCP)
 WITH_TCP = True
 # Tests with (and without) MPTCP support
 WITH_MPTCP = True
 # MPTCP with FULLMESH
 WITH_FULLMESH = False
+
 # If SSH tunnel is installed
 SSH_TUNNEL_INSTALLED = True
 # Using SSH tunnel (proxy socks via SSH)
@@ -72,6 +77,7 @@ SHADOWSOCKS_INSTALLED = True
 WITH_SHADOWSOCKS = False
 # Local port used by Redsocks with ShadowSocks (see ShadowSocks settings)
 SHADOWSOCKS_PORT = 1080
+
 # Timeout for each test which is launched: 3
 TIMEOUT = 60*3
 # External host to ping in order to check that everything is ok
@@ -506,6 +512,8 @@ def stop_proxy():
 
 # Launch full capture on the server
 def manage_capture_server(mode, arg_pcap):
+    if not CAPTURE_ON_PROXY:
+        return
     my_print("Send request to the server to " + mode + " a full capture")
     cmd = ["bash", mode + "_full_pcap_distant.sh", arg_pcap]
     if subprocess.call(cmd) != 0:
