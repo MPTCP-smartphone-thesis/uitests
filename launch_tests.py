@@ -21,7 +21,7 @@
 # ./launch_tests.py [CONFIG_FILE.py]
 #
 # To install on this machine: ant, adb, android, sshpass
-# Don't forget to load your SSH key for save_traces_purge_phone.sh script!
+# Don't forget to load your SSH key for backup_traces.sh script!
 
 import os
 import random
@@ -39,8 +39,8 @@ from enum import Enum
 
 # switch to True to always rebuild the jar
 DEVEL = False
-# switch to False to not purge files
-PURGE = True
+# switch to False to not purge files on the smartphone
+PURGE_TRACES_SMARTPHONE = True
 # If we can control WiFi router: don't forget to check ssh connexion is OK
 CTRL_WIFI = True
 # Ip of the router
@@ -793,8 +793,9 @@ if not LAST_UPTIME:
     my_print_err("Not able to contact the device... Stop")
     sys.exit(1)
 
-my_print("Remove previous traces located on the phone")
-adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
+if PURGE_TRACES_SMARTPHONE:
+    my_print("Remove previous traces located on the phone")
+    adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
 if WITH_SHADOWSOCKS:
     my_print("Using ShadowSocks:")
@@ -906,8 +907,9 @@ for mptcp_dir in mptcp:
 
 my_print("================ DONE =================\n")
 
-my_print("Remove traces located on the phone")
-adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
+if PURGE_TRACES_SMARTPHONE:
+    my_print("Remove traces located on the phone")
+    adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
 
 my_print("Reboot the phone") # to avoid possible Android bugs
