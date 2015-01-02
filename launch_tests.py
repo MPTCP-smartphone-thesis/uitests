@@ -97,9 +97,12 @@ NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD1
 RESTRICT_UITESTS = []
 # Possible to limit the number of tests, e.g. 1: only one random uitest will be used
 RESTRICT_UITESTS_NB = False
-
 # Exceptions for uitests: which are useful just to prepare tests
 UITESTS_EXCEPTIONS = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app", "uitests-shadow_socks"]
+# Black list: do not use these uitests dirs:
+#  * Drive: the file is not necessary uploaded directly: a trace can be "empty" and other uitests can be distorted.
+UITESTS_BLACKLIST = ["uitests-drive"]
+
 # Home dir on Android
 ANDROID_HOME = "/storage/sdcard0"
 ANDROID_TRACE_OUT = ANDROID_HOME + '/traces'
@@ -195,12 +198,12 @@ my_print("Save tcpdump files in " + output_dir)
 print("\n======================================\n\n")
 
 # should start with uitests, not an exception and with build.xml file
-def is_valid_uitest(dir):
-    if not dir.startswith('uitests-'):
+def is_valid_uitest(ui_dir):
+    if not ui_dir.startswith('uitests-'):
         return False
-    if dir in UITESTS_EXCEPTIONS:
+    if ui_dir in UITESTS_EXCEPTIONS or ui_dir in UITESTS_BLACKLIST:
         return False
-    return os.path.isfile(os.path.join(dir, 'build.xml'))
+    return os.path.isfile(os.path.join(ui_dir, 'build.xml'))
 
 # Get list of uitest dir (should contain build.xml file)
 uitests_dir = []
