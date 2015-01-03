@@ -327,7 +327,7 @@ public class Utils {
 
 	public static boolean clickAndWaitForNewWindow(String id) {
 		try {
-			return click(getObject(id));
+			return clickAndWaitForNewWindow(getObject(id));
 		} catch (UiObjectNotFoundException e) {
 			return false;
 		}
