@@ -73,12 +73,18 @@ public class Utils {
 	 * @param output: name of the output file
 	 */
 	public static void createFile(String output) {
-		String[] commands = {
-				"dd if=/dev/urandom of=" + homeDir + "/random_seed bs=1 count=100000",
-				"cat " + homeDir + "/random_seed "
-				       + homeDir + "/random_seed_orig "
-				       + homeDir + "/random_seed"
-				       + " > " + homeDir + "/" + output };
+		String catCommand = "cat ";
+		for (int i = 0; i < 20; i++) {
+			catCommand += homeDir + "/random_seed_" + i%2 + " "
+			            + homeDir + "/random_seed_orig " // 100 + 800k
+			            + homeDir + "/random_seed_" + i%2 + " ";
+		}
+		catCommand += "> " + homeDir + "/" + output;
+		String[] commands = { "dd if=/dev/urandom of=" + homeDir
+		                      + "/random_seed_0 bs=1 count=100000",
+		                      "dd if=/dev/urandom of=" + homeDir
+		                      + "/random_seed_1 bs=1 count=100000",
+		                      catCommand };
 		Utils.runAsRoot(commands);
 	}
 
