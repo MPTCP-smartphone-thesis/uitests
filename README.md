@@ -12,7 +12,8 @@ Apps
 Of course, you'll need to install all supported apps:
 
 * Dailymotion: Change the quality to HD.
-* Google Drive: You need a Google account and skip the initial menu (how to use GDrive). Then, click on the `upload`, menu on the top right, `settings`, `Display advanced devices`. You will also need to launch `generate_push_random_seed.sh` script to generate this file on your phone `/storage/sdcard0/random_seed_orig`. You need also to go to Settings and uncheck "Transfer files only on Wi-Fi"
+* Dropbox: You will need to sign up/in, skip the welcome screen (no need to turn on camera upload option) and send at least one file that you can delete just after.
+* Google Drive: (Note: this UITest is currently blacklisted because uploaded files are not always sent immediatelly after the operation) You need a Google account and skip the initial menu (how to use GDrive). Then, click on the `upload`, menu on the top right, `settings`, `Display advanced devices`. You need also to go to Settings and uncheck "Transfer files only on Wi-Fi"
 * Facebook: You need to be connected with a Facebook account. GPS should be enabled to find the nearest location.
 * Firefox Beta: Go to Settings / Privacy / Clear Private Data / Always clear when quitting (check that you'll clear everything, you need Firefox 33+). You also need to install the module `Janus Proxy Configurator`. If you want to setup your own Janus server, you can use this Docker image [here](https://registry.hub.docker.com/u/matttbe/docker-janus-node/) (don't forget to generate a new SSL key and accept it on your Android device as written in the `README` file)
 * Messenger: You need to be connected with a Facebook account and have at least one contact and one previous discussion
@@ -48,7 +49,9 @@ You will need to install `tcpdump` binary in `/system/xbin/`:
     cp /PATH/TO/tcpdump /system/xbin/
     chmod 777 /system/xbin/tcpdump
 
-Note: it's maybe better to not auto-update your apps (Play Store settings) and install adblock (to avoid ads being displayed during the tests).
+Note that it's maybe better to not auto-update your apps (Play Store settings) and install adblock (to avoid ads being displayed during the tests).
+
+You will also need to launch `generate_push_random_seed.sh` script to generate this file on your phone `/storage/sdcard0/random_seed_orig`.
 
 
 `launch_tests.py` script
