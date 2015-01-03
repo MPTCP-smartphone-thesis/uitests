@@ -380,6 +380,14 @@ public class Utils {
 		}
 	}
 
+	public static boolean longPress(UiObject obj) {
+		return swipe(obj, Orientation.LEFT, 150);
+	}
+
+	public static boolean longPress(String id) {
+		return swipe(id, Orientation.LEFT, 150);
+	}
+
 	public static boolean swipe(String id, Orientation orientation, int steps) {
 		try {
 			return swipe(getObject(id), orientation, steps);
