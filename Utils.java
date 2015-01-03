@@ -66,6 +66,10 @@ public class Utils {
 		}
 	}
 
+	private static int getRand10() {
+		return (int)(10.0 * Math.random());
+	}
+
 	/**
 	 * Create a new file in /storage/sdcard0
 	 * @pre: /storage/sdcard0/random_seed_orig should be present and we need
@@ -74,17 +78,19 @@ public class Utils {
 	 */
 	public static void createFile(String output) {
 		String catCommand = "cat ";
-		for (int i = 0; i < 20; i++) {
-			catCommand += homeDir + "/random_seed_" + i%2 + " "
-			            + homeDir + "/random_seed_orig " // 100 + 800k
-			            + homeDir + "/random_seed_" + i%2 + " ";
+		for (int i = 0; i < 100; i++) { // 50 + 100 + 50k
+			catCommand += homeDir + "/random_seed_" + i%10 + " "
+			            + homeDir + "/random_seed_orig_" + getRand10() + " "
+			            + homeDir + "/random_seed_" + getRand10() + " ";
 		}
 		catCommand += "> " + homeDir + "/" + output;
-		String[] commands = { "dd if=/dev/urandom of=" + homeDir
-		                      + "/random_seed_0 bs=1 count=100000",
-		                      "dd if=/dev/urandom of=" + homeDir
-		                      + "/random_seed_1 bs=1 count=100000",
-		                      catCommand };
+		String[] commands = new String[11];
+		for (int i = 0; i < commands.length - 1; i++) {
+			commands[i] = "dd if=/dev/urandom of=" + homeDir + "/random_seed_" +
+					i + " bs=1 count=500" +
+					System.out.format("%2d", Math.random() * 100.0);
+		}
+		commands[commands.length - 1] = catCommand;
 		Utils.runAsRoot(commands);
 	}
 
