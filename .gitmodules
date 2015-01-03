@@ -2,10 +2,6 @@
 	path = uitests-drive
 	branch = master
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-drive.git
-[submodule "uitests-photos"]
-	path = uitests-photos
-	branch = master
-	url = git@github.com:MPTCP-smartphone-thesis/uitests-photos.git
 [submodule "uitests-youtube"]
 	path = uitests-youtube
 	branch = master
@@ -18,26 +14,10 @@
 	path = uitests-shazam
 	branch = master
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-shazam.git
-[submodule "uitests-instagram"]
-	path = uitests-instagram
-	branch = master
-	url = git@github.com:MPTCP-smartphone-thesis/uitests-instagram.git
-[submodule "uitests-viber"]
-	path = uitests-viber
-	branch = master
-	url = git@github.com:MPTCP-smartphone-thesis/uitests-viber.git
 [submodule "uitests-firefox"]
 	path = uitests-firefox
 	branch = master
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-firefox.git
-[submodule "uitests-whatsapp"]
-	path = uitests-whatsapp
-	branch = master
-	url = git@github.com:MPTCP-smartphone-thesis/uitests-whatsapp.git
-[submodule "uitests-chrome"]
-	path = uitests-chrome
-	branch = master
-	url = git@github.com:MPTCP-smartphone-thesis/uitests-chrome.git
 [submodule "uitests-snapchat"]
 	path = uitests-snapchat
 	branch = master
