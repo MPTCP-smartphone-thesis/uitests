@@ -283,6 +283,12 @@ public class Utils {
 		return new UiScrollable(new UiSelector().resourceId(id));
 	}
 
+	public static UiScrollable getScrollableListView() {
+		return new UiScrollable(
+				new UiSelector().className(android.widget.ListView.class
+						.getName()));
+	}
+
 	public static boolean hasObject(String id) {
 		try {
 			return getObject(id) != null;
@@ -558,43 +564,106 @@ public class Utils {
 		return childs;
 	}
 
-	public static UiObject findCheckBoxInListWithTitle(String listViewId,
-			String titleText) throws UiObjectNotFoundException {
-		UiScrollable list = Utils.getScrollableWithId(listViewId);
-		list.setAsVerticalList();
+	/**
+	 * Find a layout in a listView with a title name
+	 * @param titleText title to find
+	 * @param layoutClassName layout to find
+	 * @param listViewId ID of the list view (if any: else should be null)
+	 * @param titleID ID of the title widget (if != "android:id/title")
+	 * @param minChildCount minimum child count needed
+	 *                      (e.g. 2 if you need a text + a checkbox)
+	 * @return the layout or null
+	 * @throws UiObjectNotFoundException
+	 */
+	public static UiObject findLayoutWithTitle(String titleText,
+			String layoutClassName, String listViewId, String titleID,
+			int minChildCount)
+			throws UiObjectNotFoundException {
+		// find ListView widget
+		UiCollection listView;
+		if (listViewId != null)
+			listView = new UiCollection(new UiSelector().resourceId(listViewId));
+		else
+			listView = new UiCollection(
+					new UiSelector().className(android.widget.ListView.class
+							.getName()));
+		String tID = titleID != null ? titleID : "android:id/title";
+
+		// should have a few childs in *Layout widgets
+		int count = listView.getChildCount(new UiSelector()
+				.className(layoutClassName));
+		for (int i = 0; i < count; i++) {
+			// Get linearLayout: should have at least one title
+			UiObject layout = listView.getChild(new UiSelector()
+					.className(layoutClassName).instance(i));
+
+			if (minChildCount > 0 && layout.getChildCount() < minChildCount)
+				continue;
+
+			UiObject title = layout.getChild(new UiSelector().resourceId(tID));
+
+			// if we found the right entry
+			if (title.exists() && title.getText().equals(titleText))
+				return layout;
+		}
+		return null;
+	}
+
+	/**
+	 * Find a layout with a text in a list
+	 *
+	 * @param titleText title of the text
+	 * @param layoutClassName layout to find
+	 * @param minChildCount minimum child count needed
+	 *                      (e.g. 2 if you need a text + a checkbox)
+	 * @param listViewId ID of the listView (if any: else should be null)
+	 * @param titleID ID of the title widget
+	 * @param isVertical If the list is vertical or not
+	 * @return the layout or null
+	 * @throws UiObjectNotFoundException
+	 */
+	public static UiObject findLayoutInList(String titleText,
+			String layoutClassName, int minChildCount, String listViewId,
+			String titleID, boolean isVertical)
+			throws UiObjectNotFoundException {
+		UiScrollable list;
+		if (listViewId != null)
+			list = Utils.getScrollableWithId(listViewId);
+		else
+			list = Utils.getScrollableListView();
+		if (isVertical)
+			list.setAsVerticalList();
+		else
+			list.setAsHorizontalList();
 		boolean lastCheck = false;
 
 		while (true) {
-			UiCollection listView = new UiCollection(
-					new UiSelector().resourceId(listViewId));
-			int count = listView.getChildCount(new UiSelector()
-					.className(android.widget.LinearLayout.class.getName()));
-			for (int i = 0; i < count; i++) {
-				// Get linearLayout: should have at least one title
-				UiObject linearLayout = listView.getChild(new UiSelector()
-						.className(android.widget.LinearLayout.class.getName())
-						.instance(i));
-
-				/* we need at least 2 childs (title + checkbox)
-				 * workaround: can find the right title but without its checkbox
-				 */
-				if (linearLayout.getChildCount() < 2)
-					continue;
-
-				UiObject title = linearLayout.getChild(new UiSelector()
-						.resourceId("android:id/title"));
-
-				// if found, get the checkbox linked to the same linearLayout
-				if (title.exists() && title.getText().equals(titleText)) {
-					return linearLayout.getChild(new UiSelector()
-							.resourceId("android:id/checkbox"));
-				}
-			}
-
-			if (lastCheck)
-				return null;
+			UiObject layout = findLayoutWithTitle(titleText, layoutClassName,
+					listViewId, titleID, minChildCount);
+			if (layout != null || lastCheck)
+				return layout;
 			lastCheck = !Utils.scrollForward(list); // true: end of the list
 		}
+	}
+
+	/**
+	 * Find a checkbox linked to a title in a generic list
+	 * @param listViewId ID of the listView (if any: else should be null)
+	 * @param titleText title of the text
+	 * @param checkboxID ID of the listView (if != android:id/checkbox)
+	 * @return a checkbox or null
+	 * @throws UiObjectNotFoundException
+	 */
+	public static UiObject findCheckBoxInListWithTitle(String listViewId,
+			String titleText, String checkboxID)
+			throws UiObjectNotFoundException {
+		UiObject layout = findLayoutInList(titleText,
+				android.widget.LinearLayout.class.getName(), 2, listViewId,
+				null, true);
+		if (layout != null)
+			return layout.getChild(new UiSelector()
+					.resourceId("android:id/checkbox"));
+		return null;
 	}
 
 	public static void checkBox(UiObject checkBox, boolean enable)
