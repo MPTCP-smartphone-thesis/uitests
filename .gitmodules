@@ -58,3 +58,7 @@
 	path = uitests-shadow_socks
 	url = git@github.com:MPTCP-smartphone-thesis/uitests-shadow_socks.git
 	branch = master
+[submodule "uitests-dropbox"]
+	path = uitests-dropbox
+	url = git@github.com:MPTCP-smartphone-thesis/uitests-dropbox.git
+	branch = master
