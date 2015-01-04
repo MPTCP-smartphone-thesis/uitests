@@ -656,6 +656,10 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
     if (not os.path.isdir(out_dir)):
         os.makedirs(out_dir)
 
+    # Generate seed
+    my_print("Generate seed")
+    subprocess.call(['./generate_push_random_seed.sh'])
+
     # random: to avoid having the same order
     random.shuffle(uitests_dir)
     my_print("Launch all tests for " + net + " with random list: " + str(uitests_dir))
