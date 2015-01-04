@@ -79,7 +79,7 @@ public class Utils {
 	public static void createFile(String output) {
 		String catCommand = "cat ";
 		for (int i = 0; i < 100; i++) { // 50 + 100 + 50k
-			catCommand += homeDir + "/random_seed_" + i%10 + " "
+			catCommand += homeDir + "/random_seed_" + getRand10() + " "
 			            + homeDir + "/random_seed_orig_" + getRand10() + " "
 			            + homeDir + "/random_seed_" + getRand10() + " ";
 		}
@@ -87,8 +87,7 @@ public class Utils {
 		String[] commands = new String[11];
 		for (int i = 0; i < commands.length - 1; i++) {
 			commands[i] = "dd if=/dev/urandom of=" + homeDir + "/random_seed_" +
-					i + " bs=1 count=500" +
-					System.out.format("%2d", Math.random() * 100.0);
+					i + " bs=1 count=50001";
 		}
 		commands[commands.length - 1] = catCommand;
 		Utils.runAsRoot(commands);
