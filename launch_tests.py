@@ -41,6 +41,8 @@ from enum import Enum
 DEVEL = False
 # switch to False to not purge files on the smartphone
 PURGE_TRACES_SMARTPHONE = True
+# Remove old traces at the end and keep the X last one (False or 0 to not remove traces)
+KEEP_TRACES_NB = False
 # Reboot the phone before each batch of uitests and at the end of the script
 ADB_REBOOT = True
 # Backup your traces by launching backup_traces.sh script
@@ -934,3 +936,9 @@ my_print("Backup traces") # better to backup files
 cmd = "bash backup_traces.sh " + arg_dir_exp
 if BACKUP_TRACES and subprocess.call(cmd.split()) != 0:
     my_print_err(" when using backup_traces.sh with " + arg_dir_exp)
+
+if KEEP_TRACES_NB:
+    dirs = sorted(os.listdir(arg_dir_exp), reverse=True)
+    for rm_dir in dirs[KEEP_TRACES_NB:]:
+        my_print("Remove previous traces: " + rm_dir)
+        shutil.rmtree(os.path.join(arg_dir_exp, rm_dir))
