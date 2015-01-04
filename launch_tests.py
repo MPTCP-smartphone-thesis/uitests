@@ -100,8 +100,7 @@ RESTRICT_UITESTS_NB = False
 # Exceptions for uitests: which are useful just to prepare tests
 UITESTS_EXCEPTIONS = ["uitests-preference_network", "uitests-multipath_control", "uitests-ssh_tunnel", "uitests-kill_app", "uitests-shadow_socks"]
 # Black list: do not use these uitests dirs:
-#  * Drive: the file is not necessary uploaded directly: a trace can be "empty" and other uitests can be distorted.
-UITESTS_BLACKLIST = ["uitests-drive"]
+UITESTS_BLACKLIST = [""]
 
 # Home dir on Android
 ANDROID_HOME = "/storage/sdcard0"
