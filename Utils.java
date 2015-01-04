@@ -67,7 +67,10 @@ public class Utils {
 	}
 
 	private static int getRand10() {
-		return (int)(10.0 * Math.random());
+		int random = (int) (10.0 * Math.random());
+		if (random == 10)
+			return 0;
+		return random;
 	}
 
 	/**
