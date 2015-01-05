@@ -541,7 +541,7 @@ def launch_capture_device(cmd, instances):
     pids = adb_get_pid('tcpdump')
     i = 0
     while not pids or len(pids) < instances:
-        if (i > 9):
+        if (i > 19):
             return False
         i += 1
         adb_shell_root(cmd)
