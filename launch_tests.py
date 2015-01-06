@@ -376,11 +376,13 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
 
     rc = proc.returncode
     if rc != 0 or error:
-        my_print_err("when launching this cmd on the device: " + full_cmd + " - rc: " + str(rc))
+        if not quiet:
+            my_print_err("when launching this cmd on the device: " + full_cmd + " - rc: " + str(rc))
         return False
 
     if last_number != 0:
-        my_print_err("when launching this cmd on the device: " + full_cmd + " - last number: " + last_line)
+        if not quiet:
+            my_print_err("when launching this cmd on the device: " + full_cmd + " - last number: " + last_line)
         return False
     return result
 
@@ -490,7 +492,7 @@ def adb_reboot(wait=True):
 
 # strict: the process name == proc_name
 def adb_get_pid(proc_name, strict=False):
-    ps_out = adb_shell('ps | grep ' + proc_name, out=True)
+    ps_out = adb_shell('ps | grep ' + proc_name, out=True, quiet=True)
     if ps_out:
         output = []
         for line in ps_out:
@@ -558,6 +560,7 @@ def launch_capture_device(cmd, instances):
     i = 0
     while not pids or len(pids) < instances:
         if (i > 19):
+            my_print_err("Not able to launch tcpdump")
             return False
         i += 1
         adb_shell_root(cmd)
