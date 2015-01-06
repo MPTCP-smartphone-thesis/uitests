@@ -380,12 +380,12 @@ def adb_shell_root(cmd):
 
 # filename: name of the file or cmd + '.txt'
 def adb_shell_write_output(cmd, out_dir, filename=False):
-my_print("Get " + cmd + " from smartphone")
-out = adb_shell(cmd, out=True)
-if out:
-    out = '\n'.join(out) # one file
-with open(os.path.join(out_dir, filename if filename else cmd.replace(' ', '_') + '.txt'), "w") as out_file:
-    print(out, file=out_file)
+    my_print("Get " + cmd + " from smartphone")
+    out = adb_shell(cmd, out=True)
+    if out:
+        out = '\n'.join(out) # one file
+    with open(os.path.join(out_dir, filename if filename else cmd.replace(' ', '_') + '.txt'), "w") as out_file:
+        print(out, file=out_file)
 
 def adb_get_uptime():
     up_out = adb_shell("uptime", out=True)
@@ -627,8 +627,12 @@ def launch(app, net, mptcp_dir, out_dir):
         my_print_err("Error proxy: Skip test of " + app.upper())
         return
 
+    adb_shell_write_output('netstat', out_dir_app, filename='netstat_before.txt')
+
     my_print("*** Launching tests for [ " + YELLOW + app.upper() + GREEN + " ] at " + time_now + " for " + net + " ***")
     success = adb_shell(False, uiautomator=app)
+
+    adb_shell_write_output('netstat', out_dir_app, filename='netstat_after.txt')
 
     # Kill the app
     pkg_name_file = os.path.join("uitests-" + app, "pkg_name.txt")
@@ -675,6 +679,7 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
     my_print("Launch all tests for " + net + " with random list: " + str(uitests_dir))
 
     adb_shell_write_output('netcfg', out_dir)
+    adb_shell_write_output('netstat', out_dir)
 
     for uitest in uitests_dir:
         app = uitest[8:]
