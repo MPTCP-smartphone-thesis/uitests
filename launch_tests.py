@@ -316,7 +316,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
         result = True
 
     if log:
-        print(adb_cmd, file=log)
+        print(adb_cmd, file=log, flush=False)
 
     # adb shell doesn't return the last exit code...
     proc = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
@@ -334,7 +334,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
             if not quiet:
                 print(RED + line_err_strip + WHITE_ERR, file=sys.stderr)
             if log:
-                print('stderr: ' + line_err_strip, file=log)
+                print('stderr: ' + line_err_strip, file=log, flush=False)
 
         line = proc.stdout.readline()
         if line:
@@ -356,7 +356,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
                 except ValueError as e:
                     pass
             if log:
-                print(adb_cmd, file=log)
+                print(last_line, file=log, flush=False)
 
     if dev_not_found:
         if restart == 0:
