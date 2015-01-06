@@ -94,6 +94,8 @@ FORCE_COLORS = False
 #      - L5p: Losses of 5%
 #      - D10m: Delay of 10ms
 NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m'
+# Enable Android's Wi-Fi option: Avoid Poor Connections (Don't use a Wi-Fi network unless it has a good Internet connection)
+AVOID_POOR_CONNECTIONS = False
 
 # Possible to restrict to these uitests (name of the directory, e.g. uitests-drive)
 RESTRICT_UITESTS = []
@@ -731,6 +733,11 @@ def change_pref_net(version):
     arg = "network-status " + version + "G"
     return adb_shell(False, uiautomator='preference_network', args=arg)
 
+def avoid_poor_connections(enable):
+    my_print("Settings: avoid poor connections: " + str(enable))
+    arg = "avoid-poor-conn " + ("on" if enable else "off")
+    return adb_shell(False, uiautomator='preference_network', args=arg)
+
 # 'wifi', 'enable'
 def manage_net(iface, status):
     my_print(status + " " + iface)
@@ -822,7 +829,7 @@ if CTRL_WIFI:
 
 
 ##################################################
-##             DEVICE: LAUNCH TESTS             ##
+##            DEVICE: PREPARE TESTS             ##
 ##################################################
 
 adb_restart()
@@ -844,6 +851,9 @@ if PURGE_TRACES_SMARTPHONE:
 
 # remove sim if any to launch the first UiTest
 adb_check_reboot_sim()
+
+# Wi-Fi option
+avoid_poor_connections(AVOID_POOR_CONNECTIONS)
 
 if WITH_SHADOWSOCKS:
     my_print("Using ShadowSocks:")
@@ -885,8 +895,12 @@ random.shuffle(mptcp)
 TEST_NO = 1
 NB_TESTS = len(Network) * len(mptcp) * len(uitests_dir)
 
-for mptcp_dir in mptcp:
 
+##################################################
+##             DEVICE: LAUNCH TESTS             ##
+##################################################
+
+for mptcp_dir in mptcp:
     my_print("============ Kernel mode: " + mptcp_dir + " =========\n")
 
     # All kinds of networks
