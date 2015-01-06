@@ -296,7 +296,7 @@ def adb_shell_timeout(proc):
         my_print_err("(timeout) when launching this cmd on the device: " + str(proc.args))
         proc.terminate()
 
-def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, restart=0):
+def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=False, restart=0):
     if uiautomator:
         full_cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + uiautomator + ".LaunchSettings"
         if args:
@@ -331,7 +331,8 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, restart=
             line_err_strip = line_err.rstrip()
             if line_err_strip == 'error: device not found':
                 dev_not_found = True
-            print(RED + line_err_strip + WHITE_ERR, file=sys.stderr)
+            if not quiet:
+                print(RED + line_err_strip + WHITE_ERR, file=sys.stderr)
             if log:
                 print('stderr: ' + line_err_strip, file=log)
 
@@ -340,10 +341,11 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, restart=
             last_line = line.rstrip()
             if uiautomator and last_line.lower().startswith('failure'):
                 error = True
-                print(RED + last_line + WHITE_ERR, file=sys.stderr)
-            elif out:
+                if not quiet:
+                    print(RED + last_line + WHITE_ERR, file=sys.stderr)
+            if out:
                 result.append(last_line)
-            else:
+            if not quiet:
                 print(BLUE + last_line + WHITE_STD)
             # check number if last line (exit code)
             if len(last_line) < 4:
@@ -370,7 +372,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, restart=
         else:
             my_print_err("Device not found, skip this command: " + full_cmd)
             return False
-        return adb_shell(cmd, uiautomator, args, out, log, restart+1)
+        return adb_shell(cmd, uiautomator, args, out, log, quiet, restart+1)
 
     rc = proc.returncode
     if rc != 0 or error:
@@ -417,7 +419,7 @@ def adb_check_reboot_sim():
     my_print("Check if we have 'SIM card added' warning")
     rebooted = False
     # SIM warning
-    while adb_shell(False, uiautomator='kill_app', args='sim true', out=True): # out to hide error
+    while adb_shell(False, uiautomator='kill_app', args='sim true', quiet=True): # hide error
         my_print("Wait: the smartphone is rebooting")
         time.sleep(60)
         rebooted = True
