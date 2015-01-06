@@ -1,0 +1,119 @@
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
+#
+#  Copyright 2014-2015 Matthieu Baerts & Quentin De Coninck
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+
+import subprocess
+
+from lt_device   import *
+from lt_settings import *
+
+##################################################
+##            DEVICE/ROUTER: NETWORK            ##
+##################################################
+
+## Net: devices
+WIFI = 'wifi'
+DATA = 'data'
+
+# net should be: '4', '3' or '2'
+def change_pref_net(version):
+    my_print("Settings: prefer " + version + "G")
+    arg = "network-status " + version + "G"
+    return adb_shell(False, uiautomator='preference_network', args=arg)
+
+def avoid_poor_connections(enable):
+    my_print("Settings: avoid poor connections: " + str(enable))
+    arg = "avoid-poor-conn " + ("on" if enable else "off")
+    return adb_shell(False, uiautomator='preference_network', args=arg)
+
+# 'wifi', 'enable'
+def manage_net(iface, status):
+    my_print(status + " " + iface)
+    return adb_shell_root('svc ' + iface + ' ' + status)
+
+def enable_iface(iface):
+    return manage_net(iface, 'enable')
+
+def disable_iface(iface):
+    return manage_net(iface, 'disable')
+
+def prefer_iface(iface):
+    return manage_net(iface, 'prefer')
+
+def rmnet(version):
+    disable_iface(WIFI)
+    enable_iface(DATA)
+    change_pref_net(version)
+
+def both(version, prefer_wifi=True):
+    enable_iface(WIFI)
+    enable_iface(DATA)
+    if prefer_wifi:
+        prefer_iface(WIFI)
+    else:
+        prefer_iface(DATA)
+    change_pref_net(version)
+
+# 'enable' or 'disable'
+def multipath_control(action, path_mgr=False):
+    stop_proxy() ## prevent error when enabling mptcp
+    my_print("Multipath Control: " + action)
+    mp_args = 'action ' + action
+    if path_mgr:
+        mp_args = [mp_args, 'pm ' + path_mgr]
+    return adb_shell(False, uiautomator='multipath_control', args=mp_args)
+
+## Net: router
+
+def get_value_between(s, start, end):
+    index = s.find(start)
+    if index >= 0:
+        return s[index+1:s.index(end, index+1)]
+    return False
+
+def loss_cmd(value):
+    if value:
+        return " loss " + value + "%"
+    return ""
+
+def delay_cmd(value):
+    if value:
+        return " delay " + value + "ms"
+    return ""
+
+def router_shell(cmd):
+    my_print("Router: exec: " + cmd)
+    router_cmd = "sshpass -p " + PASSWORD_ROUTER + " ssh " + USER_ROUTER + "@" + IP_ROUTER + " " + cmd
+    if subprocess.call(router_cmd.split()) != 0:
+        my_print_err("when launching this cmd on the router: " + cmd)
+        return False
+    return True
+
+def enable_netem(netem):
+    rc = True
+    for iface in IFACE_ROUTER:
+        cmd = "tc qdisc add dev " + iface + " root netem " + netem
+        rc &= router_shell(cmd)
+    return rc
+
+def disable_netem():
+    rc = True
+    for iface in IFACE_ROUTER:
+        rc &= router_shell("tc qdisc delete dev " + iface + " root")
+    return rc
