@@ -378,6 +378,15 @@ def adb_shell_root(cmd):
     su_cmd = 'su sh -c "' + cmd + '"'
     return adb_shell(su_cmd)
 
+# filename: name of the file or cmd + '.txt'
+def adb_shell_write_output(cmd, out_dir, filename=False):
+my_print("Get " + cmd + " from smartphone")
+out = adb_shell(cmd, out=True)
+if out:
+    out = '\n'.join(out) # one file
+with open(os.path.join(out_dir, filename if filename else cmd.replace(' ', '_') + '.txt'), "w") as out_file:
+    print(out, file=out_file)
+
 def adb_get_uptime():
     up_out = adb_shell("uptime", out=True)
     try:
@@ -665,12 +674,7 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
     random.shuffle(uitests_dir)
     my_print("Launch all tests for " + net + " with random list: " + str(uitests_dir))
 
-    my_print("Get netcfg from smartphone")
-    netcfg = adb_shell("netcfg", out=True)
-    if netcfg:
-        netcfg = '\n'.join(netcfg[:-1])
-    with open(os.path.join(out_dir, 'netcfg.txt'), "w") as netcfg_file:
-        print(netcfg, file=netcfg_file)
+    adb_shell_write_output('netcfg', out_dir)
 
     for uitest in uitests_dir:
         app = uitest[8:]
