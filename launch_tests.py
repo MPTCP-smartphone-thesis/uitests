@@ -296,7 +296,7 @@ def adb_shell_timeout(proc):
         my_print_err("(timeout) when launching this cmd on the device: " + str(proc.args))
         proc.terminate()
 
-def adb_shell(cmd, uiautomator=False, args=False, out=False, restart=0):
+def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, restart=0):
     if uiautomator:
         full_cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + uiautomator + ".LaunchSettings"
         if args:
@@ -315,6 +315,9 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, restart=0):
     else:
         result = True
 
+    if log:
+        print(adb_cmd, file=log)
+
     # adb shell doesn't return the last exit code...
     proc = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     thread = threading.Thread(target=adb_shell_timeout, args=(proc,))
@@ -329,6 +332,8 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, restart=0):
             if line_err_strip == 'error: device not found':
                 dev_not_found = True
             print(RED + line_err_strip + WHITE_ERR, file=sys.stderr)
+            if log:
+                print('stderr: ' + line_err_strip, file=log)
 
         line = proc.stdout.readline()
         if line:
@@ -340,6 +345,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, restart=0):
                 result.append(last_line)
             else:
                 print(BLUE + last_line + WHITE_STD)
+            # check number if last line (exit code)
             if len(last_line) < 4:
                 try:
                     number = int(last_line)
@@ -347,6 +353,8 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, restart=0):
                         last_number = number
                 except ValueError as e:
                     pass
+            if log:
+                print(adb_cmd, file=log)
 
     if dev_not_found:
         if restart == 0:
@@ -362,7 +370,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, restart=0):
         else:
             my_print_err("Device not found, skip this command: " + full_cmd)
             return False
-        return adb_shell(cmd, uiautomator, args, out, restart+1)
+        return adb_shell(cmd, uiautomator, args, out, log, restart+1)
 
     rc = proc.returncode
     if rc != 0 or error:
@@ -381,11 +389,8 @@ def adb_shell_root(cmd):
 # filename: name of the file or cmd + '.txt'
 def adb_shell_write_output(cmd, out_dir, filename=False):
     my_print("Get " + cmd + " from smartphone")
-    out = adb_shell(cmd, out=True)
-    if out:
-        out = '\n'.join(out) # one file
     with open(os.path.join(out_dir, filename if filename else cmd.replace(' ', '_') + '.txt'), "w") as out_file:
-        print(out, file=out_file)
+        out = adb_shell(cmd, log=out_file)
 
 def adb_get_uptime():
     up_out = adb_shell("uptime", out=True)
