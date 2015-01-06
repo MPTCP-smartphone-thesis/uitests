@@ -639,7 +639,8 @@ def launch(app, net, mptcp_dir, out_dir):
     adb_shell_write_output('netstat', out_dir_app, filename='netstat_before.txt')
 
     my_print("*** Launching tests for [ " + YELLOW + app.upper() + GREEN + " ] at " + time_now + " for " + net + " ***")
-    success = adb_shell(False, uiautomator=app)
+    with open(os.path.join(out_dir_app, 'uitests.log'), "w") as log_file:
+        success = adb_shell(False, uiautomator=app, log=log_file)
 
     adb_shell_write_output('netstat', out_dir_app, filename='netstat_after.txt')
 
