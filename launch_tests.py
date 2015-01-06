@@ -622,6 +622,10 @@ def launch(app, net, mptcp_dir, out_dir):
     out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net/app
     android_pcap_dir = ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net + '/' + app
 
+    # Create dir and put netstat info + pcap in it
+    if not os.path.isdir(out_dir_app):
+        os.makedirs(out_dir_app)
+
     # Start full capture on the proxy and on the device
     if not manage_capture(True, mptcp_dir, app, android_pcap_dir, net, time_now):
         my_print_err("Error proxy: Skip test of " + app.upper())
@@ -656,8 +660,6 @@ def launch(app, net, mptcp_dir, out_dir):
         return False
 
     # Save files: 'traces' external dir already contains the app name
-    if not os.path.isdir(out_dir_app):
-        os.makedirs(out_dir_app)
     my_print("Pull files to " + out_dir_app)
     cmd = "adb pull " + android_pcap_dir + "/ " + out_dir_app
     if subprocess.call(cmd.split()) != 0:
