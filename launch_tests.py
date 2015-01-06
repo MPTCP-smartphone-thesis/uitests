@@ -829,6 +829,9 @@ if PURGE_TRACES_SMARTPHONE:
     my_print("Remove previous traces located on the phone")
     adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
 
+# remove sim if any to launch the first UiTest
+adb_check_reboot_sim()
+
 if WITH_SHADOWSOCKS:
     my_print("Using ShadowSocks:")
     if SSH_TUNNEL_INSTALLED:
