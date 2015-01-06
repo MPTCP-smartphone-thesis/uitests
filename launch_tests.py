@@ -665,6 +665,13 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base=output_dir):
     random.shuffle(uitests_dir)
     my_print("Launch all tests for " + net + " with random list: " + str(uitests_dir))
 
+    my_print("Get netcfg from smartphone")
+    netcfg = adb_shell("netcfg", out=True)
+    if netcfg:
+        netcfg = '\n'.join(netcfg[:-1])
+    with open(os.path.join(out_dir, 'netcfg.txt'), "w") as netcfg_file:
+        print(netcfg, file=netcfg_file)
+
     for uitest in uitests_dir:
         app = uitest[8:]
         time_before = time.time()
