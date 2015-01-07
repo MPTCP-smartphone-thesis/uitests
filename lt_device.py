@@ -406,7 +406,9 @@ def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now, rm=Fa
 ##################################################
 
 # Launch test for one app and pull files after each test (if there is a bug)
-def launch(app, net, mptcp_dir, out_dir):
+#  func_start function will be launched with current args in a new thread just before launching tests.
+#  func_stop will be launched with current args in the current thread just after the end of the test.
+def launch(app, net, mptcp_dir, out_dir, func_start=False, func_end=False, uitests_args=False):
     time_now = time.strftime("%Y%m%d-%H%M%S")
     out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net/app
     android_pcap_dir = ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net + '/' + app
@@ -422,9 +424,15 @@ def launch(app, net, mptcp_dir, out_dir):
 
     adb_shell_write_output('netstat', out_dir_app, filename='netstat_before.txt')
 
+    if func_start:
+        threading.Thread(target=func_start, args=(app, net, mptcp_dir, out_dir)).start()
+
     my_print("*** Launching tests for [ " + YELLOW + app.upper() + GREEN + " ] at " + time_now + " for " + net + " ***")
     with open(os.path.join(out_dir_app, 'uitests.log'), "w") as log_file:
-        success = adb_shell(False, uiautomator=app, log=log_file)
+        success = adb_shell(False, uiautomator=app, log=log_file, args=uitests_args)
+
+    if func_stop:
+        func_stop(*(app, net, mptcp_dir, out_dir))
 
     adb_shell_write_output('netstat', out_dir_app, filename='netstat_after.txt')
 
@@ -456,7 +464,7 @@ def launch(app, net, mptcp_dir, out_dir):
         my_print_err("when pulling traces for " + app)
     # Files will be saved in ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET/APP/MPTCP_APP_NET_DATE_HOUR.pcap + MPTCP_APP_NET_DATE_HOUR_lo.pcap
 
-def launch_all(uitests_dir, net, mptcp_dir, out_base):
+def launch_all(uitests_dir, net, mptcp_dir, out_base, func_start=False, func_end=False, uitests_args=False):
     # out_dir: ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET
     out_dir = os.path.join(out_base, mptcp_dir, net)
     if (not os.path.isdir(out_dir)):
@@ -476,7 +484,7 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base):
     for uitest in uitests_dir:
         app = uitest[8:]
         time_before = time.time()
-        launch(app, net, mptcp_dir, out_dir)
+        launch(app, net, mptcp_dir, out_dir, func_start, func_end, uitests_args)
         my_print('UITest ' + str(lt_globals.TEST_NO) + '/' + str(lt_globals.NB_TESTS) + ' for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
         lt_globals.TEST_NO += 1
 

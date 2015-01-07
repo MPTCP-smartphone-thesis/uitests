@@ -85,6 +85,11 @@ FORCE_COLORS = False
 NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m'
 # Enable Android's Wi-Fi option: Avoid Poor Connections (Don't use a Wi-Fi network unless it has a good Internet connection)
 AVOID_POOR_CONNECTIONS = False
+# Functions that can be launched just before/after each uitest
+LAUNCH_FUNC_START = False
+LAUNCH_FUNC_END = False
+# Extras args that could be added to each uitests (not the exceptions)
+LAUNCH_UITESTS_ARGS = False
 
 # Possible to restrict to these uitests (name of the directory, e.g. uitests-drive)
 RESTRICT_UITESTS = []

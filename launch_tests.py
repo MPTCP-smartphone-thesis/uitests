@@ -270,7 +270,7 @@ for mptcp_dir in mptcp:
                 enable_netem(netem)
 
         # Launch test
-        launch_all(uitests_dir, net.name, mptcp_dir, output_dir)
+        launch_all(uitests_dir, net.name, mptcp_dir, output_dir, LAUNCH_FUNC_START, LAUNCH_FUNC_END, LAUNCH_UITESTS_ARGS)
 
         # Delete Netem
         if tc:
