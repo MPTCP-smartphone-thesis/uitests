@@ -265,6 +265,11 @@ def adb_get_pid(proc_name, strict=False):
         return output
     return []
 
+
+##################################################
+##                 DEVICE: PROXY                ##
+##################################################
+
 # relaunch SSH-Tunnel and check the connection via a ping
 def restart_proxy(sleep=1):
     if not WITH_SSH_TUNNEL:
@@ -295,6 +300,11 @@ def stop_proxy():
 
     my_print("Stop proxy")
     return adb_shell(False, uiautomator='ssh_tunnel', args='action stop')
+
+
+##################################################
+##                DEVICE: CAPTURE               ##
+##################################################
 
 # Launch full capture on the server
 def manage_capture_server(mode, arg_pcap):
@@ -389,6 +399,11 @@ def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now, rm=Fa
         if rm:
             manage_capture_server("rm", arg_pcap)
         return success
+
+
+##################################################
+##                DEVICE: LAUNCH                ##
+##################################################
 
 # Launch test for one app and pull files after each test (if there is a bug)
 def launch(app, net, mptcp_dir, out_dir):
