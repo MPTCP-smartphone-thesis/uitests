@@ -101,21 +101,20 @@ def delay_cmd(value):
 
 def router_shell(cmd):
     my_print("Router: exec: " + cmd)
-    router_cmd = "sshpass -p " + s.PASSWORD_ROUTER + " ssh " + s.USER_ROUTER + "@" + s.IP_ROUTER + " " + cmd
-    if subprocess.call(router_cmd.split()) != 0:
+    router_cmd = ["sshpass", "-p " + s.PASSWORD_ROUTER, "ssh " + s.USER_ROUTER + "@" + s.IP_ROUTER, cmd]
+    if subprocess.call(router_cmd) != 0:
         my_print_err("when launching this cmd on the router: " + cmd)
         return False
     return True
 
 def enable_netem(netem):
-    rc = True
+    cmd = ''
     for iface in s.IFACE_ROUTER:
-        cmd = "tc qdisc add dev " + iface + " root netem " + netem
-        rc &= router_shell(cmd)
-    return rc
+        cmd += "tc qdisc add dev " + iface + " root netem " + netem + " ; "
+    return router_shell(cmd)
 
 def disable_netem():
-    rc = True
+    cmd = ''
     for iface in s.IFACE_ROUTER:
-        rc &= router_shell("tc qdisc delete dev " + iface + " root")
-    return rc
+        cmd += "tc qdisc delete dev " + iface + " root ; "
+    return router_shell(cmd)
