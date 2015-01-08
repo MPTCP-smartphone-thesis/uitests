@@ -56,6 +56,7 @@ WITH_FULLMESH = True # a bit better if we start the connection with the best one
 
 CHANGE_CASE = 'loss' # or 'delay' or 'both' (loss + delay)
 CHANGE_SWITCH = 10 # after 10 iters
+CHANGE_LIMIT = 20 # max 20 iters
 CHANGE_INC = 1 # +1 after each iter (e.g. +5 for the delay)
 CHANGE_INC_BOTH_DELAY = 5 # if 'both', increment of 5*INC for the delay
 CHANGE_TIME = 15 # WAIT 15sec before the next iter
@@ -94,6 +95,8 @@ def func_start(app, net_name, mptcp_dir, out_dir):
                 success = net.disable_iface(net.WIFI)
             if not success:
                 my_print_err("Not able to switch with method " + CHANGE_METHOD)
+        elif i == CHANGE_LIMIT * CHANGE_INC:
+            return
         i += CHANGE_INC
 
 
