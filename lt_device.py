@@ -346,12 +346,12 @@ def launch_capture_device(cmd, instances):
         pids = adb_get_pid('tcpdump')
     return True
 
-def start_capture_device(arg_pcap, android_pcap_dir, net):
+def start_capture_device(arg_pcap, android_pcap_dir, net_name):
     my_print("Capture traces on the device")
     tcp_filter = 'tcp'
-    if net.startswith('wlan'):
+    if net_name.startswith('wlan'):
         iface = "wlan0"
-    elif net.startswith('rmnet'):
+    elif net_name.startswith('rmnet'):
         iface = "rmnet0"
     else: # both
         iface = "any"
@@ -380,12 +380,12 @@ def start_capture_device(arg_pcap, android_pcap_dir, net):
     return True
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
-def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now, rm=False):
-    arg_pcap = mptcp_dir.lower() + "_" + app + "_" + net + "_" + time_now
+def manage_capture(start, mptcp_dir, app, android_pcap_dir, net_name, time_now, rm=False):
+    arg_pcap = mptcp_dir.lower() + "_" + app + "_" + net_name + "_" + time_now
 
     if start: # first the server, then the device
         manage_capture_server("start_sshtunnel" if s.WITH_SSH_TUNNEL else "start_shadowsocks", arg_pcap)
-        if not start_capture_device(arg_pcap, android_pcap_dir, net):
+        if not start_capture_device(arg_pcap, android_pcap_dir, net_name):
             manage_capture_server("stop", arg_pcap)
             manage_capture_server("rm", arg_pcap)
             return False
@@ -412,34 +412,34 @@ def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now, rm=Fa
 # Launch test for one app and pull files after each test (if there is a bug)
 #  func_start function will be launched with current args in a new thread just before launching tests.
 #  func_stop will be launched with current args in the current thread just after the end of the test.
-def launch(app, net, mptcp_dir, out_dir, func_init=False, func_start=False, func_end=False, uitests_args=False):
+def launch(app, net_name, mptcp_dir, out_dir, func_init=False, func_start=False, func_end=False, uitests_args=False):
     time_now = time.strftime("%Y%m%d-%H%M%S")
-    out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net/app
-    android_pcap_dir = s.ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net + '/' + app
+    out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net_name/app
+    android_pcap_dir = s.ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net_name + '/' + app
 
     # Create dir and put netstat info + pcap in it
     if not os.path.isdir(out_dir_app):
         os.makedirs(out_dir_app)
 
     # Start full capture on the proxy and on the device
-    if not manage_capture(True, mptcp_dir, app, android_pcap_dir, net, time_now):
+    if not manage_capture(True, mptcp_dir, app, android_pcap_dir, net_name, time_now):
         my_print_err("Error proxy: Skip test of " + app.upper())
         return
 
     adb_shell_write_output('netstat', out_dir_app, filename='netstat_before.txt')
 
     if func_init:
-        func_init(*(app, net, mptcp_dir, out_dir))
+        func_init(*(app, net_name, mptcp_dir, out_dir))
 
     if func_start:
-        threading.Thread(target=func_start, args=(app, net, mptcp_dir, out_dir)).start()
+        threading.Thread(target=func_start, args=(app, net_name, mptcp_dir, out_dir)).start()
 
-    my_print("*** Launching tests for [ " + s.YELLOW + app.upper() + s.GREEN + " ] at " + time_now + " for " + net + " ***")
+    my_print("*** Launching tests for [ " + s.YELLOW + app.upper() + s.GREEN + " ] at " + time_now + " for " + net_name + " ***")
     with open(os.path.join(out_dir_app, 'uitests.log'), "w") as log_file:
         success = adb_shell(False, uiautomator=app, log=log_file, args=uitests_args)
 
     if func_end:
-        func_end(*(app, net, mptcp_dir, out_dir, success))
+        func_end(*(app, net_name, mptcp_dir, out_dir, success))
 
     adb_shell_write_output('netstat', out_dir_app, filename='netstat_after.txt')
 
@@ -455,7 +455,7 @@ def launch(app, net, mptcp_dir, out_dir, func_init=False, func_start=False, func
         my_print_err("Not able to find pkg name and then kill " + app)
 
     # Stop full capture on the proxy and on the device
-    manage_capture(False, mptcp_dir, app, android_pcap_dir, net, time_now, not success)
+    manage_capture(False, mptcp_dir, app, android_pcap_dir, net_name, time_now, not success)
 
     # no need to pull useless traces
     if not success:
@@ -471,9 +471,9 @@ def launch(app, net, mptcp_dir, out_dir, func_init=False, func_start=False, func
         my_print_err("when pulling traces for " + app)
     # Files will be saved in ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET/APP/MPTCP_APP_NET_DATE_HOUR.pcap + MPTCP_APP_NET_DATE_HOUR_lo.pcap
 
-def launch_all(uitests_dir, net, mptcp_dir, out_base, func_init=False, func_start=False, func_end=False, uitests_args=False):
+def launch_all(uitests_dir, net_name, mptcp_dir, out_base, func_init=False, func_start=False, func_end=False, uitests_args=False):
     # out_dir: ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET
-    out_dir = os.path.join(out_base, mptcp_dir, net)
+    out_dir = os.path.join(out_base, mptcp_dir, net_name)
     if (not os.path.isdir(out_dir)):
         os.makedirs(out_dir)
 
@@ -483,7 +483,7 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base, func_init=False, func_star
 
     # random: to avoid having the same order
     random.shuffle(uitests_dir)
-    my_print("Launch all tests for " + net + " with random list: " + str(uitests_dir))
+    my_print("Launch all tests for " + net_name + " with random list: " + str(uitests_dir))
 
     adb_shell_write_output('netcfg', out_dir)
     adb_shell_write_output('netstat', out_dir)
@@ -491,7 +491,7 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base, func_init=False, func_star
     for uitest in uitests_dir:
         app = uitest[8:]
         time_before = time.time()
-        launch(app, net, mptcp_dir, out_dir, func_init, func_start, func_end, uitests_args)
+        launch(app, net_name, mptcp_dir, out_dir, func_init, func_start, func_end, uitests_args)
         my_print('UITest ' + str(g.TEST_NO) + '/' + str(g.NB_TESTS) + ' for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
         g.TEST_NO += 1
 

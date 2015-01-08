@@ -221,7 +221,7 @@ for mptcp_dir in mptcp:
     net_list = list(Network)
     random.shuffle(net_list)
     my_print("Network list:")
-    print(*(net.name for net in net_list))
+    print(*(net_mode.name for net_mode in net_list))
 
     for net_mode in net_list:
         name = net_mode.name

@@ -35,7 +35,7 @@ DATA = 'data'
 WLAN = 'wlan0'
 RMNET = 'rmnet0'
 
-# net should be: '4', '3' or '2'
+# version should be: '4', '3' or '2'
 def change_pref_net(version):
     my_print("Settings: prefer " + version + "G")
     arg = "network-status " + version + "G"
