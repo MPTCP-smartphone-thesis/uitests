@@ -18,9 +18,11 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+import os
 import random
 import subprocess
 import sys
+import time
 import threading
 
 from lt_settings import *
