@@ -412,7 +412,7 @@ def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now, rm=Fa
 # Launch test for one app and pull files after each test (if there is a bug)
 #  func_start function will be launched with current args in a new thread just before launching tests.
 #  func_stop will be launched with current args in the current thread just after the end of the test.
-def launch(app, net, mptcp_dir, out_dir, func_start=False, func_end=False, uitests_args=False):
+def launch(app, net, mptcp_dir, out_dir, func_init=False, func_start=False, func_end=False, uitests_args=False):
     time_now = time.strftime("%Y%m%d-%H%M%S")
     out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net/app
     android_pcap_dir = s.ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net + '/' + app
@@ -427,6 +427,9 @@ def launch(app, net, mptcp_dir, out_dir, func_start=False, func_end=False, uites
         return
 
     adb_shell_write_output('netstat', out_dir_app, filename='netstat_before.txt')
+
+    if func_init:
+        func_init(*(app, net, mptcp_dir, out_dir))
 
     if func_start:
         threading.Thread(target=func_start, args=(app, net, mptcp_dir, out_dir)).start()
@@ -468,7 +471,7 @@ def launch(app, net, mptcp_dir, out_dir, func_start=False, func_end=False, uites
         my_print_err("when pulling traces for " + app)
     # Files will be saved in ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET/APP/MPTCP_APP_NET_DATE_HOUR.pcap + MPTCP_APP_NET_DATE_HOUR_lo.pcap
 
-def launch_all(uitests_dir, net, mptcp_dir, out_base, func_start=False, func_end=False, uitests_args=False):
+def launch_all(uitests_dir, net, mptcp_dir, out_base, func_init=False, func_start=False, func_end=False, uitests_args=False):
     # out_dir: ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET
     out_dir = os.path.join(out_base, mptcp_dir, net)
     if (not os.path.isdir(out_dir)):
@@ -488,7 +491,7 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base, func_start=False, func_end
     for uitest in uitests_dir:
         app = uitest[8:]
         time_before = time.time()
-        launch(app, net, mptcp_dir, out_dir, func_start, func_end, uitests_args)
+        launch(app, net, mptcp_dir, out_dir, func_init, func_start, func_end, uitests_args)
         my_print('UITest ' + str(g.TEST_NO) + '/' + str(g.NB_TESTS) + ' for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
         g.TEST_NO += 1
 

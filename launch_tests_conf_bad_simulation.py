@@ -59,10 +59,13 @@ CHANGE_INC_BOTH_DELAY = 5 # if 'both', increment of 5*INC for the delay
 CHANGE_TIME = 15 # WAIT 15sec before the next iter
 
 THREAD_CONTINUE = True
+def func_init(app, net, mptcp_dir, out_dir):
+    global THREAD_CONTINUE
+    THREAD_CONTINUE = True
+
 # we have ~4.5 minutes: inc losses/delay every 15 sec
 def func_start(app, net, mptcp_dir, out_dir):
     global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME
-    THREAD_CONTINUE = True
     wlan,rmnet = net.get_all_ipv4()
     net.change_default_route(net.WLAN, wlan)
 
@@ -88,6 +91,7 @@ def func_end(app, net, mptcp_dir, out_dir, success):
     net.disable_netem()
 
 # Functions that can be launched just before/after each uitest
+LAUNCH_FUNC_INIT = func_init
 LAUNCH_FUNC_START = func_start
 LAUNCH_FUNC_END = func_end
 
