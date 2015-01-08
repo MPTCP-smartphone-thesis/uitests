@@ -149,6 +149,16 @@ def enable_netem_delay(value):
 def enable_netem_loss_delay(loss, delay):
     return enable_netem(loss_cmd(str(value)) + delay_cmd(str(value)))
 
+def enable_netem_var(case, value1, value2=0):
+    if case == 'loss':
+        enable_netem_loss(value1)
+    elif case == 'delay':
+        enable_netem_delay(value1)
+    elif case == 'both':
+        enable_netem_loss_delay(value1, value2)
+    else:
+        my_print_err("enable_netem_var: case unknown - " + case)
+
 def change_netem(netem):
     return manage_netem('change', netem)
 
@@ -160,6 +170,16 @@ def change_netem_delay(value):
 
 def change_netem_loss_delay(loss, delay):
     return change_netem(loss_cmd(str(value)) + delay_cmd(str(value)))
+
+def change_netem_var(case, value1, value2=0):
+    if case == 'loss':
+        change_netem_loss(value1)
+    elif case == 'delay':
+        change_netem_delay(value1)
+    elif case == 'both':
+        change_netem_loss_delay(value1, value2)
+    else:
+        my_print_err("change_netem_var: case unknown - " + case)
 
 def disable_netem():
     cmd = ''
