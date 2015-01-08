@@ -76,7 +76,7 @@ def both(version, prefer_wifi=True):
 
 def change_default_route(iface, addr):
     my_print("Default route to " + iface + " - " + addr)
-    return dev.adb_shell_root('route del default; route add default gw ' + addr + ' dev ' + iface)
+    return dev.adb_shell_root('ip route change default via ' + addr + ' dev ' + iface)
 
 def get_ipv4(iface):
     wlan = dev.adb_shell('ip addr show ' + iface, out=True, quiet=True)
