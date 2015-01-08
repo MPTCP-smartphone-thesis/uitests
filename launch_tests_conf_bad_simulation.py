@@ -43,7 +43,7 @@ AVOID_POOR_CONNECTIONS = False
 LAUNCH_UITESTS_ARGS = 'mult-time 3'
 TIMEOUT = 60*3 *3
 
-# Tests with ShadowSocks
+# Tests with ShadowSocks, with SSHTunnel, it will try to reconnect each time the connection change
 WITH_SSH_TUNNEL = False
 WITH_SHADOWSOCKS = True
 
@@ -52,28 +52,30 @@ WITH_TCP = True # we should see deconnections => bad perf
 WITH_MPTCP = True # we should see switch
 WITH_FULLMESH = True # a bit better if we start the connection with the best one
 
-CHANGE_CASE = 'loss' # or 'delay' or 'both'
+CHANGE_CASE = 'loss' # or 'delay' or 'both' (loss + delay)
 CHANGE_SWITCH = 10 # after 10 iters
 CHANGE_INC = 1 # +1 after each iter (e.g. +5 for the delay)
 CHANGE_INC_BOTH_DELAY = 5 # if 'both', increment of 5*INC for the delay
 CHANGE_TIME = 15 # WAIT 15sec before the next iter
+CHANGE_METHOD = 'wifi' # or 'route' or 'prefer'
+# route: change the default route to wlan/rmnet but it will only affect new connections.
+# prefer: used `svc wifi|data prefer`: will switch to wlan/rmnet but it will disable the other one (until the one which is used is disabled).
+# wifi: will disable/enable wifi. Then it should switch to rmnet and re-used Wi-Fi only when wlan is enabled AND connected.
 
 THREAD_CONTINUE = True
-def func_init(app, net, mptcp_dir, out_dir):
+def func_init(app, net_name, mptcp_dir, out_dir):
     global THREAD_CONTINUE
     THREAD_CONTINUE = True
 
 # we have ~4.5 minutes: inc losses/delay every 15 sec
-def func_start(app, net, mptcp_dir, out_dir):
-    global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME
-    wlan,rmnet = net.get_all_ipv4()
-    net.change_default_route(net.WLAN, wlan)
+def func_start(app, net_name, mptcp_dir, out_dir):
+    global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME, CHANGE_METHOD
 
     i = CHANGE_INC
-
     while True:
         time.sleep(CHANGE_TIME)
         if THREAD_CONTINUE: return
+
         if i == CHANGE_INC:
             net.enable_netem_var(CHANGE_CASE, i, i * CHANGE_INC_BOTH_DELAY)
         else:
@@ -81,13 +83,38 @@ def func_start(app, net, mptcp_dir, out_dir):
 
         # prefer Data over Wi-Fi
         if i == CHANGE_SWITCH * CHANGE_INC:
-            net.change_default_route(net.RMNET, rmnet)
+            # forcer changement avec MPTCP: voir sysctl? stop wifi? net.disable_iface(net.WIFI)
+            if CHANGE_METHOD == 'route' and mptcp_dir.startswith('MPTCP'):
+                success = net.change_default_route_rmnet()
+            elif CHANGE_METHOD == 'prefer':
+                success = net.prefer_iface(net.RMNET)
+            else:
+                success = net.disable_iface(net.WIFI)
+            if not success:
+                my_print_err("Not able to switch with method " + CHANGE_METHOD)
         i += CHANGE_INC
 
 
-def func_end(app, net, mptcp_dir, out_dir, success):
-    global THREAD_CONTINUE
+def func_end(app, net_name, mptcp_dir, out_dir, success):
+    global THREAD_CONTINUE, CHANGE_METHOD
     THREAD_CONTINUE = False
+
+    if CHANGE_METHOD == 'route' and mptcp_dir.startswith('MPTCP'):
+        rc = net.change_default_route_wlan()
+    elif CHANGE_METHOD == 'prefer':
+        rc = net.prefer_iface(net.WLAN)
+        # 'svc data prefer' cmd will disable WLAN, we need to enable both ifaces
+        # relaunch multipath_control
+        if mptcp_dir == 'MPTCP':
+            rc &= net.multipath_control("enable")
+        elif mptcp_dir == 'MPTCP_FM':
+            rc &= net.multipath_control("enable", path_mgr="fullmesh")
+    else: # wifi
+        rc = net.enable_iface(net.WIFI)
+
+    if not rc:
+        my_print_err("Not able to return to init state with method " + CHANGE_METHOD)
+
     net.disable_netem()
 
 # Functions that can be launched just before/after each uitest
