@@ -52,40 +52,34 @@ WITH_TCP = True # we should see deconnections => bad perf
 WITH_MPTCP = True # we should see switch
 WITH_FULLMESH = True # a bit better if we start the connection with the best one
 
-CHANGE_LOSSES = True
+CHANGE_CASE = 'loss' # or 'delay' or 'both'
+CHANGE_SWITCH = 10 # after 10 iters
+CHANGE_INC = 1 # +1 after each iter (e.g. +5 for the delay)
+CHANGE_INC_BOTH_DELAY = 5 # if 'both', increment of 5*INC for the delay
+CHANGE_TIME = 15 # WAIT 15sec before the next iter
 
 THREAD_CONTINUE = True
 # we have ~4.5 minutes: inc losses/delay every 15 sec
 def func_start(app, net, mptcp_dir, out_dir):
-    global THREAD_CONTINUE, CHANGE_LOSSES
+    global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME
     THREAD_CONTINUE = True
     wlan,rmnet = net.get_all_ipv4()
     net.change_default_route(net.WLAN, wlan)
 
-    if CHANGE_LOSSES:
-        i = 1
-    else:
-        i = 5
-    inc = i
+    i = CHANGE_INC
 
     while True:
-        time.sleep(15)
+        time.sleep(CHANGE_TIME)
         if THREAD_CONTINUE: return
-        if i == 1:
-            if CHANGE_LOSSES:
-                net.enable_netem_loss(i)
-            else:
-                net.enable_netem_delay(i)
+        if i == CHANGE_INC:
+            net.enable_netem_var(CHANGE_CASE, i, i * CHANGE_INC_BOTH_DELAY)
         else:
-            if CHANGE_LOSSES:
-                net.change_netem_loss(i)
-            else:
-                net.change_netem_delay(i)
+            net.change_netem_var(CHANGE_CASE, i, i * CHANGE_INC_BOTH_DELAY)
 
         # prefer Data over Wi-Fi
-        if i == 10 * inc:
+        if i == CHANGE_SWITCH * CHANGE_INC:
             net.change_default_route(net.RMNET, rmnet)
-        i += inc
+        i += CHANGE_INC
 
 
 def func_end(app, net, mptcp_dir, out_dir, success):
