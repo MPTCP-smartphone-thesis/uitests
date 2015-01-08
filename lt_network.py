@@ -107,11 +107,35 @@ def router_shell(cmd):
         return False
     return True
 
-def enable_netem(netem):
+def manage_netem(status, netem):
     cmd = ''
     for iface in s.IFACE_ROUTER:
-        cmd += "tc qdisc add dev " + iface + " root netem " + netem + " ; "
+        cmd += "tc qdisc " + status + " dev " + iface + " root netem " + netem + " ; "
     return router_shell(cmd)
+
+def enable_netem(netem):
+    return manage_netem('add', netem)
+
+def enable_netem_loss(value):
+    return enable_netem(loss_cmd(str(value)))
+
+def enable_netem_delay(value):
+    return enable_netem(delay_cmd(str(value)))
+
+def enable_netem_loss_delay(loss, delay):
+    return enable_netem(loss_cmd(str(value)) + delay_cmd(str(value)))
+
+def change_netem(netem):
+    return manage_netem('change', netem)
+
+def change_netem_loss(value):
+    return change_netem(loss_cmd(str(value)))
+
+def change_netem_delay(value):
+    return change_netem(delay_cmd(str(value)))
+
+def change_netem_loss_delay(loss, delay):
+    return change_netem(loss_cmd(str(value)) + delay_cmd(str(value)))
 
 def disable_netem():
     cmd = ''
