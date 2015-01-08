@@ -113,9 +113,6 @@ WHITE_STD = "\033[0;39m"
 RED       = "\033[1;31m" # + bold
 WHITE_ERR = "\033[0;39m"
 
-# force to be in the right dir
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-
 # load external config: can be used to change variables here above
 CONFIG_FILE_DEFAULT = 'launch_tests_conf.py'
 

@@ -32,6 +32,10 @@ import time
 
 from enum import Enum
 
+# force to be in the right dir
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(ROOT_DIR)
+
 import lt_globals as g
 g.init()
 
@@ -47,8 +51,6 @@ from lt_utils import *
 ##################################################
 ##            MACHINE: PREPARE TESTS            ##
 ##################################################
-
-os.chdir(s.ROOT_DIR)
 
 cmd = "git describe --abbrev=0 --dirty --always"
 git_rev = subprocess.check_output(cmd.split(), universal_newlines=True).splitlines()[0]
@@ -113,7 +115,7 @@ for uitest in uitests_dir + s.UITESTS_EXCEPTIONS:
 
         cmd = "ant build"
         rt = subprocess.call(cmd.split())
-        os.chdir(s.ROOT_DIR)
+        os.chdir(ROOT_DIR)
         if rt != 0:
             my_print_err("when building jar for " + app)
             continue
