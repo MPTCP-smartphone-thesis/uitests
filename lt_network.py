@@ -32,6 +32,8 @@ from lt_utils import * # my_print
 ## Net: devices
 WIFI = 'wifi'
 DATA = 'data'
+WLAN = 'wlan0'
+RMNET = 'rmnet0'
 
 # net should be: '4', '3' or '2'
 def change_pref_net(version):
@@ -71,6 +73,24 @@ def both(version, prefer_wifi=True):
     else:
         prefer_iface(DATA)
     change_pref_net(version)
+
+def get_ipv4(iface):
+    wlan = dev.adb_shell('ip addr show ' + iface, out=True, quiet=True)
+    if wlan and len(wlan) > 2:
+        try: # 3th line: '    inet 37.62.66.XXX/29 scope global rmnet0'
+            return wlan[2].split()[1][:-3]
+        except:
+            return False
+    return False
+
+def get_all_ipv4():
+    result = []
+    for iface in (WLAN, RMNET):
+        addr = get_ipv4(iface)
+        if addr:
+            result.append(addr)
+    return result
+
 
 # 'enable' or 'disable'
 def multipath_control(action, path_mgr=False):
