@@ -431,8 +431,8 @@ def launch(app, net, mptcp_dir, out_dir, func_start=False, func_end=False, uites
     with open(os.path.join(out_dir_app, 'uitests.log'), "w") as log_file:
         success = adb_shell(False, uiautomator=app, log=log_file, args=uitests_args)
 
-    if func_stop:
-        func_stop(*(app, net, mptcp_dir, out_dir))
+    if func_end:
+        func_end(*(app, net, mptcp_dir, out_dir))
 
     adb_shell_write_output('netstat', out_dir_app, filename='netstat_after.txt')
 
