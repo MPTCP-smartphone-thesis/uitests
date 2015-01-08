@@ -47,6 +47,8 @@ from lt_utils import *
 ##            MACHINE: PREPARE TESTS            ##
 ##################################################
 
+os.chdir(s.ROOT_DIR)
+
 cmd = "git describe --abbrev=0 --dirty --always"
 git_rev = subprocess.check_output(cmd.split(), universal_newlines=True).splitlines()[0]
 my_print("Git version: " + git_rev)

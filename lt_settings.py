@@ -106,8 +106,7 @@ ANDROID_TRACE_OUT = ANDROID_HOME + '/traces'
 OUTPUT_DIR = "~/Thesis/TCPDump"
 
 # force to be in the right dir
-root_dir = os.path.dirname(os.path.abspath(__file__))
-os.chdir(root_dir)
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # load external config: can be used to change variables here above
 CONFIG_FILE_DEFAULT = 'launch_tests_conf.py'
