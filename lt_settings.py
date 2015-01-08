@@ -20,7 +20,6 @@
 
 import os
 import sys
-import time
 
 ##################################################
 ##                    CONFIG                    ##
@@ -142,12 +141,6 @@ if FORCE_COLORS or sys.stderr.isatty():
 else:
     err = WHITE_ERR = ''
 
-# custom print
-def my_print(msg, start=GREEN):
-    print(start + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "] " + msg + "\n" + WHITE_STD)
-
-def my_print_err(msg, start=RED):
-    print(start + "\n[" + time.strftime("%Y%m%d-%H%M%S") + "]\t*** ERROR " + msg + "\n" + WHITE_ERR, file=sys.stderr)
 
 
 ##################################################

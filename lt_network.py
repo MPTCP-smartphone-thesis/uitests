@@ -23,6 +23,8 @@ import subprocess
 from lt_device   import *
 from lt_settings import *
 
+from lt_utils import * # my_print
+
 ##################################################
 ##            DEVICE/ROUTER: NETWORK            ##
 ##################################################

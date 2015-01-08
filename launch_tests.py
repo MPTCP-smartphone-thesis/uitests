@@ -40,6 +40,8 @@ from lt_settings import * # config
 from lt_device   import *
 from lt_network  import *
 
+from lt_utils import *
+
 
 ##################################################
 ##            MACHINE: PREPARE TESTS            ##

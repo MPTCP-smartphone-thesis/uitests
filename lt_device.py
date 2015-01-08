@@ -28,6 +28,8 @@ import threading
 from lt_settings import *
 import lt_globals
 
+from lt_utils import *
+
 ##################################################
 ##                DEVICE: METHODS               ##
 ##################################################
