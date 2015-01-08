@@ -122,10 +122,19 @@ def func_end(app, net_name, mptcp_dir, out_dir, success):
 
     net.disable_netem()
 
+def func_exit(app, net_name, mptcp_dir, out_dir, thread):
+    # Wait for the end of the thread: avoid
+    if thread and thread.is_alive():
+        my_print("Wait the end of the thread")
+        thread.join(timeout=CHANGE_TIME+1)
+        if thread.is_alive():
+            my_print_err("Thread is still alive for " + app + " - " + net_name)
+
 # Functions that can be launched just before/after each uitest
 LAUNCH_FUNC_INIT = func_init
 LAUNCH_FUNC_START = func_start
 LAUNCH_FUNC_END = func_end
+LAUNCH_FUNC_EXIT = func_exit
 
 if os.path.isfile('launch_tests_conf_bad_simulation_custom.py'):
     from launch_tests_conf_bad_simulation_custom import *
