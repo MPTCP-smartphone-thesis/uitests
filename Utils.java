@@ -256,6 +256,22 @@ public class Utils {
 		return openApp(t, appText, packageName, true);
 	}
 
+	public static double getMultTime(UiAutomatorTestCase t) {
+		String multTime = t.getParams().getString("mult-time");
+		if (multTime == null)
+			return 1.;
+		try {
+			return Double.parseDouble(multTime);
+		} catch (NumberFormatException e) {
+			return 1.;
+		}
+	}
+
+
+	/////////////////////////////////////////
+	//              UiObject               //
+	/////////////////////////////////////////
+
 	public static UiObject getObject(String id)
 			throws UiObjectNotFoundException {
 		UiObject obj = new UiObject(new UiSelector().resourceId(id));
