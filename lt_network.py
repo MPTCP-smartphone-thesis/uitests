@@ -74,6 +74,10 @@ def both(version, prefer_wifi=True):
         prefer_iface(DATA)
     change_pref_net(version)
 
+def manage_default_route(iface, addr):
+    my_print("Default route to " + iface + " - " + addr)
+    return dev.adb_shell_root('route add default gw ' + addr + ' dev ' + iface)
+
 def get_ipv4(iface):
     wlan = dev.adb_shell('ip addr show ' + iface, out=True, quiet=True)
     if wlan and len(wlan) > 2:
