@@ -159,9 +159,3 @@ def init():
         my_print_err("ShadowSocks not installed: switch to SSHTunnel if installed")
         WITH_SHADOWSOCKS = False
         WITH_SSH_TUNNEL = SSH_TUNNEL_INSTALLED
-
-    global WITH_MPTCP, WITH_TCP, WITH_FULLMESH
-    # We only have time for 2 tests
-    if WITH_MPTCP and WITH_TCP and WITH_FULLMESH:
-        my_print_err("Cannot launch MPTCP/TCP/MPTCP-FM: disable MPTCP")
-        WITH_MPTCP = False
