@@ -113,7 +113,11 @@ def get_all_route():
 
 def change_default_route(iface, addr):
     my_print("Default route to " + iface + " - " + addr)
-    return dev.adb_shell_root('ip route change default via ' + addr + ' dev ' + iface)
+    success = dev.adb_shell_root('ip route change default via ' + addr + ' dev ' + iface)
+    if success:
+        return success
+    # try by adding a new default route
+    return dev.adb_shell_root('ip route add default via ' + addr + ' dev ' + iface)
 
 def change_default_route_wlan():
     addr = get_route(WLAN)
