@@ -161,17 +161,18 @@ def delay_cmd(value):
 
 def router_shell(cmd):
     my_print("Router: exec: " + cmd)
-    router_cmd = ["sshpass", "-p " + s.PASSWORD_ROUTER, "ssh " + s.USER_ROUTER + "@" + s.IP_ROUTER, cmd]
-    if subprocess.call(router_cmd) != 0:
+    router_cmd = "sshpass -p " + s.PASSWORD_ROUTER + " ssh " + s.USER_ROUTER + "@" + s.IP_ROUTER + " " + cmd
+    if subprocess.call(router_cmd.split()) != 0:
         my_print_err("when launching this cmd on the router: " + cmd)
         return False
     return True
 
 def manage_netem(status, netem):
-    cmd = ''
+    rc = True
     for iface in s.IFACE_ROUTER:
-        cmd += "tc qdisc " + status + " dev " + iface + " root netem " + netem + " ; "
-    return router_shell(cmd)
+        cmd = "tc qdisc " + status + " dev " + iface + " root netem " + netem
+        rc &= router_shell(cmd)
+    return rc
 
 def enable_netem(netem):
     return manage_netem('add', netem)
@@ -218,7 +219,7 @@ def change_netem_var(case, value1, value2=0):
         my_print_err("change_netem_var: case unknown - " + case)
 
 def disable_netem():
-    cmd = ''
+    rc = True
     for iface in s.IFACE_ROUTER:
-        cmd += "tc qdisc delete dev " + iface + " root ; "
-    return router_shell(cmd)
+        rc &= router_shell("tc qdisc delete dev " + iface + " root")
+    return rc
