@@ -91,18 +91,38 @@ def get_all_ipv4():
             result.append(addr)
     return result
 
+ROUTE_CMD = 'ip route show scope link proto boot table main'
+def get_route(iface, route=False):
+    if not route:
+        route = dev.adb_shell(ROUTE_CMD)
+    if route:
+        for line in route.split('\n'):
+            if iface in line and not '/' in line:
+                return line.split()[0]
+    return False
+
+
+def get_all_route():
+    result = []
+    route = dev.adb_shell(ROUTE_CMD)
+    for iface in (WLAN, RMNET):
+        addr = get_route(iface, route)
+        if addr:
+            result.append(addr)
+    return result
+
 def change_default_route(iface, addr):
     my_print("Default route to " + iface + " - " + addr)
     return dev.adb_shell_root('ip route change default via ' + addr + ' dev ' + iface)
 
 def change_default_route_wlan():
-    addr = get_ipv4(WLAN)
+    addr = get_route(WLAN)
     if addr:
         return change_default_route(WLAN, addr)
     return False
 
 def change_default_route_rmnet():
-    addr = get_ipv4(RMNET)
+    addr = get_route(RMNET)
     if addr:
         return change_default_route(RMNET, addr)
     return False
