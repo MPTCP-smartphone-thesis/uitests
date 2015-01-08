@@ -76,7 +76,7 @@ def func_start(app, net_name, mptcp_dir, out_dir):
     i = CHANGE_INC
     while True:
         time.sleep(CHANGE_TIME)
-        if THREAD_CONTINUE: return
+        if not THREAD_CONTINUE: return
 
         if i == CHANGE_INC:
             net.enable_netem_var(CHANGE_CASE, i, i * CHANGE_INC_BOTH_DELAY)
