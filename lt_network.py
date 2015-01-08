@@ -74,10 +74,6 @@ def both(version, prefer_wifi=True):
         prefer_iface(DATA)
     change_pref_net(version)
 
-def change_default_route(iface, addr):
-    my_print("Default route to " + iface + " - " + addr)
-    return dev.adb_shell_root('ip route change default via ' + addr + ' dev ' + iface)
-
 def get_ipv4(iface):
     wlan = dev.adb_shell('ip addr show ' + iface, out=True, quiet=True)
     if wlan and len(wlan) > 2:
@@ -94,6 +90,16 @@ def get_all_ipv4():
         if addr:
             result.append(addr)
     return result
+
+def change_default_route(iface, addr):
+    my_print("Default route to " + iface + " - " + addr)
+    return dev.adb_shell_root('ip route change default via ' + addr + ' dev ' + iface)
+
+def change_default_route_wlan():
+    change_default_route(WLAN, get_ipv4(WLAN))
+
+def change_default_route_rmnet():
+    change_default_route(RMNET, get_ipv4(RMNET))
 
 
 # 'enable' or 'disable'
