@@ -85,9 +85,10 @@ NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD1
 # Enable Android's Wi-Fi option: Avoid Poor Connections (Don't use a Wi-Fi network unless it has a good Internet connection)
 AVOID_POOR_CONNECTIONS = False
 # Functions that can be launched just before/after each uitest
-LAUNCH_FUNC_INIT = False
-LAUNCH_FUNC_START = False # in a thread
-LAUNCH_FUNC_END = False
+LAUNCH_FUNC_INIT = False  # before start, in the current thread
+LAUNCH_FUNC_START = False # in a new thread, just before launching the uitests
+LAUNCH_FUNC_END = False   # just after the uitest, in the current thread
+LAUNCH_FUNC_EXIT = False  # just after having stopped captures
 # Extras args that could be added to each uitests (not the exceptions)
 LAUNCH_UITESTS_ARGS = False
 

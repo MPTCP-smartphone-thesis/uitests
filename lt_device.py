@@ -410,9 +410,11 @@ def manage_capture(start, mptcp_dir, app, android_pcap_dir, net_name, time_now, 
 ##################################################
 
 # Launch test for one app and pull files after each test (if there is a bug)
+#  func_init function will be launched with current args in the current thread just before func_start
 #  func_start function will be launched with current args in a new thread just before launching tests.
-#  func_stop will be launched with current args in the current thread just after the end of the test.
-def launch(app, net_name, mptcp_dir, out_dir, func_init=False, func_start=False, func_end=False, uitests_args=False):
+#  func_end will be launched with current args + success in the current thread just after the end of the test.
+#  func_exit will be launched with current args + thread in the current thread after having stopped capturing traces
+def launch(app, net_name, mptcp_dir, out_dir, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False):
     time_now = time.strftime("%Y%m%d-%H%M%S")
     out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net_name/app
     android_pcap_dir = s.ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net_name + '/' + app
@@ -432,7 +434,10 @@ def launch(app, net_name, mptcp_dir, out_dir, func_init=False, func_start=False,
         func_init(*(app, net_name, mptcp_dir, out_dir))
 
     if func_start:
-        threading.Thread(target=func_start, args=(app, net_name, mptcp_dir, out_dir)).start()
+        thread = threading.Thread(target=func_start, args=(app, net_name, mptcp_dir, out_dir))
+        thread.start()
+    elif func_exit:
+        thread = None
 
     my_print("*** Launching tests for [ " + s.YELLOW + app.upper() + s.GREEN + " ] at " + time_now + " for " + net_name + " ***")
     with open(os.path.join(out_dir_app, 'uitests.log'), "w") as log_file:
@@ -457,6 +462,9 @@ def launch(app, net_name, mptcp_dir, out_dir, func_init=False, func_start=False,
     # Stop full capture on the proxy and on the device
     manage_capture(False, mptcp_dir, app, android_pcap_dir, net_name, time_now, not success)
 
+    if func_exit:
+        func_exit(*(app, net_name, mptcp_dir, out_dir, thread))
+
     # no need to pull useless traces
     if not success:
         my_print("Error during the test, remove traces")
@@ -471,7 +479,7 @@ def launch(app, net_name, mptcp_dir, out_dir, func_init=False, func_start=False,
         my_print_err("when pulling traces for " + app)
     # Files will be saved in ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET/APP/MPTCP_APP_NET_DATE_HOUR.pcap + MPTCP_APP_NET_DATE_HOUR_lo.pcap
 
-def launch_all(uitests_dir, net_name, mptcp_dir, out_base, func_init=False, func_start=False, func_end=False, uitests_args=False):
+def launch_all(uitests_dir, net_name, mptcp_dir, out_base, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False):
     # out_dir: ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET
     out_dir = os.path.join(out_base, mptcp_dir, net_name)
     if (not os.path.isdir(out_dir)):
@@ -491,7 +499,7 @@ def launch_all(uitests_dir, net_name, mptcp_dir, out_base, func_init=False, func
     for uitest in uitests_dir:
         app = uitest[8:]
         time_before = time.time()
-        launch(app, net_name, mptcp_dir, out_dir, func_init, func_start, func_end, uitests_args)
+        launch(app, net_name, mptcp_dir, out_dir, func_init, func_start, func_end, func_exit, uitests_args)
         my_print('UITest ' + str(g.TEST_NO) + '/' + str(g.NB_TESTS) + ' for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
         g.TEST_NO += 1
 
