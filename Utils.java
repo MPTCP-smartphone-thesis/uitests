@@ -181,6 +181,7 @@ public class Utils {
 		// Wake up, kill app (if found) and pressHome before opening an app
 		try {
 			t.getUiDevice().wakeUp();
+			t.getUiDevice().setOrientationNatural();
 		} catch (RemoteException e1) { // not a big deal
 			e1.printStackTrace();
 		}
