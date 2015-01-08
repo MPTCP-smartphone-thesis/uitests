@@ -28,6 +28,8 @@ import lt_network as net
 
 from lt_utils import *
 
+CTRL_WIFI = True
+
 if os.path.isfile('launch_tests_conf.py'):
     from launch_tests_conf import *
 
