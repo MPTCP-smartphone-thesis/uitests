@@ -32,13 +32,14 @@ import time
 
 from enum import Enum
 
-import lt_globals
-lt_globals.init()
+import lt_globals as g
+g.init()
 
-from lt_settings import * # config
+import lt_settings as s # config
+s.init()
 
-from lt_device   import *
-from lt_network  import *
+import lt_device as dev
+import lt_network as net
 
 from lt_utils import *
 
@@ -57,7 +58,7 @@ my_print("Starting tests " + time.ctime())
 now_dir = time.strftime("%Y%m%d-%H%M%S") + "_" + git_rev
 
 # Prepare output dir
-arg_dir_exp = os.path.expanduser(OUTPUT_DIR)
+arg_dir_exp = os.path.expanduser(s.OUTPUT_DIR)
 output_dir = os.path.join(arg_dir_exp, now_dir)
 if (not os.path.isdir(output_dir)):
     os.makedirs(output_dir)
@@ -68,30 +69,30 @@ print("\n======================================\n\n")
 def is_valid_uitest(ui_dir):
     if not ui_dir.startswith('uitests-'):
         return False
-    if ui_dir in UITESTS_EXCEPTIONS or ui_dir in UITESTS_BLACKLIST:
+    if ui_dir in s.UITESTS_EXCEPTIONS or ui_dir in s.UITESTS_BLACKLIST:
         return False
     return os.path.isfile(os.path.join(ui_dir, 'build.xml'))
 
 # Get list of uitest dir (should contain build.xml file)
 uitests_dir = []
-if RESTRICT_UITESTS: # only do some tests
-    uitests_dir = RESTRICT_UITESTS
+if s.RESTRICT_UITESTS: # only do some tests
+    uitests_dir = s.RESTRICT_UITESTS
     my_print("Restrict to these tests: " + str(uitests_dir))
 else:
     for file in os.listdir('.'):
         if is_valid_uitest(file):
             uitests_dir.append(file)
 
-if RESTRICT_UITESTS_NB: # limit nb of uitests
+if s.RESTRICT_UITESTS_NB: # limit nb of uitests
     random.shuffle(uitests_dir)
-    uitests_dir = uitests_dir[:RESTRICT_UITESTS_NB]
-    my_print("Restrict to " + RESTRICT_UITESTS_NB + " tests: " + str(uitests_dir))
+    uitests_dir = uitests_dir[:s.RESTRICT_UITESTS_NB]
+    my_print("Restrict to " + s.RESTRICT_UITESTS_NB + " tests: " + str(uitests_dir))
 
 # Prepare the tests (build the jar if needed)
-for uitest in uitests_dir + UITESTS_EXCEPTIONS:
+for uitest in uitests_dir + s.UITESTS_EXCEPTIONS:
     app = uitest[8:]
     my_print("Checking requirements for " + app)
-    need_creation = DEVEL or not os.path.isfile(os.path.join(uitest, 'local.properties'))
+    need_creation = s.DEVEL or not os.path.isfile(os.path.join(uitest, 'local.properties'))
     # Create project if needed
     if need_creation:
         my_print("Creating uitest-project")
@@ -112,13 +113,13 @@ for uitest in uitests_dir + UITESTS_EXCEPTIONS:
 
         cmd = "ant build"
         rt = subprocess.call(cmd.split())
-        os.chdir(root_dir)
+        os.chdir(s.ROOT_DIR)
         if rt != 0:
             my_print_err("when building jar for " + app)
             continue
 
         # push the new jar
-        cmd = "adb push " + jar_file + " " + ANDROID_HOME + "/" + uitest + ".jar"
+        cmd = "adb push " + jar_file + " " + s.ANDROID_HOME + "/" + uitest + ".jar"
         if subprocess.call(cmd.split()) != 0:
             my_print_err("when pushing jar for " + app)
             continue
@@ -131,82 +132,82 @@ print("\n======================================\n\n")
 ##################################################
 
 # Check router OK and insert mod + delete rules
-if CTRL_WIFI:
+if s.CTRL_WIFI:
     my_print("Checking router connexion")
-    if (not router_shell("echo OK")):
+    if (not net.router_shell("echo OK")):
         my_print_err("Not able to be connected to the router, exit")
         exit(1)
     my_print("Reset Netem (tc), ignore errors")
-    router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
-    disable_netem()
+    net.router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
+    net.disable_netem()
 
 
 ##################################################
 ##            DEVICE: PREPARE TESTS             ##
 ##################################################
 
-adb_restart()
+dev.adb_restart()
 
 my_print("Check device is up")
 for i in range(5): # check 5 time, max 30sec: should be enough
-    adb_check_reboot()
-    if lt_globals.LAST_UPTIME:
+    dev.adb_check_reboot()
+    if g.LAST_UPTIME:
         break
     time.sleep(6)
 
-if not lt_globals.LAST_UPTIME:
+if not g.LAST_UPTIME:
     my_print_err("Not able to contact the device... Stop")
     sys.exit(1)
 
-if PURGE_TRACES_SMARTPHONE:
+if s.PURGE_TRACES_SMARTPHONE:
     my_print("Remove previous traces located on the phone")
-    adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
+    dev.adb_shell("rm -r " + s.ANDROID_TRACE_OUT + "*")
 
 # remove sim if any to launch the first UiTest
-adb_check_reboot_sim()
+dev.adb_check_reboot_sim()
 
 # Wi-Fi option
-avoid_poor_connections(AVOID_POOR_CONNECTIONS)
+net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS)
 
-if WITH_SHADOWSOCKS:
+if s.WITH_SHADOWSOCKS:
     my_print("Using ShadowSocks:")
-    if SSH_TUNNEL_INSTALLED:
+    if s.SSH_TUNNEL_INSTALLED:
         my_print("stop + kill SSHTunnel")
         # Stop + kill ssh_tunnel
-        adb_shell(False, uiautomator='ssh_tunnel', args='action stopnotautoconnect')
-        adb_shell_root("am force-stop org.sshtunnel")
+        dev.adb_shell(False, uiautomator='ssh_tunnel', args='action stopnotautoconnect')
+        dev.adb_shell_root("am force-stop org.sshtunnel")
     my_print("start + autoconnect ShadowSocks")
     # Start shadown socks with autoconnect (in case of random reboot)
-    if not adb_shell(False, uiautomator='shadow_socks', args='action startautoconnect'):
+    if not dev.adb_shell(False, uiautomator='shadow_socks', args='action startautoconnect'):
         my_print_err('Not able to start shadowsocks... Stop')
         sys.exit(1)
-elif WITH_SSH_TUNNEL:
-    if SHADOWSOCKS_INSTALLED:
+elif s.WITH_SSH_TUNNEL:
+    if s.SHADOWSOCKS_INSTALLED:
         my_print("Using SSHTunnel: stop + kill ShadowSocks")
         # Stop + kill ShadowSocks
-        adb_shell(False, uiautomator='shadow_socks', args='action stopnotautoconnect')
-        adb_shell_root("am force-stop com.github.shadowsocks")
+        dev.adb_shell(False, uiautomator='shadow_socks', args='action stopnotautoconnect')
+        dev.adb_shell_root("am force-stop com.github.shadowsocks")
     my_print("start + autoconnect sshtunnel")
     # Start shadown socks with autoconnect (in case of random reboot)
-    if not adb_shell(False, uiautomator='ssh_tunnel', args='action startautoconnect'):
+    if not dev.adb_shell(False, uiautomator='ssh_tunnel', args='action startautoconnect'):
         my_print_err('Not able to start sshtunnel... Stop')
         sys.exit(1)
 
 
 # Should start with wlan/bothX/rmnetX
-Network = Enum('Network', NETWORK_TESTS)
+Network = Enum('Network', s.NETWORK_TESTS)
 
 mptcp = []
-if WITH_MPTCP:
+if s.WITH_MPTCP:
     mptcp.append('MPTCP')
-if WITH_TCP:
+if s.WITH_TCP:
     mptcp.append('TCP')
-if WITH_FULLMESH:
+if s.WITH_FULLMESH:
     mptcp.append('MPTCP_FM')
 random.shuffle(mptcp)
 
-lt_globals.TEST_NO = 1
-lt_globals.NB_TESTS = len(Network) * len(mptcp) * len(uitests_dir)
+g.TEST_NO = 1
+g.NB_TESTS = len(Network) * len(mptcp) * len(uitests_dir)
 
 
 ##################################################
@@ -222,41 +223,41 @@ for mptcp_dir in mptcp:
     my_print("Network list:")
     print(*(net.name for net in net_list))
 
-    for net in net_list:
-        name = net.name
+    for net_mode in net_list:
+        name = net_mode.name
         my_print("========== Network mode: " + name + " ===========\n")
 
         # Reboot the device: avoid bugs...
         my_print("Reboot the phone: avoid possible bugs")
-        if not adb_reboot():
+        if not dev.adb_reboot():
             continue
         if mptcp_dir == 'MPTCP':
-            multipath_control("enable")
+            net.multipath_control("enable")
         elif mptcp_dir == 'MPTCP_FM':
-            multipath_control("enable", path_mgr="fullmesh")
+            net.multipath_control("enable", path_mgr="fullmesh")
         else:
-            multipath_control("disable")
+            net.multipath_control("disable")
 
         # Check if we need to simulate errors
         tc = False
         index = name.find('TC')
         if index >= 0:
-            if not CTRL_WIFI:
+            if not s.CTRL_WIFI:
                 my_print_err('We do not control the WiFi router, skip this test')
                 continue
             tc = name[index+2:]
             name = name[0:index]
 
         # Network of the device
-        if name == 'wlan': # net == Network.wlan: cannot use this dynamic enum
-            enable_iface(WIFI)
-            disable_iface(DATA)
-        # elif name == 'both4Data': # net == Network.both4Data: # prefer data
+        if name == 'wlan': # net_mode == Network.wlan: cannot use this dynamic enum
+            net.enable_iface(WIFI)
+            net.disable_iface(DATA)
+        # elif name == 'both4Data': # net_mode == Network.both4Data: # prefer data
         #     both('4', prefer_wifi=False)
         elif name.startswith('both'):
-            both(name[4])
+            net.both(name[4])
         elif name.startswith('rmnet'):
-            rmnet(name[5])
+            net.rmnet(name[5])
         else:
             my_print_err('unknown: SKIP')
             continue
@@ -267,18 +268,18 @@ for mptcp_dir in mptcp:
         # Network of the router
         if tc:
             # Losses
-            netem = loss_cmd(get_value_between(tc, 'L', 'p'))
+            netem = net.loss_cmd(net.get_value_between(tc, 'L', 'p'))
             # Delay
-            netem += delay_cmd(get_value_between(tc, 'D', 'm'))
+            netem += net.delay_cmd(net.get_value_between(tc, 'D', 'm'))
             if netem:
-                enable_netem(netem)
+                net.enable_netem(netem)
 
         # Launch test
-        launch_all(uitests_dir, net.name, mptcp_dir, output_dir, LAUNCH_FUNC_START, LAUNCH_FUNC_END, LAUNCH_UITESTS_ARGS)
+        dev.launch_all(uitests_dir, name, mptcp_dir, output_dir, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_UITESTS_ARGS)
 
         # Delete Netem
         if tc:
-            disable_netem()
+            net.disable_netem()
 
 my_print("================ DONE =================\n")
 
@@ -287,13 +288,13 @@ my_print("================ DONE =================\n")
 ##                DEVICE: CLEAN                 ##
 ##################################################
 
-if PURGE_TRACES_SMARTPHONE:
+if s.PURGE_TRACES_SMARTPHONE:
     my_print("Remove traces located on the phone")
-    adb_shell("rm -r " + ANDROID_TRACE_OUT + "*")
+    dev.adb_shell("rm -r " + s.ANDROID_TRACE_OUT + "*")
 
 
 my_print("Reboot the phone") # to avoid possible Android bugs
-adb_reboot(wait=False)
+dev.adb_reboot(wait=False)
 
 
 ##################################################
@@ -303,11 +304,11 @@ adb_reboot(wait=False)
 # backup traces
 my_print("Backup traces") # better to backup files
 cmd = "bash backup_traces.sh " + arg_dir_exp
-if BACKUP_TRACES and subprocess.call(cmd.split()) != 0:
+if s.BACKUP_TRACES and subprocess.call(cmd.split()) != 0:
     my_print_err(" when using backup_traces.sh with " + arg_dir_exp)
 
-if KEEP_TRACES_NB:
+if s.KEEP_TRACES_NB:
     dirs = sorted(os.listdir(arg_dir_exp), reverse=True)
-    for rm_dir in dirs[KEEP_TRACES_NB:]:
+    for rm_dir in dirs[s.KEEP_TRACES_NB:]:
         my_print("Remove previous traces: " + rm_dir)
         shutil.rmtree(os.path.join(arg_dir_exp, rm_dir))

@@ -25,8 +25,8 @@ import sys
 import time
 import threading
 
-from lt_settings import *
-import lt_globals
+import lt_settings as s
+import lt_globals as g
 
 from lt_utils import *
 
@@ -61,14 +61,14 @@ def adb_restart_root():
 
 def adb_shell_timeout(proc):
     try:
-        proc.wait(TIMEOUT)
+        proc.wait(s.TIMEOUT)
     except:
         my_print_err("(timeout) when launching this cmd on the device: " + str(proc.args))
         proc.terminate()
 
 def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=False, restart=0):
     if uiautomator:
-        full_cmd = "uiautomator runtest " + ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + uiautomator + ".LaunchSettings"
+        full_cmd = "uiautomator runtest " + s.ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + uiautomator + ".LaunchSettings"
         if args:
             if type(args) == list:
                 for arg in args:
@@ -102,7 +102,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
             if line_err_strip == 'error: device not found':
                 dev_not_found = True
             if not quiet:
-                print(RED + line_err_strip + WHITE_ERR, file=sys.stderr)
+                print(s.RED + line_err_strip + s.WHITE_ERR, file=sys.stderr)
             if log:
                 print('stderr: ' + line_err_strip, file=log, flush=False)
 
@@ -112,11 +112,11 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
             if uiautomator and last_line.lower().startswith('failure'):
                 error = True
                 if not quiet:
-                    print(RED + last_line + WHITE_ERR, file=sys.stderr)
-            if out:
+                    print(s.RED + last_line + s.WHITE_ERR, file=sys.stderr)
+            if out and not last_line.startswith('* daemon'):
                 result.append(last_line)
             if not quiet:
-                print(BLUE + last_line + WHITE_STD)
+                print(s.BLUE + last_line + s.WHITE_STD)
             # check number if last line (exit code)
             if len(last_line) < 4:
                 try:
@@ -179,8 +179,8 @@ def adb_check_reboot():
     uptime = adb_get_uptime()
     if not uptime: return True
 
-    old_up = lt_globals.LAST_UPTIME
-    lt_globals.LAST_UPTIME = uptime
+    old_up = g.LAST_UPTIME
+    g.LAST_UPTIME = uptime
 
     return old_up > uptime # True if old == ()
 
@@ -195,13 +195,13 @@ def adb_check_reboot_sim():
         rebooted = True
 
     up = adb_check_reboot()
-    if lt_globals.LAST_UPTIME and lt_globals.LAST_UPTIME < time.strptime("45", "%S"):
+    if g.LAST_UPTIME and g.LAST_UPTIME < time.strptime("45", "%S"):
         my_print("Uptime is lower than 45 sec, wait 30 seconds more")
         time.sleep(30)
-    return rebooted or up or not lt_globals.LAST_UPTIME
+    return rebooted or up or not g.LAST_UPTIME
 
 def adb_reboot(wait=True):
-    if not ADB_REBOOT:
+    if not s.ADB_REBOOT:
         return True
 
     success = True
@@ -276,18 +276,18 @@ def adb_get_pid(proc_name, strict=False):
 
 # relaunch SSH-Tunnel and check the connection via a ping
 def restart_proxy(sleep=1):
-    if not WITH_SSH_TUNNEL:
+    if not s.WITH_SSH_TUNNEL:
         return True
 
     my_print("Restart proxy: ping")
-    if EXT_HOST:
-        cmd_ping = "ping -c 4 " + EXT_HOST
+    if s.EXT_HOST:
+        cmd_ping = "ping -c 4 " + s.EXT_HOST
         adb_shell(cmd_ping) ## to avoid strange DNS problems
 
     my_print("Restart proxy: ssh tunnel")
     if not adb_shell(False, uiautomator='ssh_tunnel'): return False
 
-    if EXT_HOST:
+    if s.EXT_HOST:
         time.sleep(sleep)
         my_print("Restart proxy: reping")
         if adb_shell(cmd_ping): return True ## we could have prob when launching it for the 1st time
@@ -299,7 +299,7 @@ def restart_proxy(sleep=1):
     return True
 
 def stop_proxy():
-    if not WITH_SSH_TUNNEL:
+    if not s.WITH_SSH_TUNNEL:
         return True
 
     my_print("Stop proxy")
@@ -312,7 +312,7 @@ def stop_proxy():
 
 # Launch full capture on the server
 def manage_capture_server(mode, arg_pcap):
-    if not CAPTURE_ON_PROXY:
+    if not s.CAPTURE_ON_PROXY:
         return
     my_print("Send request to the server to " + mode + " a full capture")
     cmd = ["bash", mode + "_full_pcap_distant.sh", arg_pcap]
@@ -367,11 +367,11 @@ def start_capture_device(arg_pcap, android_pcap_dir, net):
         my_print_err("Not able to start tcpdump!")
         return False
 
-    if not WITH_SSH_TUNNEL and not WITH_SHADOWSOCKS:
+    if not s.WITH_SSH_TUNNEL and not s.WITH_SHADOWSOCKS:
         return True
 
     pcap_file_lo = android_pcap_dir + '/' + arg_pcap + '_lo.pcap'
-    port_no = SSHTUNNEL_PORT if WITH_SSH_TUNNEL else SHADOWSOCKS_PORT
+    port_no = s.SSHTUNNEL_PORT if s.WITH_SSH_TUNNEL else s.SHADOWSOCKS_PORT
     cmd_lo = 'tcpdump -i lo -w ' + pcap_file_lo + ' tcp and not port ' + str(port_no) + ' &'
     if not launch_capture_device(cmd_lo, 2):
         my_print_err("Not able to start tcpdump for LoopBack only!")
@@ -384,7 +384,7 @@ def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now, rm=Fa
     arg_pcap = mptcp_dir.lower() + "_" + app + "_" + net + "_" + time_now
 
     if start: # first the server, then the device
-        manage_capture_server("start_sshtunnel" if WITH_SSH_TUNNEL else "start_shadowsocks", arg_pcap)
+        manage_capture_server("start_sshtunnel" if s.WITH_SSH_TUNNEL else "start_shadowsocks", arg_pcap)
         if not start_capture_device(arg_pcap, android_pcap_dir, net):
             manage_capture_server("stop", arg_pcap)
             manage_capture_server("rm", arg_pcap)
@@ -415,7 +415,7 @@ def manage_capture(start, mptcp_dir, app, android_pcap_dir, net, time_now, rm=Fa
 def launch(app, net, mptcp_dir, out_dir, func_start=False, func_end=False, uitests_args=False):
     time_now = time.strftime("%Y%m%d-%H%M%S")
     out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net/app
-    android_pcap_dir = ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net + '/' + app
+    android_pcap_dir = s.ANDROID_TRACE_OUT + '/' + mptcp_dir + '/' + net + '/' + app
 
     # Create dir and put netstat info + pcap in it
     if not os.path.isdir(out_dir_app):
@@ -431,7 +431,7 @@ def launch(app, net, mptcp_dir, out_dir, func_start=False, func_end=False, uites
     if func_start:
         threading.Thread(target=func_start, args=(app, net, mptcp_dir, out_dir)).start()
 
-    my_print("*** Launching tests for [ " + YELLOW + app.upper() + GREEN + " ] at " + time_now + " for " + net + " ***")
+    my_print("*** Launching tests for [ " + s.YELLOW + app.upper() + s.GREEN + " ] at " + time_now + " for " + net + " ***")
     with open(os.path.join(out_dir_app, 'uitests.log'), "w") as log_file:
         success = adb_shell(False, uiautomator=app, log=log_file, args=uitests_args)
 
@@ -489,8 +489,8 @@ def launch_all(uitests_dir, net, mptcp_dir, out_base, func_start=False, func_end
         app = uitest[8:]
         time_before = time.time()
         launch(app, net, mptcp_dir, out_dir, func_start, func_end, uitests_args)
-        my_print('UITest ' + str(lt_globals.TEST_NO) + '/' + str(lt_globals.NB_TESTS) + ' for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
-        lt_globals.TEST_NO += 1
+        my_print('UITest ' + str(g.TEST_NO) + '/' + str(g.NB_TESTS) + ' for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
+        g.TEST_NO += 1
 
     # Compress files
     my_print("Compressing files")

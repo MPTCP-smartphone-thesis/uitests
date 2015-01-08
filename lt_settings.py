@@ -105,63 +105,63 @@ ANDROID_TRACE_OUT = ANDROID_HOME + '/traces'
 # The default directory to save traces on host, if not provided by args
 OUTPUT_DIR = "~/Thesis/TCPDump"
 
+GREEN     = "\033[1;32m" # + bold
+YELLOW    = "\033[0;33m"
+BLUE      = "\033[0;34m"
+WHITE_STD = "\033[0;39m"
+RED       = "\033[1;31m" # + bold
+WHITE_ERR = "\033[0;39m"
+
 # force to be in the right dir
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # load external config: can be used to change variables here above
 CONFIG_FILE_DEFAULT = 'launch_tests_conf.py'
-if len(sys.argv) > 1:
-    CONFIG_FILE = sys.argv[1]
-else:
-    CONFIG_FILE = CONFIG_FILE_DEFAULT
-if os.path.isfile(CONFIG_FILE):
-    g = globals()
-    conf_module = __import__(CONFIG_FILE[:-3])
-    all_vars = [name for name in dir(conf_module) if not name.startswith('_')]
-    for var in all_vars:
-        g[var] = getattr(conf_module, var)
-
-
-##################################################
-##                    COLORS                    ##
-##################################################
-
-if FORCE_COLORS or sys.stdout.isatty():
-    GREEN     = "\033[1;32m" # + bold
-    YELLOW    = "\033[0;33m"
-    BLUE      = "\033[0;34m"
-    WHITE_STD = "\033[0;39m"
-else:
-    GREEN = YELLOW = BLUE = WHITE_STD = ''
-
-if FORCE_COLORS or sys.stderr.isatty():
-    RED       = "\033[1;31m" # + bold
-    WHITE_ERR = "\033[0;39m"
-else:
-    err = WHITE_ERR = ''
 
 
 
 ##################################################
-##                CONFIG CHECKS                 ##
+##                     INIT                     ##
 ##################################################
 
-# Cannot have both SSH/Shadow socks proxy
-if WITH_SSH_TUNNEL and WITH_SHADOWSOCKS:
-    my_print_err("Cannot have both SSHTunnel and ShadowSocks: used ShadowSocks")
-    WITH_SSH_TUNNEL = False
+def init():
+    global CONFIG_FILE
+    if len(sys.argv) > 1:
+        CONFIG_FILE = sys.argv[1]
+    else:
+        CONFIG_FILE = CONFIG_FILE_DEFAULT
+    if os.path.isfile(CONFIG_FILE):
+        g = globals()
+        conf_module = __import__(CONFIG_FILE[:-3])
+        all_vars = [name for name in dir(conf_module) if not name.startswith('_')]
+        for var in all_vars:
+            g[var] = getattr(conf_module, var)
 
-if WITH_SSH_TUNNEL and not SSH_TUNNEL_INSTALLED:
-    my_print_err("SSHTunnel not installed: switch to ShadowSocks if installed")
-    WITH_SSH_TUNNEL = False
-    WITH_SHADOWSOCKS = SHADOWSOCKS_INSTALLED
+    # COLOURS
+    if not FORCE_COLORS:
+        if not sys.stdout.isatty():
+            GREEN = YELLOW = BLUE = WHITE_STD = ''
+        if not sys.stderr.isatty():
+            err = WHITE_ERR = ''
 
-if WITH_SHADOWSOCKS and not SHADOWSOCKS_INSTALLED:
-    my_print_err("ShadowSocks not installed: switch to SSHTunnel if installed")
-    WITH_SHADOWSOCKS = False
-    WITH_SSH_TUNNEL = SSH_TUNNEL_INSTALLED
+    # Cannot have both SSH/Shadow socks proxy
+    global WITH_SSH_TUNNEL, WITH_SHADOWSOCKS, SSH_TUNNEL_INSTALLED, SHADOWSOCKS_INSTALLED
+    if WITH_SSH_TUNNEL and WITH_SHADOWSOCKS:
+        my_print_err("Cannot have both SSHTunnel and ShadowSocks: used ShadowSocks")
+        WITH_SSH_TUNNEL = False
 
-# We only have time for 2 tests
-if WITH_MPTCP and WITH_TCP and WITH_FULLMESH:
-    my_print_err("Cannot launch MPTCP/TCP/MPTCP-FM: disable MPTCP")
-    WITH_MPTCP = False
+    if WITH_SSH_TUNNEL and not SSH_TUNNEL_INSTALLED:
+        my_print_err("SSHTunnel not installed: switch to ShadowSocks if installed")
+        WITH_SSH_TUNNEL = False
+        WITH_SHADOWSOCKS = SHADOWSOCKS_INSTALLED
+
+    if WITH_SHADOWSOCKS and not SHADOWSOCKS_INSTALLED:
+        my_print_err("ShadowSocks not installed: switch to SSHTunnel if installed")
+        WITH_SHADOWSOCKS = False
+        WITH_SSH_TUNNEL = SSH_TUNNEL_INSTALLED
+
+    global WITH_MPTCP, WITH_TCP, WITH_FULLMESH
+    # We only have time for 2 tests
+    if WITH_MPTCP and WITH_TCP and WITH_FULLMESH:
+        my_print_err("Cannot launch MPTCP/TCP/MPTCP-FM: disable MPTCP")
+        WITH_MPTCP = False

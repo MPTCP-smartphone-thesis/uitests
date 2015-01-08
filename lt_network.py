@@ -20,8 +20,8 @@
 
 import subprocess
 
-from lt_device   import *
-from lt_settings import *
+import lt_settings as s
+import lt_device as dev
 
 from lt_utils import * # my_print
 
@@ -37,17 +37,17 @@ DATA = 'data'
 def change_pref_net(version):
     my_print("Settings: prefer " + version + "G")
     arg = "network-status " + version + "G"
-    return adb_shell(False, uiautomator='preference_network', args=arg)
+    return dev.adb_shell(False, uiautomator='preference_network', args=arg)
 
 def avoid_poor_connections(enable):
     my_print("Settings: avoid poor connections: " + str(enable))
     arg = "avoid-poor-conn " + ("on" if enable else "off")
-    return adb_shell(False, uiautomator='preference_network', args=arg)
+    return dev.adb_shell(False, uiautomator='preference_network', args=arg)
 
 # 'wifi', 'enable'
 def manage_net(iface, status):
     my_print(status + " " + iface)
-    return adb_shell_root('svc ' + iface + ' ' + status)
+    return dev.adb_shell_root('svc ' + iface + ' ' + status)
 
 def enable_iface(iface):
     return manage_net(iface, 'enable')
@@ -74,19 +74,19 @@ def both(version, prefer_wifi=True):
 
 # 'enable' or 'disable'
 def multipath_control(action, path_mgr=False):
-    stop_proxy() ## prevent error when enabling mptcp
+    dev.stop_proxy() ## prevent error when enabling mptcp
     my_print("Multipath Control: " + action)
     mp_args = 'action ' + action
     if path_mgr:
         mp_args = [mp_args, 'pm ' + path_mgr]
-    return adb_shell(False, uiautomator='multipath_control', args=mp_args)
+    return dev.adb_shell(False, uiautomator='multipath_control', args=mp_args)
 
 ## Net: router
 
-def get_value_between(s, start, end):
-    index = s.find(start)
+def get_value_between(string, start, end):
+    index = string.find(start)
     if index >= 0:
-        return s[index+1:s.index(end, index+1)]
+        return string[index+1:string.index(end, index+1)]
     return False
 
 def loss_cmd(value):
@@ -101,7 +101,7 @@ def delay_cmd(value):
 
 def router_shell(cmd):
     my_print("Router: exec: " + cmd)
-    router_cmd = "sshpass -p " + PASSWORD_ROUTER + " ssh " + USER_ROUTER + "@" + IP_ROUTER + " " + cmd
+    router_cmd = "sshpass -p " + s.PASSWORD_ROUTER + " ssh " + s.USER_ROUTER + "@" + s.IP_ROUTER + " " + cmd
     if subprocess.call(router_cmd.split()) != 0:
         my_print_err("when launching this cmd on the router: " + cmd)
         return False
@@ -109,13 +109,13 @@ def router_shell(cmd):
 
 def enable_netem(netem):
     rc = True
-    for iface in IFACE_ROUTER:
+    for iface in s.IFACE_ROUTER:
         cmd = "tc qdisc add dev " + iface + " root netem " + netem
         rc &= router_shell(cmd)
     return rc
 
 def disable_netem():
     rc = True
-    for iface in IFACE_ROUTER:
+    for iface in s.IFACE_ROUTER:
         rc &= router_shell("tc qdisc delete dev " + iface + " root")
     return rc
