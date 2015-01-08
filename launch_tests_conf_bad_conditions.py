@@ -18,6 +18,8 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+# Goal: launch uitests with TCP and MPTCP FullMesh but with more delay/losses
+
 import os
 
 if os.path.isfile('launch_tests_conf.py'):
