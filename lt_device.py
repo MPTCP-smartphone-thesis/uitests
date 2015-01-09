@@ -512,6 +512,8 @@ def launch_all(uitests_dir, net_name, mptcp_dir, out_base, func_init=False, func
         for trace in os.listdir(app_dir):
             if (trace.endswith('.pcap')):
                 trace_path = os.path.join(app_dir, trace)
+                if os.path.exists(trace_path + '.gz'):
+                    my_print_err("This file is already compressed! " + trace_path)
                 my_print("Compressing " + trace_path + " to " + trace_path + ".gz")
                 cmd = 'gzip -9 -f ' + trace_path # or xz/7z format?
                 if subprocess.call(cmd.split()) != 0:
