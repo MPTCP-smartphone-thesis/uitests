@@ -294,6 +294,11 @@ if s.PURGE_TRACES_SMARTPHONE:
     my_print("Remove traces located on the phone")
     dev.adb_shell("rm -r " + s.ANDROID_TRACE_OUT + "*")
 
+    my_print("Remove Facebook pictures")
+    dev.adb_shell("rm -rf " + s.ANDROID_HOME + "/Pictures/Facebook/")
+    my_print("Remove Drive cache")
+    dev.adb_shell("rm -rf " + s.ANDROID_HOME + "/Android/data/com.google.android.apps.docs/files/pinned_docs_files_do_not_edit")
+
 
 my_print("Reboot the phone") # to avoid possible Android bugs
 dev.adb_reboot(wait=False)
