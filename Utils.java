@@ -60,10 +60,18 @@ public class Utils {
 		return -1;
 	}
 
+	public static int runAsUser(String cmd) {
+		return runAsUser(cmd, true);
+	}
+
 	public static void runAsUser(String[] cmds, boolean wait) {
 		for (String cmd : cmds) {
 			runAsUser(cmd, wait);
 		}
+	}
+
+	public static void runAsUser(String[] cmds) {
+		runAsUser(cmds, true);
 	}
 
 	private static int getRand10() {
