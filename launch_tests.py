@@ -276,8 +276,8 @@ for mptcp_dir in mptcp:
             if netem:
                 net.enable_netem(netem)
 
-        # Launch test
-        dev.launch_all(uitests_dir, name, mptcp_dir, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS)
+        # Launch test (with net_mode.name to have the full name)
+        dev.launch_all(uitests_dir, net_mode.name, mptcp_dir, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS)
 
         # Delete Netem
         if tc:
