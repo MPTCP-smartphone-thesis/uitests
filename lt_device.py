@@ -165,6 +165,7 @@ def adb_shell_write_output(cmd, out_dir, filename=False, verbose=False):
     my_print("Get " + cmd + " from smartphone")
     with open(os.path.join(out_dir, filename if filename else cmd.replace(' ', '_') + '.txt'), "w") as out_file:
         out = adb_shell(cmd, log=out_file, quiet=not verbose)
+    return out
 
 def adb_get_uptime():
     up_out = adb_shell("uptime", out=True)
