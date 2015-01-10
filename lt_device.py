@@ -59,13 +59,6 @@ def adb_restart_root():
     time.sleep(15)
     return subprocess.call("adb start-server".split()) != 0
 
-def adb_shell_timeout(proc):
-    try:
-        proc.wait(s.TIMEOUT)
-    except:
-        my_print_err("(timeout) when launching this cmd on the device: " + str(proc.args))
-        proc.terminate()
-
 def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=False, restart=0):
     if uiautomator:
         full_cmd = "uiautomator runtest " + s.ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + uiautomator + ".LaunchSettings"
@@ -77,8 +70,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
                 full_cmd += " -e " + args
     else:
         full_cmd = cmd
-    adb_cmd = ['adb', 'shell', full_cmd + '; echo $?']
-    last_number = 0
+    adb_cmd = ['adb', 'shell', full_cmd + '; echo -n $?']
     error = dev_not_found = False
     if out:
         result = []
@@ -88,45 +80,48 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
     if log:
         print(adb_cmd, file=log, flush=False)
 
-    # adb shell doesn't return the last exit code...
+    # adb shell doesn't return the last exit code, we need to analyse output
+    # Note: We cannot use 'Proc.wait()': this will deadlock when using
+    #       stdout=PIPE or stderr=PIPE and the child process generates enough
+    #       output to a pipe such that it blocks waiting for the OS pipe buffer
+    #       to accept more data. Solution: Popen.communicate()
     proc = subprocess.Popen(adb_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-    thread = threading.Thread(target=adb_shell_timeout, args=(proc,))
-    thread.start()
 
-    line = line_err = True
-    # print each line, keep the last one
-    while proc.poll() == None or line or line_err:
-        line_err = proc.stderr.readline()
-        if line_err:
-            line_err_strip = line_err.rstrip()
-            if line_err_strip == 'error: device not found':
-                dev_not_found = True
-            if not quiet:
-                print(s.RED + line_err_strip + s.WHITE_ERR, file=sys.stderr)
-            if log:
-                print('stderr: ' + line_err_strip, file=log, flush=False)
+    # get data
+    try:
+        outs_line, errs_line = proc.communicate(timeout=s.TIMEOUT)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        outs_line, errs_line = proc.communicate()
+        my_print_err("Timeout when launching this command on the device: " + full_cmd)
+        out = False # no need to append result
+        error = True
 
-        line = proc.stdout.readline()
-        if line:
-            last_line = line.rstrip()
-            if uiautomator and last_line.lower().startswith('failure'):
+    # stderr
+    for line_err in errs_line.split('\n'):
+        if line_err == 'error: device not found':
+            dev_not_found = True
+
+    if not quiet:
+        print(s.RED + errs_line + s.WHITE_ERR, file=sys.stderr)
+
+    # stdout
+    stdout = outs_line.split('\n')
+    if uiautomator or out or not quiet:
+        for line in stdout[:-1]: # without the return code
+            if uiautomator and line.lower().startswith('failure'):
                 error = True
                 if not quiet:
-                    print(s.RED + last_line + s.WHITE_ERR, file=sys.stderr)
-            if out and not last_line.startswith('* daemon'):
-                result.append(last_line)
+                    print(s.RED + line + s.WHITE_ERR, file=sys.stderr)
+            if out and not line.startswith('* daemon'):
+                result.append(line)
             if not quiet:
-                print(s.BLUE + last_line + s.WHITE_STD)
-            # check number if last line (exit code)
-            if len(last_line) < 4:
-                try:
-                    number = int(last_line)
-                    if number >= 0 or number <= 255:
-                        last_number = number
-                except ValueError as e:
-                    pass
-            if log:
-                print(last_line, file=log, flush=False)
+                print(s.BLUE + line + s.WHITE_STD)
+
+    if log:
+        if errs_line:
+            print('stderr: ' + errs_line + '\nstdout:\n', file=log, flush=False)
+        print(outs_line, file=log, flush=False)
 
     if dev_not_found:
         if restart == 0:
@@ -149,6 +144,12 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
         if not quiet:
             my_print_err("when launching this cmd on the device: " + full_cmd + " - rc: " + str(rc))
         return False
+
+    last_line = stdout[-1]
+    try:
+        last_number = int(last_line)
+    except ValueError as e:
+        last_number = -1
 
     if last_number != 0:
         if not quiet:
