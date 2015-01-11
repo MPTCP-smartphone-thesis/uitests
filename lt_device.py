@@ -374,7 +374,8 @@ def start_capture_device(arg_pcap, android_pcap_dir, net_name):
 
     pcap_file_lo = android_pcap_dir + '/' + arg_pcap + '_lo.pcap'
     port_no = s.SSHTUNNEL_PORT if s.WITH_SSH_TUNNEL else s.SHADOWSOCKS_PORT
-    cmd_lo = 'tcpdump -i lo -w ' + pcap_file_lo + ' tcp and not port ' + str(port_no) + ' &'
+    # filter internal port used by the proxy and all communications between two 127.0.0.1 (mostly DNS and TCP Reset)
+    cmd_lo = 'tcpdump -i lo -w ' + pcap_file_lo + ' tcp and not port ' + str(port_no) + ' and not \(src 127.0.0.1 and dst 127.0.0.1\) &'
     if not launch_capture_device(cmd_lo, 2):
         my_print_err("Not able to start tcpdump for LoopBack only!")
         stop_capture_device()
