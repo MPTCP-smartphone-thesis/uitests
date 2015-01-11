@@ -102,7 +102,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
         if line_err == 'error: device not found':
             dev_not_found = True
 
-    if not quiet:
+    if not quiet and errs_line:
         print(s.RED + errs_line + s.WHITE_ERR, file=sys.stderr)
 
     # stdout
@@ -115,7 +115,7 @@ def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=Fa
                     print(s.RED + line + s.WHITE_ERR, file=sys.stderr)
             if out and not line.startswith('* daemon'):
                 result.append(line)
-            if not quiet:
+            if not quiet and line:
                 print(s.BLUE + line + s.WHITE_STD)
 
     if log:
