@@ -60,10 +60,11 @@ CHANGE_LIMIT = 20 # max 20 iters
 CHANGE_INC = 1 # +1 after each iter (e.g. +5 for the delay)
 CHANGE_INC_BOTH_DELAY = 5 # if 'both', increment of 5*INC for the delay
 CHANGE_TIME = 15 # WAIT 15sec before the next iter
-CHANGE_METHOD = 'wifi' # or 'route' or 'prefer'
+CHANGE_METHOD = 'wifi' # or 'route' or 'prefer' or 'ip'
 # route: change the default route to wlan/rmnet but it will only affect new connections.
 # prefer: used `svc wifi|data prefer`: will switch to wlan/rmnet but it will disable the other one (until the one which is used is disabled).
 # wifi: will disable/enable wifi. Then it should switch to rmnet and re-used Wi-Fi only when wlan is enabled AND connected.
+# ip: will use iproute2: ip link set dev eth0 multipath off
 
 THREAD_CONTINUE = True
 def func_init(app, net_name, mptcp_dir, out_dir):
@@ -91,6 +92,8 @@ def func_start(app, net_name, mptcp_dir, out_dir):
                 success = net.change_default_route_rmnet()
             elif CHANGE_METHOD == 'prefer':
                 success = net.prefer_iface(net.RMNET)
+            elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP'):
+                success = iproute_set_multipath_backup_wlan()
             else:
                 success = net.disable_iface(net.WIFI)
             if not success:
@@ -114,6 +117,8 @@ def func_end(app, net_name, mptcp_dir, out_dir, success):
             rc &= net.multipath_control("enable")
         elif mptcp_dir == 'MPTCP_FM':
             rc &= net.multipath_control("enable", path_mgr="fullmesh")
+    elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP'):
+        rc = iproute_set_multipath_backup_rmnet()
     else: # wifi
         rc = net.enable_iface(net.WIFI)
 
