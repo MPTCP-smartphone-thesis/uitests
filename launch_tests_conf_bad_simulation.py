@@ -39,8 +39,9 @@ OUTPUT_DIR = '~/Thesis/TCPDump_bad_simulation'
 # Only both4: we will modify the router during the tests
 NETWORK_TESTS = 'both4'
 
-# Do not Enable Android's Wi-Fi option, we will simulate it
-AVOID_POOR_CONNECTIONS = False
+# Do not Enable Android's Wi-Fi option, we will simulate it for TCP and MPTCP (to not simulate, turn them off)
+AVOID_POOR_CONNECTIONS_TCP = False
+AVOID_POOR_CONNECTIONS_MPTCP = False
 # Take 3 time more
 LAUNCH_UITESTS_ARGS = 'mult-time 3'
 TIMEOUT = 60*3 *3
@@ -73,7 +74,7 @@ def func_init(app, net_name, mptcp_dir, out_dir):
 
 # we have ~4.5 minutes: inc losses/delay every 15 sec
 def func_start(app, net_name, mptcp_dir, out_dir):
-    global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME, CHANGE_METHOD
+    global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP
 
     i = CHANGE_INC
     while True:
@@ -87,8 +88,9 @@ def func_start(app, net_name, mptcp_dir, out_dir):
 
         # prefer Data over Wi-Fi
         if i == CHANGE_SWITCH * CHANGE_INC:
-            # forcer changement avec MPTCP: voir sysctl? stop wifi? net.disable_iface(net.WIFI)
-            if CHANGE_METHOD == 'route' and mptcp_dir.startswith('MPTCP'):
+            if mptcp_dir.startswith('TCP') and AVOID_POOR_CONNECTIONS_TCP:
+                success = True # no simulation, used Avoid poor connection option
+            elif CHANGE_METHOD == 'route' and mptcp_dir.startswith('MPTCP'):
                 success = net.change_default_route_rmnet()
             elif CHANGE_METHOD == 'prefer':
                 success = net.prefer_iface(net.RMNET)
@@ -104,9 +106,11 @@ def func_start(app, net_name, mptcp_dir, out_dir):
 
 
 def func_end(app, net_name, mptcp_dir, out_dir, success):
-    global THREAD_CONTINUE, CHANGE_METHOD
+    global THREAD_CONTINUE, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP
     THREAD_CONTINUE = False
 
+    if mptcp_dir.startswith('TCP') and AVOID_POOR_CONNECTIONS_TCP:
+        rc = True # no simulation, used Avoid poor connection option
     if CHANGE_METHOD == 'route' and mptcp_dir.startswith('MPTCP'):
         rc = net.change_default_route_wlan()
     elif CHANGE_METHOD == 'prefer':
