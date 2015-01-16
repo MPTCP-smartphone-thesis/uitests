@@ -74,7 +74,7 @@ def func_init(app, net_name, mptcp_dir, out_dir):
 
 # we have ~4.5 minutes: inc losses/delay every 15 sec
 def func_start(app, net_name, mptcp_dir, out_dir):
-    global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP
+    global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP, AVOID_POOR_CONNECTIONS_MPTCP
 
     i = CHANGE_INC
     while True:
@@ -88,7 +88,8 @@ def func_start(app, net_name, mptcp_dir, out_dir):
 
         # prefer Data over Wi-Fi
         if i == CHANGE_SWITCH * CHANGE_INC:
-            if mptcp_dir.startswith('TCP') and AVOID_POOR_CONNECTIONS_TCP:
+            if (AVOID_POOR_CONNECTIONS_TCP and mptcp_dir.startswith('TCP')) \
+            or (AVOID_POOR_CONNECTIONS_MPTCP and mptcp_dir.startswith('MPTCP')):
                 success = True # no simulation, used Avoid poor connection option
             elif CHANGE_METHOD == 'route' and mptcp_dir.startswith('MPTCP'):
                 success = net.change_default_route_rmnet()
@@ -106,10 +107,11 @@ def func_start(app, net_name, mptcp_dir, out_dir):
 
 
 def func_end(app, net_name, mptcp_dir, out_dir, success):
-    global THREAD_CONTINUE, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP
+    global THREAD_CONTINUE, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP, AVOID_POOR_CONNECTIONS_MPTCP
     THREAD_CONTINUE = False
 
-    if mptcp_dir.startswith('TCP') and AVOID_POOR_CONNECTIONS_TCP:
+    if (AVOID_POOR_CONNECTIONS_TCP and mptcp_dir.startswith('TCP')) \
+    or (AVOID_POOR_CONNECTIONS_MPTCP and mptcp_dir.startswith('MPTCP')):
         rc = True # no simulation, used Avoid poor connection option
     if CHANGE_METHOD == 'route' and mptcp_dir.startswith('MPTCP'):
         rc = net.change_default_route_wlan()
