@@ -124,7 +124,7 @@ def func_end(app, net_name, mptcp_dir, out_dir, success):
         elif mptcp_dir == 'MPTCP_FM':
             rc &= net.multipath_control("enable", path_mgr="fullmesh")
     elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP'):
-        rc = iproute_set_multipath_backup_rmnet()
+        rc = iproute_set_multipath_default()
     else: # wifi
         rc = net.enable_iface(net.WIFI)
 
