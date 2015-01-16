@@ -83,7 +83,8 @@ FORCE_COLORS = False
 #      - D10m: Delay of 10ms
 NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m'
 # Enable Android's Wi-Fi option: Avoid Poor Connections (Don't use a Wi-Fi network unless it has a good Internet connection)
-AVOID_POOR_CONNECTIONS = False
+AVOID_POOR_CONNECTIONS_TCP = False
+AVOID_POOR_CONNECTIONS_MPTCP = False
 # Functions that can be launched just before/after each uitest
 LAUNCH_FUNC_INIT = False  # before start, in the current thread
 LAUNCH_FUNC_START = False # in a new thread, just before launching the uitests

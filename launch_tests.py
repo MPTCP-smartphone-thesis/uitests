@@ -168,9 +168,6 @@ if s.PURGE_TRACES_SMARTPHONE:
 # remove sim if any to launch the first UiTest
 dev.adb_check_reboot_sim()
 
-# Wi-Fi option
-net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS)
-
 if s.WITH_SHADOWSOCKS:
     my_print("Using ShadowSocks:")
     if s.SSH_TUNNEL_INSTALLED:
@@ -235,10 +232,13 @@ for mptcp_dir in mptcp:
             continue
         if mptcp_dir == 'MPTCP':
             net.multipath_control("enable")
+            net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS_MPTCP)
         elif mptcp_dir == 'MPTCP_FM':
             net.multipath_control("enable", path_mgr="fullmesh")
+            net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS_MPTCP)
         else:
             net.multipath_control("disable")
+            net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS_TCP)
 
         # Check if we need to simulate errors
         tc = False
