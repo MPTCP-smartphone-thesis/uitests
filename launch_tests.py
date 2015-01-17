@@ -272,12 +272,13 @@ for mptcp_dir in mptcp:
                 net.enable_netem(netem)
 
         # On reboot, set mutipath_control
-        if mptcp_dir == 'MPTCP':
-            net.multipath_control("enable")
-            iproute_set_multipath_default()
-        elif mptcp_dir == 'MPTCP_FM':
-            net.multipath_control("enable", path_mgr="fullmesh")
-            iproute_set_multipath_default()
+        if mptcp_dir.startswith("MPTCP"):
+            if mptcp_dir == 'MPTCP':
+                net.multipath_control("enable")
+            elif mptcp_dir == 'MPTCP_FM':
+                net.multipath_control("enable", path_mgr="fullmesh")
+            if s.IPROUTE_WITH_MULTIPATH:
+                net.iproute_set_multipath_default()
         else:
             net.multipath_control("disable")
 

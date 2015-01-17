@@ -65,7 +65,10 @@ CHANGE_METHOD = 'wifi' # or 'route' or 'prefer' or 'ip'
 # route: change the default route to wlan/rmnet but it will only affect new connections.
 # prefer: used `svc wifi|data prefer`: will switch to wlan/rmnet but it will disable the other one (until the one which is used is disabled).
 # wifi: will disable/enable wifi. Then it should switch to rmnet and re-used Wi-Fi only when wlan is enabled AND connected.
-# ip: will use iproute2: ip link set dev eth0 multipath off
+# ip: will use iproute2: ip link set dev eth0 multipath off: need https://github.com/MPTCP-smartphone-thesis/android-iproute2
+
+# Need to be True if we want to use 'ip' method here above
+IPROUTE_WITH_MULTIPATH = False
 
 THREAD_CONTINUE = True
 def func_init(app, net_name, mptcp_dir, out_dir):
@@ -96,7 +99,7 @@ def func_start(app, net_name, mptcp_dir, out_dir):
             elif CHANGE_METHOD == 'prefer':
                 success = net.prefer_iface(net.RMNET)
             elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP'):
-                success = iproute_set_multipath_backup_wlan()
+                success = net.iproute_set_multipath_backup_wlan()
                 success &= net.change_default_route_rmnet() # also change default routes for new connections
             else:
                 success = net.disable_iface(net.WIFI)
@@ -125,7 +128,7 @@ def func_end(app, net_name, mptcp_dir, out_dir, success):
         elif mptcp_dir == 'MPTCP_FM':
             rc &= net.multipath_control("enable", path_mgr="fullmesh")
     elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP'):
-        rc = iproute_set_multipath_default()
+        rc = net.iproute_set_multipath_default()
         rc &= net.change_default_route_wlan()
     else: # wifi
         rc = net.enable_iface(net.WIFI)
@@ -152,7 +155,10 @@ LAUNCH_FUNC_EXIT = func_exit
 if os.path.isfile('launch_tests_conf_bad_simulation_custom.py'):
     from launch_tests_conf_bad_simulation_custom import *
 
-if not CTRL_WIFI:
-    my_print_err("We need to control Wi-Fi for these tests...")
+if not CTRL_WIFI or (CHANGE_METHOD == 'ip' and not IPROUTE_WITH_MULTIPATH):
+    if not CTRL_WIFI:
+        my_print_err("We need to control Wi-Fi for these tests...")
+    else:
+        my_print_err("You need to recompile iproute and change IPROUTE_WITH_MULTIPATH var")
     from sys import exit
     exit(1)
