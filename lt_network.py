@@ -102,12 +102,12 @@ def get_route(iface, route=False):
     return False
 
 def get_all_route():
-    result = []
+    result = {}
     route = dev.adb_shell(ROUTE_CMD, out=True, quiet=True)
     for iface in (WLAN, RMNET):
         addr = get_route(iface, route)
         if addr:
-            result.append(addr)
+            result[iface] = addr
     return result
 
 # get a tuple: [iface, ip] => ('wlan0', '192.168.0.1')
