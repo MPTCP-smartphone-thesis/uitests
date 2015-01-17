@@ -110,6 +110,17 @@ def get_all_route():
             result.append(addr)
     return result
 
+# get a tuple: [iface, ip] => ('wlan0', '192.168.0.1')
+def get_default_route():
+    route = dev.adb_shell('ip route list 0/0', out=True, quiet=True)
+    if route:
+        try: # default via 192.168.0.1 dev wlan0
+            route_split = route[0].split()
+            return (route_split[4], route_split[2])
+        except:
+            return False
+    return route
+
 def change_default_route(iface, addr):
     my_print("Default route to " + iface + " - " + addr)
     success = dev.adb_shell_root('ip route change default via ' + addr + ' dev ' + iface)
