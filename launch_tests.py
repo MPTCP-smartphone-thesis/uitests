@@ -230,15 +230,6 @@ for mptcp_dir in mptcp:
         my_print("Reboot the phone: avoid possible bugs")
         if not dev.adb_reboot():
             continue
-        if mptcp_dir == 'MPTCP':
-            net.multipath_control("enable")
-            net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS_MPTCP)
-        elif mptcp_dir == 'MPTCP_FM':
-            net.multipath_control("enable", path_mgr="fullmesh")
-            net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS_MPTCP)
-        else:
-            net.multipath_control("disable")
-            net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS_TCP)
 
         # Check if we need to simulate errors
         tc = False
@@ -258,13 +249,17 @@ for mptcp_dir in mptcp:
         #     both('4', prefer_wifi=False)
         elif name.startswith('both'):
             net.both(name[4])
+            if mptcp_dir.startswith("MPTCP"):
+                net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS_MPTCP)
+            else:
+                net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS_TCP)
         elif name.startswith('rmnet'):
             net.rmnet(name[5])
         else:
             my_print_err('unknown: SKIP')
             continue
 
-        my_print("Wait 5 seconds and restart proxy")
+        my_print("Connecting: Wait 5 seconds")
         time.sleep(5)
 
         # Network of the router
@@ -275,6 +270,16 @@ for mptcp_dir in mptcp:
             netem += net.delay_cmd(net.get_value_between(tc, 'D', 'm'))
             if netem:
                 net.enable_netem(netem)
+
+        # On reboot, set mutipath_control
+        if mptcp_dir == 'MPTCP':
+            net.multipath_control("enable")
+            iproute_set_multipath_default()
+        elif mptcp_dir == 'MPTCP_FM':
+            net.multipath_control("enable", path_mgr="fullmesh")
+            iproute_set_multipath_default()
+        else:
+            net.multipath_control("disable")
 
         # Launch test (with net_mode.name to have the full name)
         dev.launch_all(uitests_dir, net_mode.name, mptcp_dir, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS)
