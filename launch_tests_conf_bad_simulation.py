@@ -28,6 +28,7 @@ import lt_network as net
 
 from lt_utils import *
 
+IPROUTE_WITH_MULTIPATH = False
 CTRL_WIFI = True
 
 if os.path.isfile('launch_tests_conf.py'):
@@ -66,9 +67,7 @@ CHANGE_METHOD = 'wifi' # or 'route' or 'prefer' or 'ip'
 # prefer: used `svc wifi|data prefer`: will switch to wlan/rmnet but it will disable the other one (until the one which is used is disabled).
 # wifi: will disable/enable wifi. Then it should switch to rmnet and re-used Wi-Fi only when wlan is enabled AND connected.
 # ip: will use iproute2: ip link set dev eth0 multipath off: need https://github.com/MPTCP-smartphone-thesis/android-iproute2
-
-# Need to be True if we want to use 'ip' method here above
-IPROUTE_WITH_MULTIPATH = False
+#     Note: Need to set IPROUTE_WITH_MULTIPATH to True if we want to use 'ip' method
 
 THREAD_CONTINUE = True
 def func_init(app, net_name, mptcp_dir, out_dir):
