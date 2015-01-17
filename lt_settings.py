@@ -161,3 +161,9 @@ def init():
         my_print_err("ShadowSocks not installed: switch to SSHTunnel if installed")
         WITH_SHADOWSOCKS = False
         WITH_SSH_TUNNEL = SSH_TUNNEL_INSTALLED
+
+def print_vars(file=sys.stdout):
+    g = globals().copy()
+    for var in g:
+        if not var.startswith('_') and var.isupper():
+            print(var + ' = ' + str(g[var]), file=file)
