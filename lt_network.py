@@ -84,27 +84,26 @@ def get_ipv4(iface):
     return False
 
 def get_all_ipv4():
-    result = []
+    result = {}
     for iface in (WLAN, RMNET):
         addr = get_ipv4(iface)
         if addr:
-            result.append(addr)
+            result[iface] = addr
     return result
 
 ROUTE_CMD = 'ip route show scope link proto boot table main'
 def get_route(iface, route=False):
     if not route:
-        route = dev.adb_shell(ROUTE_CMD)
+        route = dev.adb_shell(ROUTE_CMD, out=True, quiet=True)
     if route:
-        for line in route.split('\n'):
+        for line in route:
             if iface in line and not '/' in line:
                 return line.split()[0]
     return False
 
-
 def get_all_route():
     result = []
-    route = dev.adb_shell(ROUTE_CMD)
+    route = dev.adb_shell(ROUTE_CMD, out=True, quiet=True)
     for iface in (WLAN, RMNET):
         addr = get_route(iface, route)
         if addr:
