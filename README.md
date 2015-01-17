@@ -51,7 +51,9 @@ You will need to install `tcpdump` binary in `/system/xbin/`:
 
 Note that it's maybe better to not auto-update your apps (Play Store settings) and install adblock (to avoid ads being displayed during the tests).
 
-You will also need to launch `generate_push_random_seed.sh` script to generate this file on your phone `/storage/sdcard0/random_seed_orig`.
+For Dropbox and Drive, you will also need to launch `generate_push_random_seed.sh` script to generate these files on your phone `/storage/sdcard0/a_random_seed_orig_*`.
+
+If you want to use `net.iproute_set_multipath*()` methods, you will need to recompile iproute2: https://github.com/MPTCP-smartphone-thesis/android-iproute2
 
 
 `launch_tests.py` script
