@@ -67,6 +67,9 @@ if (not os.path.isdir(output_dir)):
 my_print("Save tcpdump files in " + output_dir)
 print("\n======================================\n\n")
 
+with open(os.path.join(output_dir, 'settings.cfg'), "w") as cfg_file:
+    s.print_vars(file=cfg_file)
+
 # should start with uitests, not an exception and with build.xml file
 def is_valid_uitest(ui_dir):
     if not ui_dir.startswith('uitests-'):
