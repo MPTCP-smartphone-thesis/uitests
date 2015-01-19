@@ -281,7 +281,7 @@ for mptcp_dir in mptcp:
             elif mptcp_dir == 'MPTCP_FM':
                 net.multipath_control("enable", path_mgr="fullmesh")
             if s.IPROUTE_WITH_MULTIPATH:
-                net.iproute_set_multipath_default()
+                net.iproute_set_multipath_backup_rmnet()
         else:
             net.multipath_control("disable")
 

@@ -142,13 +142,8 @@ def change_default_route_rmnet():
     return False
 
 def iproute_set_multipath(iface, status):
+    my_print("Multipath: status " + status + " for " + iface)
     return dev.adb_shell_root("ip link set dev " + iface + " multipath " + status)
-
-def iproute_set_multipath_backup_wlan():
-    return iproute_set_multipath(WLAN, 'backup')
-
-def iproute_set_multipath_backup_rmnet():
-    return iproute_set_multipath(RMNET, 'backup')
 
 def iproute_set_multipath_off_wlan():
     return iproute_set_multipath(WLAN, 'off')
@@ -162,11 +157,18 @@ def iproute_set_multipath_on_wlan():
 def iproute_set_multipath_on_rmnet():
     return iproute_set_multipath(RMNET, 'on')
 
-def iproute_set_multipath_default():
-    rc = True
-    rc &= iproute_set_multipath_on_wlan()
+def iproute_set_multipath_backup_wlan(route=True):
+    rc = iproute_set_multipath(WLAN, 'backup')
     rc &= iproute_set_multipath_on_rmnet()
-    rc &= iproute_set_multipath_backup_rmnet()
+    if route:
+        rc &= change_default_route_rmnet()
+    return rc
+
+def iproute_set_multipath_backup_rmnet(route=True):
+    rc = iproute_set_multipath(RMNET, 'backup')
+    rc &= iproute_set_multipath_on_wlan()
+    if route:
+        rc &= change_default_route_wlan()
     return rc
 
 # 'enable' or 'disable'
