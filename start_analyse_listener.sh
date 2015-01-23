@@ -19,6 +19,7 @@ while inotifywait -e modify "$FILE"; do
     mkdir -p "traces/$OUT_DIR"
     git describe --abbrev=0 --dirty --always >> "traces/$OUT_DIR/git.txt"
 
-    ./analyze.py -i "$DIR" -P -j 4 & # accepts other jobs
+    # -c clean, -b no graph when using < 1k, -P keep cleaned traces, -j 4 jobs
+    ./analyze.py -i "$DIR" -c -b 1000 -P -j 4 & # accepts other jobs
     echo $! >> "$PID"
 done
