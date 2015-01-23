@@ -52,10 +52,14 @@ PASSWORD_ROUTER = "root"
 
 # Tests with TCP (without MPTCP)
 WITH_TCP = True
-# Tests with (and without) MPTCP support
-WITH_MPTCP = True
+# Tests with (and without) MPTCP with the 'default' PM (do not create subflows)
+WITH_MPTCP = False
 # MPTCP with FULLMESH
 WITH_MPTCP_FULLMESH = True
+# iproute needs to support multipath: https://github.com/MPTCP-smartphone-thesis/android-iproute2
+IPROUTE_WITH_MULTIPATH = False
+# MPTCP with backup mode (for data), iproute with multipath support is needed
+WITH_MPTCP_BACKUP = False
 
 # If SSH tunnel is installed
 SSH_TUNNEL_INSTALLED = True
@@ -87,8 +91,6 @@ NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD1
 # Enable Android's Wi-Fi option: Avoid Poor Connections (Don't use a Wi-Fi network unless it has a good Internet connection)
 AVOID_POOR_CONNECTIONS_TCP = False
 AVOID_POOR_CONNECTIONS_MPTCP = False
-# iproute needs to support multipath: https://github.com/MPTCP-smartphone-thesis/android-iproute2
-IPROUTE_WITH_MULTIPATH = False
 # Functions that can be launched just before/after each uitest
 LAUNCH_FUNC_INIT = False  # before start, in the current thread
 LAUNCH_FUNC_START = False # in a new thread, just before launching the uitests
@@ -163,6 +165,10 @@ def init():
         my_print_err("ShadowSocks not installed: switch to SSHTunnel if installed")
         WITH_SHADOWSOCKS = False
         WITH_SSH_TUNNEL = SSH_TUNNEL_INSTALLED
+
+    if WITH_MPTCP_BACKUP and not IPROUTE_WITH_MULTIPATH:
+        my_print_err("Iproute not supporting multipath but using Backup mode: disable MPTCP with backup")
+        WITH_MPTCP_BACKUP = False
 
 def print_vars(file=sys.stdout):
     g = globals().copy()

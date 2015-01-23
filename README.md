@@ -53,7 +53,7 @@ Note that it's maybe better to not auto-update your apps (Play Store settings) a
 
 For Dropbox and Drive, you will also need to launch `generate_push_random_seed.sh` script to generate these files on your phone `/storage/sdcard0/a_random_seed_orig_*`.
 
-If you want to use `net.iproute_set_multipath*()` methods, you will need to recompile iproute2: https://github.com/MPTCP-smartphone-thesis/android-iproute2
+If you want to use `net.iproute_set_multipath*()` methods (or `WITH_MPTCP_BACKUP`), you will need to recompile iproute2: https://github.com/MPTCP-smartphone-thesis/android-iproute2
 
 
 `launch_tests.py` script

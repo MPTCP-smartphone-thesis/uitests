@@ -200,12 +200,14 @@ elif s.WITH_SSH_TUNNEL:
 Network = Enum('Network', s.NETWORK_TESTS)
 
 mptcp = []
-if s.WITH_MPTCP:
-    mptcp.append('MPTCP')
 if s.WITH_TCP:
     mptcp.append('TCP')
+if s.WITH_MPTCP:
+    mptcp.append('MPTCP')
 if s.WITH_MPTCP_FULLMESH:
     mptcp.append('MPTCP_FM')
+if s.WITH_MPTCP_BACKUP:
+    mptcp.append('MPTCP_BK')
 random.shuffle(mptcp)
 
 g.TEST_NO = 1
@@ -275,13 +277,12 @@ for mptcp_dir in mptcp:
                 net.enable_netem(netem)
 
         # On reboot, set mutipath_control
-        if mptcp_dir.startswith("MPTCP"):
-            if mptcp_dir == 'MPTCP':
-                net.multipath_control("enable")
-            elif mptcp_dir == 'MPTCP_FM':
-                net.multipath_control("enable", path_mgr="fullmesh")
-            if s.IPROUTE_WITH_MULTIPATH:
-                net.iproute_set_multipath_backup_rmnet()
+        if mptcp_dir == 'MPTCP':
+            net.multipath_control("enable")
+        elif mptcp_dir == 'MPTCP_FM':
+            net.multipath_control_fullmesh("enable", backup=False)
+        elif mptcp_dir == 'MPTCP_BK':
+            net.multipath_control_fullmesh("enable", backup=True)
         else:
             net.multipath_control("disable")
 
