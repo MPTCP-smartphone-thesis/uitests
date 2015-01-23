@@ -151,11 +151,21 @@ def iproute_set_multipath_off_wlan():
 def iproute_set_multipath_off_rmnet():
     return iproute_set_multipath(RMNET, 'off')
 
+def iproute_set_multipath_off():
+    rc = iproute_set_multipath_off_wlan()
+    rc &= iproute_set_multipath_off_rmnet()
+    return rc
+
 def iproute_set_multipath_on_wlan():
     return iproute_set_multipath(WLAN, 'on')
 
 def iproute_set_multipath_on_rmnet():
     return iproute_set_multipath(RMNET, 'on')
+
+def iproute_set_multipath_on():
+    rc = iproute_set_multipath_on_wlan()
+    rc &= iproute_set_multipath_on_rmnet()
+    return rc
 
 def iproute_set_multipath_backup_wlan(route=True):
     rc = iproute_set_multipath(WLAN, 'backup')
