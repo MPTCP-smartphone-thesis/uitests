@@ -54,7 +54,7 @@ WITH_SHADOWSOCKS = True
 # Tests with all modes:
 WITH_TCP = True # we should see deconnections => bad perf
 WITH_MPTCP = True # we should see switch
-WITH_FULLMESH = True # a bit better if we start the connection with the best one
+WITH_MPTCP_FULLMESH = True # a bit better if we start the connection with the best one
 
 CHANGE_CASE = 'loss' # or 'delay' or 'both' (loss + delay)
 CHANGE_SWITCH = 10 # after 10 iters

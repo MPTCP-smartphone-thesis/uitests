@@ -40,7 +40,7 @@ WITH_SHADOWSOCKS = True
 #  it will use only one IFace, the same as used without MPTCP)
 WITH_TCP = True
 WITH_MPTCP = False
-WITH_FULLMESH = True
+WITH_MPTCP_FULLMESH = True
 
 if os.path.isfile('launch_tests_conf_bad_conditions_custom.py'):
     from launch_tests_conf_bad_conditions_custom import *

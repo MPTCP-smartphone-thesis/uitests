@@ -55,7 +55,7 @@ WITH_TCP = True
 # Tests with (and without) MPTCP support
 WITH_MPTCP = True
 # MPTCP with FULLMESH
-WITH_FULLMESH = False
+WITH_MPTCP_FULLMESH = True
 
 # If SSH tunnel is installed
 SSH_TUNNEL_INSTALLED = True

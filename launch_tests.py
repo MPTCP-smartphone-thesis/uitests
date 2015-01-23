@@ -204,7 +204,7 @@ if s.WITH_MPTCP:
     mptcp.append('MPTCP')
 if s.WITH_TCP:
     mptcp.append('TCP')
-if s.WITH_FULLMESH:
+if s.WITH_MPTCP_FULLMESH:
     mptcp.append('MPTCP_FM')
 random.shuffle(mptcp)
 
