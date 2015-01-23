@@ -97,8 +97,10 @@ def func_start(app, net_name, mptcp_dir, out_dir):
                 success = net.change_default_route_rmnet()
             elif CHANGE_METHOD == 'prefer':
                 success = net.prefer_iface(net.RMNET)
-            elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP'):
-                success = net.iproute_set_multipath_backup_wlan(route=True)
+            elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP_'):
+                if mptcp_dir == 'MPTCP_FM':
+                    success = net.iproute_set_multipath_off_wlan()
+                success &= net.change_default_route_rmnet()
             else:
                 success = net.disable_iface(net.WIFI)
             if not success:
@@ -125,8 +127,10 @@ def func_end(app, net_name, mptcp_dir, out_dir, success):
             rc &= net.multipath_control("enable")
         elif mptcp_dir == 'MPTCP_FM':
             rc &= net.multipath_control("enable", path_mgr="fullmesh")
-    elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP'):
-        rc = net.iproute_set_multipath_default(route=True)
+    elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP_'):
+        if mptcp_dir == 'MPTCP_FM':
+            rc = net.iproute_set_multipath_on_wlan()
+        rc &= net.change_default_route_wlan()
     else: # wifi
         rc = net.enable_iface(net.WIFI)
 
