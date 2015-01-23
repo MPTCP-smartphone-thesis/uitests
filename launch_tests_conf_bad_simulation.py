@@ -55,6 +55,7 @@ WITH_SHADOWSOCKS = True
 WITH_TCP = True # we should see deconnections => bad perf
 WITH_MPTCP = False # not needed when not using extra subflow
 WITH_MPTCP_FULLMESH = True # a bit better if we start the connection with the best one
+WITH_MPTCP_BACKUP = True # should be the default behaviour
 
 CHANGE_CASE = 'loss' # or 'delay' or 'both' (loss + delay)
 CHANGE_SWITCH = 10 # after 10 iters
@@ -66,7 +67,7 @@ CHANGE_METHOD = 'wifi' # or 'route' or 'prefer' or 'ip'
 # route: change the default route to wlan/rmnet but it will only affect new connections.
 # prefer: used `svc wifi|data prefer`: will switch to wlan/rmnet but it will disable the other one (until the one which is used is disabled).
 # wifi: will disable/enable wifi. Then it should switch to rmnet and re-used Wi-Fi only when wlan is enabled AND connected.
-# ip: will use iproute2: ip link set dev eth0 multipath off: need https://github.com/MPTCP-smartphone-thesis/android-iproute2
+# ip: will use iproute2: ip link set dev eth0 multipath backup/off: need https://github.com/MPTCP-smartphone-thesis/android-iproute2
 #     Note: Need to set IPROUTE_WITH_MULTIPATH to True if we want to use 'ip' method
 
 THREAD_CONTINUE = True
@@ -100,6 +101,8 @@ def func_start(app, net_name, mptcp_dir, out_dir):
             elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP_'):
                 if mptcp_dir == 'MPTCP_FM':
                     success = net.iproute_set_multipath_off_wlan()
+                else:
+                    success = net.iproute_set_multipath_backup_wlan(route=False)
                 success &= net.change_default_route_rmnet()
             else:
                 success = net.disable_iface(net.WIFI)
@@ -130,6 +133,8 @@ def func_end(app, net_name, mptcp_dir, out_dir, success):
     elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP_'):
         if mptcp_dir == 'MPTCP_FM':
             rc = net.iproute_set_multipath_on_wlan()
+        else:
+            rc = net.iproute_set_multipath_backup_rmnet(route=False)
         rc &= net.change_default_route_wlan()
     else: # wifi
         rc = net.enable_iface(net.WIFI)
