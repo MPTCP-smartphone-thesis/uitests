@@ -33,8 +33,10 @@ PURGE_TRACES_SMARTPHONE = True
 KEEP_TRACES_NB = False
 # Reboot the phone before each batch of uitests and at the end of the script
 ADB_REBOOT = True
-# Backup your traces by launching backup_traces.sh script
+# Backup your traces by launching backup_traces.sh script at the end of the script
 BACKUP_TRACES = True
+# Launch start_analyse_distant.sh script at the end of the script
+START_ANALYSE = True
 # Capture traces on the proxy (by using *_full_pcap_distant.sh scripts)
 CAPTURE_ON_PROXY = True
 

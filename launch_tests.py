@@ -323,6 +323,10 @@ cmd = "bash backup_traces.sh " + arg_dir_exp
 if s.BACKUP_TRACES and subprocess.call(cmd.split()) != 0:
     my_print_err(" when using backup_traces.sh with " + arg_dir_exp)
 
+cmd = ["bash", "start_analyse_distant.sh", os.path.basedir(arg_dir_exp) + "/" + now_dir]
+if s.START_ANALYSE and subprocess.call(cmd) != 0:
+    my_print_err(" when using start_analyse.sh with " + cmd[2])
+
 if s.KEEP_TRACES_NB:
     dirs = sorted(os.listdir(arg_dir_exp), reverse=True)
     for rm_dir in dirs[s.KEEP_TRACES_NB:]:
