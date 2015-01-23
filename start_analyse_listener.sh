@@ -15,11 +15,12 @@ while inotifywait -e modify "$FILE"; do
 
     # The last line of .analyse-start contains the directory to analyse
     DIR=$(tail -n 1 "$FILE" || echo "UNKNOWN")
-    OUT_DIR=$(basename $DIR)
-    mkdir -p "traces/$OUT_DIR"
-    git describe --abbrev=0 --dirty --always >> "traces/$OUT_DIR/git.txt"
+    OUT_DIR="pcap/"$(basename $DIR)
+    mkdir -p "$OUT_DIR"
+    LOG="$OUT_DIR/log_$(date +%Y%m%d_%H%M%S).txt"
+    git describe --abbrev=0 --dirty --always > "$LOG"
 
     # -c clean, -b no graph when using < 1k, -P keep cleaned traces, -j 4 jobs
-    ./analyze.py -i "$DIR" -c -b 1000 -P -j 4 & # accepts other jobs
+    ./analyze.py -i "$DIR" -c -b 1000 -P -j 4 >> "$LOG" & # accepts other jobs
     echo $! >> "$PID"
 done
