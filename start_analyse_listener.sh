@@ -20,7 +20,7 @@ while inotifywait -e modify "$FILE"; do
     LOG="$OUT_DIR/log_$(date +%Y%m%d_%H%M%S).txt"
     git describe --abbrev=0 --dirty --always > "$LOG"
 
-    # -c clean, -b no graph when using < 1k, -P keep cleaned traces, -j 4 jobs
-    ./analyze.py -i "$DIR" -c -b 1000 -P -j 4 >> "$LOG" & # accepts other jobs
+    # -c clean, -b no graph when using < 1k, -P keep cleaned traces, -j 4 jobs, -l log to stderr (GnuPlot.py also writes pdf in stdout)
+    ./analyze.py -i "$DIR" -c -b 1000 -P -j 4 -l > /dev/null 2>> "$LOG" & # accepts other jobs
     echo $! >> "$PID"
 done
