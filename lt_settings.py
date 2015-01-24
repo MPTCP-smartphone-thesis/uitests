@@ -56,6 +56,8 @@ WITH_TCP = True
 WITH_MPTCP = False
 # MPTCP with FULLMESH
 WITH_MPTCP_FULLMESH = True
+# MPTCP with FULLMESH and round robin as schedulers
+WITH_MPTCP_FULLMESH_ROUND_ROBIN = False
 # iproute needs to support multipath: https://github.com/MPTCP-smartphone-thesis/android-iproute2
 IPROUTE_WITH_MULTIPATH = False
 # MPTCP with backup mode (for data), iproute with multipath support is needed

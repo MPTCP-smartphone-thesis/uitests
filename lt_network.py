@@ -200,16 +200,20 @@ def iproute_set_multipath_backup_rmnet(route=True):
 def mptcp_path_manager(path_mgr='default'):
     return sysctl_mptcp('path_manager', path_mgr)
 
+def mptcp_round_robin(enable=True):
+    return sysctl_mptcp('scheduler', 'roundrobin' if enable else 'default')
+
 # 'enable' or 'disable'
-def multipath_control(action='enable', path_mgr='default'):
+def multipath_control(action='enable', path_mgr='default', rr=False):
     dev.stop_proxy() ## prevent error when enabling mptcp
     my_print("Multipath Control: " + action)
     rc = dev.adb_shell(False, uiautomator='multipath_control', args='action ' + action)
     rc &= mptcp_path_manager(path_mgr)
+    rc &= mptcp_round_robin(rr)
     return rc
 
-def multipath_control_fullmesh(action='enable', backup=False):
-    rc = multipath_control(action, path_mgr='fullmesh')
+def multipath_control_fullmesh(action='enable', backup=False, rr=False):
+    rc = multipath_control(action, path_mgr='fullmesh', rr=rr)
     if s.IPROUTE_WITH_MULTIPATH:
         if backup:
             rc &= iproute_set_multipath_backup_rmnet()

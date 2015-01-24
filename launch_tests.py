@@ -207,6 +207,8 @@ if s.WITH_MPTCP:
     tcp_list.append(TCP.MPTCP)
 if s.WITH_MPTCP_FULLMESH:
     tcp_list.append(TCP.MPTCP_FULLMESH)
+if s.WITH_MPTCP_FULLMESH_ROUND_ROBIN:
+    tcp_list.append(TCP.MPTCP_FULLMESH_RR)
 if s.WITH_MPTCP_BACKUP:
     tcp_list.append(TCP.MPTCP_BACKUP)
 if s.WITH_MPTCP_NDIFFPORTS:
@@ -284,6 +286,8 @@ for tcp_mode in tcp_list:
             net.multipath_control()
         elif tcp_mode is TCP.MPTCP_FULLMESH:
             net.multipath_control_fullmesh(backup=False)
+        elif tcp_mode is TCP.MPTCP_FULLMESH_RR:
+            net.multipath_control_fullmesh(backup=False, rr=True)
         elif tcp_mode is TCP.MPTCP_BACKUP:
             net.multipath_control_fullmesh(backup=True)
         elif tcp_mode is TCP.MPTCP_NDIFFPORTS:

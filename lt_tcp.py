@@ -22,11 +22,12 @@ from enum import Enum
 
 class TCP(Enum):
 
-    TCP              = 'TCP'
-    MPTCP            = 'MPTCP'
-    MPTCP_FULLMESH   = 'MPTCP_FM'
-    MPTCP_BACKUP     = 'MPTCP_BK'
-    MPTCP_NDIFFPORTS = 'MPTCP_ND'
+    TCP               = 'TCP'
+    MPTCP             = 'MPTCP'
+    MPTCP_FULLMESH    = 'MPTCP_FM'
+    MPTCP_FULLMESH_RR = 'MPTCP_RR'
+    MPTCP_BACKUP      = 'MPTCP_BK'
+    MPTCP_NDIFFPORTS  = 'MPTCP_ND'
 
     def is_tcp(self):
         return self.value.startswith('TCP')
