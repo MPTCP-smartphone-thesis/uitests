@@ -57,6 +57,7 @@ WITH_TCP = True # we should see deconnections => bad perf
 WITH_MPTCP = False # not needed when not using extra subflow
 WITH_MPTCP_FULLMESH = True # a bit better if we start the connection with the best one
 WITH_MPTCP_BACKUP = True # should be the default behaviour
+WITH_MPTCP_NDIFFPORTS = True # can be interesting to use several subflows when having losses
 
 CHANGE_CASE = 'loss' # or 'delay' or 'both' (loss + delay)
 CHANGE_SWITCH = 10 # after 10 iters
@@ -100,7 +101,7 @@ def func_start(app, net_name, tcp_mode, out_dir):
             elif CHANGE_METHOD == 'prefer':
                 success = net.prefer_iface(net.RMNET)
             elif CHANGE_METHOD == 'ip' and tcp_mode.is_mptcp_not_default():
-                if tcp_mode is TCP.MPTCP_FULLMESH:
+                if tcp_mode is TCP.MPTCP_FULLMESH or tcp_mode is TCP.MPTCP_NDIFFPORTS:
                     success = net.iproute_set_multipath_off_wlan()
                 elif tcp_mode is TCP.MPTCP_BACKUP:
                     success = net.iproute_set_multipath_backup_wlan(route=False)
@@ -109,6 +110,9 @@ def func_start(app, net_name, tcp_mode, out_dir):
                 success = net.disable_iface(net.WIFI)
             if not success:
                 my_print_err("Not able to switch with method " + CHANGE_METHOD)
+        elif i == CHANGE_SWITCH * CHANGE_INC / 2 and CHANGE_METHOD == 'ip' and tcp_mode is TCP.MPTCP_NDIFFPORTS:
+            if not ndiffports_set_subflows(subflows=s.NDIFFPORTS_DEFAULT_NB * 2):
+                my_print_err("Not able to change subflows")
         elif i == CHANGE_LIMIT * CHANGE_INC:
             return
         i += CHANGE_INC
@@ -133,8 +137,10 @@ def func_end(app, net_name, tcp_mode, out_dir, success):
             rc &= net.multipath_control_fullmesh(backup=False)
         elif tcp_mode is TCP.MPTCP_BACKUP:
             rc &= net.multipath_control_fullmesh(backup=True)
+        elif tcp_mode is TCP.MPTCP_NDIFFPORTS:
+            rc &= net.multipath_control(path_manager="ndiffports")
     elif CHANGE_METHOD == 'ip' and tcp_mode.is_mptcp_not_default():
-        if tcp_mode is TCP.MPTCP_FULLMESH:
+        if tcp_mode is TCP.MPTCP_FULLMESH or tcp_mode is TCP.MPTCP_NDIFFPORTS:
             rc = net.iproute_set_multipath_on_wlan()
         elif tcp_mode is TCP.MPTCP_BACKUP:
             rc = net.iproute_set_multipath_backup_rmnet(route=False)
