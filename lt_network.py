@@ -152,6 +152,11 @@ def change_default_route_rmnet():
 ##              DEVICE: MULTIPATH               ##
 ##################################################
 
+def sysctl_mptcp(key, value):
+    arg = "net.mptcp.mptcp_" + key + "=" + value
+    my_print("Sysctl: " + arg)
+    return dev.adb_shell_root("sysctl -w " + arg)
+
 def iproute_set_multipath(iface, status):
     my_print("Multipath: status " + status + " for " + iface)
     return dev.adb_shell_root("ip link set dev " + iface + " multipath " + status)
