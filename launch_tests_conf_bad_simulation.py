@@ -56,6 +56,7 @@ WITH_SHADOWSOCKS = True
 WITH_TCP = True # we should see deconnections => bad perf
 WITH_MPTCP = False # not needed when not using extra subflow
 WITH_MPTCP_FULLMESH = True # a bit better if we start the connection with the best one
+WITH_MPTCP_FULLMESH_ROUND_ROBIN = False # can be useful only to see what happens
 WITH_MPTCP_BACKUP = True # should be the default behaviour
 WITH_MPTCP_NDIFFPORTS = True # can be interesting to use several subflows when having losses
 
@@ -101,7 +102,9 @@ def func_start(app, net_name, tcp_mode, out_dir):
             elif CHANGE_METHOD == 'prefer':
                 success = net.prefer_iface(net.RMNET)
             elif CHANGE_METHOD == 'ip' and tcp_mode.is_mptcp_not_default():
-                if tcp_mode is TCP.MPTCP_FULLMESH or tcp_mode is TCP.MPTCP_NDIFFPORTS:
+                if tcp_mode is TCP.MPTCP_FULLMESH \
+                or tcp_mode is TCP.MPTCP_FULLMESH_RR \
+                or tcp_mode is TCP.MPTCP_NDIFFPORTS:
                     success = net.iproute_set_multipath_off_wlan()
                 elif tcp_mode is TCP.MPTCP_BACKUP:
                     success = net.iproute_set_multipath_backup_wlan(route=False)
@@ -140,7 +143,9 @@ def func_end(app, net_name, tcp_mode, out_dir, success):
         elif tcp_mode is TCP.MPTCP_NDIFFPORTS:
             rc &= net.multipath_control(path_manager="ndiffports")
     elif CHANGE_METHOD == 'ip' and tcp_mode.is_mptcp_not_default():
-        if tcp_mode is TCP.MPTCP_FULLMESH or tcp_mode is TCP.MPTCP_NDIFFPORTS:
+        if tcp_mode is TCP.MPTCP_FULLMESH \
+        or tcp_mode is TCP.MPTCP_FULLMESH_RR \
+        or tcp_mode is TCP.MPTCP_NDIFFPORTS:
             rc = net.iproute_set_multipath_on_wlan()
         elif tcp_mode is TCP.MPTCP_BACKUP:
             rc = net.iproute_set_multipath_backup_rmnet(route=False)
