@@ -25,15 +25,16 @@ import lt_device as dev
 
 from lt_utils import * # my_print
 
-##################################################
-##            DEVICE/ROUTER: NETWORK            ##
-##################################################
-
 ## Net: devices
 WIFI = 'wifi'
 DATA = 'data'
 WLAN = 'wlan0'
 RMNET = 'rmnet0'
+
+
+##################################################
+##            DEVICE: NETWORK IFACES            ##
+##################################################
 
 # version should be: '4', '3' or '2'
 def change_pref_net(version):
@@ -73,6 +74,11 @@ def both(version, prefer_wifi=True):
     else:
         prefer_iface(DATA)
     change_pref_net(version)
+
+
+##################################################
+##          DEVICE: NETWORK IP/ROUTES           ##
+##################################################
 
 def get_ipv4(iface):
     ip = dev.adb_shell('ip addr show ' + iface, out=True, quiet=True)
@@ -141,6 +147,11 @@ def change_default_route_rmnet():
         return change_default_route(RMNET, addr)
     return False
 
+
+##################################################
+##              DEVICE: MULTIPATH               ##
+##################################################
+
 def iproute_set_multipath(iface, status):
     my_print("Multipath: status " + status + " for " + iface)
     return dev.adb_shell_root("ip link set dev " + iface + " multipath " + status)
@@ -199,7 +210,10 @@ def multipath_control_fullmesh(action='enable', backup=False):
             rc &= iproute_set_multipath_on()
     return rc
 
-## Net: router
+
+##################################################
+##                DEVICE: ROUTER                ##
+##################################################
 
 def get_value_between(string, start, end):
     index = string.find(start)
