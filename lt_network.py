@@ -210,6 +210,15 @@ def multipath_control_fullmesh(action='enable', backup=False):
             rc &= iproute_set_multipath_on()
     return rc
 
+def ndiffports_set_subflows(subflows):
+    my_print("NDiffPorts set subflows: " + str(subflows))
+    cmd = 'echo ' + str(subflows) + ' > /sys/module/mptcp_ndiffports/parameters/num_subflows'
+    return dev.adb_shell_root(cmd)
+
+def multipath_control_ndiffports(action='enable', subflows=s.NDIFFPORTS_DEFAULT_NB):
+    rc = multipath_control(action, path_mgr='ndiffports')
+    rc &= ndiffports_set_subflows(subflows)
+    return rc
 
 ##################################################
 ##                DEVICE: ROUTER                ##

@@ -60,6 +60,10 @@ WITH_MPTCP_FULLMESH = True
 IPROUTE_WITH_MULTIPATH = False
 # MPTCP with backup mode (for data), iproute with multipath support is needed
 WITH_MPTCP_BACKUP = False
+# MPTCP with 'ndiffports' path manager: X subflows will be created across the same pair of IP-addresses, modifying the source-port
+WITH_MPTCP_NDIFFPORTS = False
+# Number of subflows per IP-addresses
+NDIFFPORTS_DEFAULT_NB = 2
 
 # If SSH tunnel is installed
 SSH_TUNNEL_INSTALLED = True
@@ -131,7 +135,7 @@ CONFIG_FILE_DEFAULT = 'launch_tests_conf.py'
 ##################################################
 
 def init():
-    global CONFIG_FILE
+    global CONFIG_FILE, CONFIG_FILE_DEFAULT
     if len(sys.argv) > 1:
         CONFIG_FILE = sys.argv[1]
     else:

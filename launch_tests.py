@@ -209,6 +209,8 @@ if s.WITH_MPTCP_FULLMESH:
     tcp_list.append(TCP.MPTCP_FULLMESH)
 if s.WITH_MPTCP_BACKUP:
     tcp_list.append(TCP.MPTCP_BACKUP)
+if s.WITH_MPTCP_NDIFFPORTS:
+    tcp_list.append(TCP.MPTCP_NDIFFPORTS)
 random.shuffle(tcp_list)
 
 g.TEST_NO = 1
@@ -284,6 +286,8 @@ for tcp_mode in tcp_list:
             net.multipath_control_fullmesh(backup=False)
         elif tcp_mode is TCP.MPTCP_BACKUP:
             net.multipath_control_fullmesh(backup=True)
+        elif tcp_mode is TCP.MPTCP_NDIFFPORTS:
+            net.multipath_control_ndiffports()
         else:
             net.multipath_control(action="disable")
 
