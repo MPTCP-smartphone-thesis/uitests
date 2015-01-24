@@ -26,6 +26,7 @@ import time
 
 import lt_network as net
 
+from lt_tcp import TCP
 from lt_utils import *
 
 IPROUTE_WITH_MULTIPATH = False
@@ -71,12 +72,12 @@ CHANGE_METHOD = 'wifi' # or 'route' or 'prefer' or 'ip'
 #     Note: Need to set IPROUTE_WITH_MULTIPATH to True if we want to use 'ip' method
 
 THREAD_CONTINUE = True
-def func_init(app, net_name, mptcp_dir, out_dir):
+def func_init(app, net_name, tcp_mode, out_dir):
     global THREAD_CONTINUE
     THREAD_CONTINUE = True
 
 # we have ~4.5 minutes: inc losses/delay every 15 sec
-def func_start(app, net_name, mptcp_dir, out_dir):
+def func_start(app, net_name, tcp_mode, out_dir):
     global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP, AVOID_POOR_CONNECTIONS_MPTCP
 
     i = CHANGE_INC
@@ -91,17 +92,17 @@ def func_start(app, net_name, mptcp_dir, out_dir):
 
         # prefer Data over Wi-Fi
         if i == CHANGE_SWITCH * CHANGE_INC:
-            if (AVOID_POOR_CONNECTIONS_TCP and mptcp_dir.startswith('TCP')) \
-            or (AVOID_POOR_CONNECTIONS_MPTCP and mptcp_dir.startswith('MPTCP')):
+            if (AVOID_POOR_CONNECTIONS_TCP and tcp_mode.is_tcp()) \
+            or (AVOID_POOR_CONNECTIONS_MPTCP and tcp_mode.is_mptcp()):
                 success = True # no simulation, used Avoid poor connection option
-            elif CHANGE_METHOD == 'route' and mptcp_dir.startswith('MPTCP'):
+            elif CHANGE_METHOD == 'route' and tcp_mode.is_mptcp():
                 success = net.change_default_route_rmnet()
             elif CHANGE_METHOD == 'prefer':
                 success = net.prefer_iface(net.RMNET)
-            elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP_'):
-                if mptcp_dir == 'MPTCP_FM':
+            elif CHANGE_METHOD == 'ip' and tcp_mode.is_mptcp_not_default():
+                if tcp_mode is TCP.MPTCP_FULLMESH:
                     success = net.iproute_set_multipath_off_wlan()
-                else:
+                elif tcp_mode is TCP.MPTCP_BACKUP:
                     success = net.iproute_set_multipath_backup_wlan(route=False)
                 success &= net.change_default_route_rmnet()
             else:
@@ -113,27 +114,29 @@ def func_start(app, net_name, mptcp_dir, out_dir):
         i += CHANGE_INC
 
 
-def func_end(app, net_name, mptcp_dir, out_dir, success):
+def func_end(app, net_name, tcp_mode, out_dir, success):
     global THREAD_CONTINUE, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP, AVOID_POOR_CONNECTIONS_MPTCP
     THREAD_CONTINUE = False
 
-    if (AVOID_POOR_CONNECTIONS_TCP and mptcp_dir.startswith('TCP')) \
-    or (AVOID_POOR_CONNECTIONS_MPTCP and mptcp_dir.startswith('MPTCP')):
+    if (AVOID_POOR_CONNECTIONS_TCP and tcp_mode.is_tcp()) \
+    or (AVOID_POOR_CONNECTIONS_MPTCP and tcp_mode.is_mptcp()):
         rc = True # no simulation, used Avoid poor connection option
-    if CHANGE_METHOD == 'route' and mptcp_dir.startswith('MPTCP'):
+    elif CHANGE_METHOD == 'route' and tcp_mode.is_mptcp():
         rc = net.change_default_route_wlan()
     elif CHANGE_METHOD == 'prefer':
         rc = net.prefer_iface(net.WLAN)
         # 'svc data prefer' cmd will disable WLAN, we need to enable both ifaces
         # relaunch multipath_control
-        if mptcp_dir == 'MPTCP':
-            rc &= net.multipath_control("enable")
-        elif mptcp_dir == 'MPTCP_FM':
-            rc &= net.multipath_control("enable", path_mgr="fullmesh")
-    elif CHANGE_METHOD == 'ip' and mptcp_dir.startswith('MPTCP_'):
-        if mptcp_dir == 'MPTCP_FM':
+        if tcp_mode is TCP.MPTCP:
+            rc &= net.multipath_control()
+        elif tcp_mode is TCP.MPTCP_FULLMESH:
+            rc &= net.multipath_control_fullmesh(backup=False)
+        elif tcp_mode is TCP.MPTCP_BACKUP:
+            rc &= net.multipath_control_fullmesh(backup=True)
+    elif CHANGE_METHOD == 'ip' and tcp_mode.is_mptcp_not_default():
+        if tcp_mode is TCP.MPTCP_FULLMESH:
             rc = net.iproute_set_multipath_on_wlan()
-        else:
+        elif tcp_mode is TCP.MPTCP_BACKUP:
             rc = net.iproute_set_multipath_backup_rmnet(route=False)
         rc &= net.change_default_route_wlan()
     else: # wifi
@@ -144,7 +147,7 @@ def func_end(app, net_name, mptcp_dir, out_dir, success):
 
     net.disable_netem()
 
-def func_exit(app, net_name, mptcp_dir, out_dir, thread):
+def func_exit(app, net_name, tcp_mode, out_dir, thread):
     # Wait for the end of the thread: avoid
     if thread and thread.is_alive():
         my_print("Wait the end of the thread")

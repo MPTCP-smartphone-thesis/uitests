@@ -45,6 +45,7 @@ s.init()
 import lt_device as dev
 import lt_network as net
 
+from lt_tcp import TCP
 from lt_utils import *
 
 
@@ -199,27 +200,27 @@ elif s.WITH_SSH_TUNNEL:
 # Should start with wlan/bothX/rmnetX
 Network = Enum('Network', s.NETWORK_TESTS)
 
-mptcp = []
+tcp_list = []
 if s.WITH_TCP:
-    mptcp.append('TCP')
+    tcp_list.append(TCP.TCP)
 if s.WITH_MPTCP:
-    mptcp.append('MPTCP')
+    tcp_list.append(TCP.MPTCP)
 if s.WITH_MPTCP_FULLMESH:
-    mptcp.append('MPTCP_FM')
+    tcp_list.append(TCP.MPTCP_FULLMESH)
 if s.WITH_MPTCP_BACKUP:
-    mptcp.append('MPTCP_BK')
-random.shuffle(mptcp)
+    tcp_list.append(TCP.MPTCP_BACKUP)
+random.shuffle(tcp_list)
 
 g.TEST_NO = 1
-g.NB_TESTS = len(Network) * len(mptcp) * len(uitests_dir)
+g.NB_TESTS = len(Network) * len(tcp_list) * len(uitests_dir)
 
 
 ##################################################
 ##             DEVICE: LAUNCH TESTS             ##
 ##################################################
 
-for mptcp_dir in mptcp:
-    my_print("============ Kernel mode: " + mptcp_dir + " =========\n")
+for tcp_mode in tcp_list:
+    my_print("============ Kernel mode: " + str(tcp_mode) + " =========\n")
 
     # All kinds of networks
     net_list = list(Network)
@@ -254,7 +255,7 @@ for mptcp_dir in mptcp:
         #     both('4', prefer_wifi=False)
         elif name.startswith('both'):
             net.both(name[4])
-            if mptcp_dir.startswith("MPTCP"):
+            if tcp_mode.is_mptcp():
                 net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS_MPTCP)
             else:
                 net.avoid_poor_connections(s.AVOID_POOR_CONNECTIONS_TCP)
@@ -277,17 +278,17 @@ for mptcp_dir in mptcp:
                 net.enable_netem(netem)
 
         # On reboot, set mutipath_control
-        if mptcp_dir == 'MPTCP':
-            net.multipath_control("enable")
-        elif mptcp_dir == 'MPTCP_FM':
-            net.multipath_control_fullmesh("enable", backup=False)
-        elif mptcp_dir == 'MPTCP_BK':
-            net.multipath_control_fullmesh("enable", backup=True)
+        if tcp_mode is TCP.MPTCP:
+            net.multipath_control()
+        elif tcp_mode is TCP.MPTCP_FULLMESH:
+            net.multipath_control_fullmesh(backup=False)
+        elif tcp_mode is TCP.MPTCP_BACKUP:
+            net.multipath_control_fullmesh(backup=True)
         else:
-            net.multipath_control("disable")
+            net.multipath_control(action="disable")
 
         # Launch test (with net_mode.name to have the full name)
-        dev.launch_all(uitests_dir, net_mode.name, mptcp_dir, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS)
+        dev.launch_all(uitests_dir, net_mode.name, tcp_mode, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS)
 
         # Delete Netem
         if tc:
