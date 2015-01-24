@@ -144,11 +144,14 @@ def init():
             g[var] = getattr(conf_module, var)
 
     # COLOURS
+    global FORCE_COLORS
     if not FORCE_COLORS:
         if not sys.stdout.isatty():
+            global GREEN, YELLOW, BLUE, WHITE_STD
             GREEN = YELLOW = BLUE = WHITE_STD = ''
         if not sys.stderr.isatty():
-            err = WHITE_ERR = ''
+            global RED, WHITE_ERR
+            RED = WHITE_ERR = ''
 
     # Cannot have both SSH/Shadow socks proxy
     global WITH_SSH_TUNNEL, WITH_SHADOWSOCKS, SSH_TUNNEL_INSTALLED, SHADOWSOCKS_INSTALLED
@@ -166,6 +169,8 @@ def init():
         WITH_SHADOWSOCKS = False
         WITH_SSH_TUNNEL = SSH_TUNNEL_INSTALLED
 
+    # Cannot use Backup if IPRoute doesn't support multipath option
+    global WITH_MPTCP_BACKUP, IPROUTE_WITH_MULTIPATH
     if WITH_MPTCP_BACKUP and not IPROUTE_WITH_MULTIPATH:
         my_print_err("Iproute not supporting multipath but using Backup mode: disable MPTCP with backup")
         WITH_MPTCP_BACKUP = False
