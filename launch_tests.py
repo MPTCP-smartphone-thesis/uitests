@@ -327,7 +327,7 @@ if s.BACKUP_TRACES:
         my_print_err(" when using backup_traces.sh with " + arg_dir_exp)
     elif s.START_ANALYSE and not os.path.exists('analyse.skip'):
         my_print("Remotely launch analyze script")
-        cmd = ["bash", "start_analyse_distant.sh", os.path.basedir(arg_dir_exp) + "/" + now_dir]
+        cmd = ["bash", "start_analyse_distant.sh", os.path.basename(arg_dir_exp) + "/" + now_dir]
         if subprocess.call(cmd) != 0:
             my_print_err(" when using start_analyse.sh with " + cmd[2])
 
