@@ -197,14 +197,16 @@ def iproute_set_multipath_backup_rmnet(route=True):
         rc &= change_default_route_wlan()
     return rc
 
+def mptcp_path_manager(path_mgr='default'):
+    return sysctl_mptcp('path_manager', path_mgr)
+
 # 'enable' or 'disable'
-def multipath_control(action='enable', path_mgr=False):
+def multipath_control(action='enable', path_mgr='default'):
     dev.stop_proxy() ## prevent error when enabling mptcp
     my_print("Multipath Control: " + action)
-    mp_args = 'action ' + action
-    if path_mgr:
-        mp_args = [mp_args, 'pm ' + path_mgr]
-    return dev.adb_shell(False, uiautomator='multipath_control', args=mp_args)
+    rc = dev.adb_shell(False, uiautomator='multipath_control', args='action ' + action)
+    rc &= mptcp_path_manager(path_mgr)
+    return rc
 
 def multipath_control_fullmesh(action='enable', backup=False):
     rc = multipath_control(action, path_mgr='fullmesh')
