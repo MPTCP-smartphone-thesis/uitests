@@ -150,7 +150,7 @@ def func_end(app, net_name, tcp_mode, out_dir, success):
         elif tcp_mode is TCP.MPTCP_BACKUP:
             rc = net.iproute_set_multipath_backup_rmnet(route=False)
         if tcp_mode is TCP.MPTCP_NDIFFPORTS:
-            rc &= net.ndiffports_set_subflows()
+            rc &= net.ndiffports_set_subflows(s.NDIFFPORTS_DEFAULT_NB)
         rc &= net.change_default_route_wlan()
     else: # wifi
         rc = net.enable_iface(net.WIFI)
