@@ -114,7 +114,7 @@ def func_start(app, net_name, tcp_mode, out_dir):
             if not success:
                 my_print_err("Not able to switch with method " + CHANGE_METHOD)
         elif i == CHANGE_SWITCH * CHANGE_INC / 2 and CHANGE_METHOD == 'ip' and tcp_mode is TCP.MPTCP_NDIFFPORTS:
-            if not ndiffports_set_subflows(subflows=s.NDIFFPORTS_DEFAULT_NB * 2):
+            if not net.ndiffports_set_subflows(subflows=s.NDIFFPORTS_DEFAULT_NB * 2):
                 my_print_err("Not able to change subflows")
         elif i == CHANGE_LIMIT * CHANGE_INC:
             return
@@ -149,6 +149,8 @@ def func_end(app, net_name, tcp_mode, out_dir, success):
             rc = net.iproute_set_multipath_on_wlan()
         elif tcp_mode is TCP.MPTCP_BACKUP:
             rc = net.iproute_set_multipath_backup_rmnet(route=False)
+        if tcp_mode is TCP.MPTCP_NDIFFPORTS:
+            rc &= net.ndiffports_set_subflows()
         rc &= net.change_default_route_wlan()
     else: # wifi
         rc = net.enable_iface(net.WIFI)
