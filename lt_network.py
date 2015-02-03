@@ -315,3 +315,19 @@ def disable_netem():
     for iface in s.IFACE_ROUTER:
         rc &= router_shell("tc qdisc delete dev " + iface + " root")
     return rc
+
+def manage_iw(status):
+    rc = True
+    for iface in s.DEVICES_ROUTER:
+        cmd = 'iw phy ' + iface + ' set ' + status
+        rc &= router_shell(cmd)
+    return rc
+
+# value < 30.0
+def set_wlan_power(value='auto'):
+    """ Value is in dBm, an exponential scale! P [mW] = 10 ^ (P [dBm] / 10) """
+    if value == 'auto':
+        status = value
+    else:
+        status = 'fixed ' + str(value)
+    return manage_iw('txpower ' + status)

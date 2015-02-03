@@ -146,6 +146,7 @@ if s.CTRL_WIFI:
     my_print("Reset Netem (tc), ignore errors")
     net.router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
     net.disable_netem()
+    net.set_wlan_power('auto')
 
 
 ##################################################
