@@ -338,7 +338,7 @@ def limit_bw_wshaper(up, down, iface=s.IFACE_ROUTER[0]):
     rc &= router_shell(uci + 'uplink=' + str(up))
     rc &= router_shell(uci + 'downlink=' + str(down))
     rc &= router_shell('uci commit')
-    rc &= router_shell('/etc/init.d/wshaper restart')
+    rc &= router_shell('/etc/init.d/wshaper enable')
     return rc
 
 def unlimit_bw_wshaper():
@@ -347,7 +347,7 @@ def unlimit_bw_wshaper():
     rc &= router_shell(uci + 'uplink')
     rc &= router_shell(uci + 'downlink')
     rc &= router_shell('uci commit')
-    return router_shell('/etc/init.d/wshaper stop')
+    return router_shell('/etc/init.d/wshaper disable')
 
 def manage_iw(status):
     rc = True
