@@ -324,6 +324,10 @@ def manage_capture_server(mode, arg_pcap):
 
 def stop_capture_device():
     my_print("Stop capturing traces on the device")
+    if not s.CAPTURE_ON_ANY and not s.CAPTURE_ON_LO:
+        my_print("No tcpdump processes to stop")
+        return True
+
     pids = adb_get_pid('tcpdump')
     out_status = True
     for pid in pids:
@@ -351,37 +355,41 @@ def launch_capture_device(cmd, instances):
 
 def start_capture_device(arg_pcap, android_pcap_dir, net_name):
     my_print("Capture traces on the device")
-    tcp_filter = 'tcp'
-    if net_name.startswith('wlan'):
-        iface = "wlan0"
-    elif net_name.startswith('rmnet'):
-        iface = "rmnet0"
-    else: # both
-        iface = "any"
-        tcp_filter += ' and not ip host 127.0.0.1'
+    rc = True
+    i = 1
+    if s.CAPTURE_ON_ANY:
+        tcp_filter = 'tcp'
+        if net_name.startswith('wlan'):
+            iface = "wlan0"
+        elif net_name.startswith('rmnet'):
+            iface = "rmnet0"
+        else: # both
+            iface = "any"
+            tcp_filter += ' and not ip host 127.0.0.1'
 
-    adb_shell('mkdir -p ' + android_pcap_dir)
-    time.sleep(0.5)
+        adb_shell('mkdir -p ' + android_pcap_dir)
+        time.sleep(0.5)
 
-    pcap_file = android_pcap_dir + '/' + arg_pcap + '_' + iface + '.pcap'
-    cmd = 'tcpdump -i ' + iface + ' -w ' + pcap_file + ' ' + tcp_filter + ' &'
+        pcap_file = android_pcap_dir + '/' + arg_pcap + '_' + iface + '.pcap'
+        cmd = 'tcpdump -i ' + iface + ' -w ' + pcap_file + ' ' + tcp_filter + ' &'
 
-    if not launch_capture_device(cmd, 1):
-        my_print_err("Not able to start tcpdump!")
-        return False
+        if not launch_capture_device(cmd, i):
+            my_print_err("Not able to start tcpdump!")
+            rc = False
+        else
+            i += 1
 
-    if not s.WITH_SSH_TUNNEL and not s.WITH_SHADOWSOCKS:
-        return True
+    if s.CAPTURE_ON_LO and (s.WITH_SSH_TUNNEL or s.WITH_SHADOWSOCKS):
+        pcap_file_lo = android_pcap_dir + '/' + arg_pcap + '_lo.pcap'
+        port_no = s.SSHTUNNEL_PORT if s.WITH_SSH_TUNNEL else s.SHADOWSOCKS_PORT
+        # filter internal port used by the proxy and all communications between two 127.0.0.1 (mostly DNS and TCP Reset)
+        cmd_lo = 'tcpdump -i lo -w ' + pcap_file_lo + ' tcp and not port ' + str(port_no) + ' and not \(src 127.0.0.1 and dst 127.0.0.1\) &'
+        if not launch_capture_device(cmd_lo, i):
+            my_print_err("Not able to start tcpdump for LoopBack only!")
+            stop_capture_device()
+            rc = False
 
-    pcap_file_lo = android_pcap_dir + '/' + arg_pcap + '_lo.pcap'
-    port_no = s.SSHTUNNEL_PORT if s.WITH_SSH_TUNNEL else s.SHADOWSOCKS_PORT
-    # filter internal port used by the proxy and all communications between two 127.0.0.1 (mostly DNS and TCP Reset)
-    cmd_lo = 'tcpdump -i lo -w ' + pcap_file_lo + ' tcp and not port ' + str(port_no) + ' and not \(src 127.0.0.1 and dst 127.0.0.1\) &'
-    if not launch_capture_device(cmd_lo, 2):
-        my_print_err("Not able to start tcpdump for LoopBack only!")
-        stop_capture_device()
-        return False
-    return True
+    return rc
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
 def manage_capture(start, tcp_mode, app, android_pcap_dir, net_name, time_now, rm=False):

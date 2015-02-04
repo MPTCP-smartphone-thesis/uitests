@@ -81,6 +81,10 @@ SHADOWSOCKS_INSTALLED = True
 WITH_SHADOWSOCKS = False
 # Local port used by Redsocks with ShadowSocks (see ShadowSocks settings)
 SHADOWSOCKS_PORT = 1080
+# Capture on 'any' ifaces (all except lo with 127.0.0.1 filter)
+CAPTURE_ON_ANY = False
+# Capture on 'lo' iface (with filters)
+CAPTURE_ON_LO = True
 
 # Timeout for each test which is launched: 3
 TIMEOUT = 60*3
