@@ -334,7 +334,7 @@ def disable_netem():
     return rc
 
 def reboot_router(wait=45):
-    rc &= router_shell('reboot')
+    rc = router_shell('reboot')
     if wait:
         my_print('The router is rebooting, wait ' + str(wait) + ' seconds')
         time.sleep(wait)
