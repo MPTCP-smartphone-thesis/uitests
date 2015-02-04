@@ -376,7 +376,7 @@ def start_capture_device(arg_pcap, android_pcap_dir, net_name):
         if not launch_capture_device(cmd, i):
             my_print_err("Not able to start tcpdump!")
             rc = False
-        else
+        else:
             i += 1
 
     if s.CAPTURE_ON_LO and (s.WITH_SSH_TUNNEL or s.WITH_SHADOWSOCKS):

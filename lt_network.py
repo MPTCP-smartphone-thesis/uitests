@@ -260,7 +260,7 @@ def router_shell(cmd):
     return True
 
 # user: 'root' or X for parent 1:X
-def manage_netem(status='add', netem, user='root'):
+def manage_netem(status, netem, user='root'):
     rc = True
     for iface in s.IFACE_ROUTER:
         if user == 'root':
