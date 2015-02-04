@@ -332,7 +332,7 @@ def disable_netem():
         rc &= router_shell("tc qdisc delete dev " + iface + " root")
     return rc
 
-def limit_bw_wshaper(up, down, iface=s.IFACE_ROUTER[0]):
+def limit_bw_wshaper(up, down, iface='wan'):
     uci = 'uci set wshaper.settings.'
     rc  = router_shell(uci + 'network=' + iface)
     rc &= router_shell(uci + 'uplink=' + str(up))
