@@ -145,6 +145,8 @@ if s.CTRL_WIFI:
         exit(1)
     my_print("Reset Netem (tc), ignore errors")
     net.router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
+    if s.LIMIT_BW_WSHAPER_SUPPORTED:
+        net.unlimit_bw_wshaper()
     net.disable_netem()
     net.set_wlan_power('auto')
 
@@ -275,6 +277,9 @@ for tcp_mode in tcp_list:
 
         # Network of the router
         if tc:
+            # Bandwidth
+            if s.LIMIT_BW_WSHAPER_SUPPORTED and s.LIMIT_BW:
+                net.limit_bw_wshaper(s.LIMIT_BW[0], s.LIMIT_BW[1])
             # Losses
             netem = net.loss_cmd(net.get_value_between(tc, 'L', 'p'))
             # Delay
@@ -301,6 +306,8 @@ for tcp_mode in tcp_list:
 
         # Delete Netem
         if tc:
+            if s.LIMIT_BW_WSHAPER_SUPPORTED:
+                net.unlimit_bw_wshaper()
             net.disable_netem()
 
 my_print("================ DONE =================\n")
