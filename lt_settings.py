@@ -45,9 +45,9 @@ CTRL_WIFI = True
 # Ip of the router
 IP_ROUTER = "192.168.1.1"
 # IFaces to modify on the router
-IFACE_ROUTER = ['wlan0','wlan1']
+IFACE_ROUTER = ['wlan0'] # or ['wlan0','wlan1']
 # Devices to modify on the router
-DEVICES_ROUTER = ['phy0','phy1']
+DEVICES_ROUTER = ['phy0'] # ['phy0','phy1']
 # User and password
 USER_ROUTER = "root"
 PASSWORD_ROUTER = "root"
