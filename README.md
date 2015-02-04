@@ -56,6 +56,12 @@ For Dropbox and Drive, you will also need to launch `generate_push_random_seed.s
 If you want to use `net.iproute_set_multipath*()` methods (or `WITH_MPTCP_BACKUP`), you will need to recompile iproute2: https://github.com/MPTCP-smartphone-thesis/android-iproute2
 
 
+On the (controlled) router
+--------------------------
+
+`launch_tests.py` script can control the router to add delay/losses. This router should has a ssh server (don't forget to connect to it one to avoid 'trust' questions) and Netem module (`tc` command) has to be installed (`sch_netem`/`kmod-sched` packages) and enabled (check with `lsmod`). If you want to limit bandwidth on the router, you'll need to also install WShaper (and set `LIMIT_BW_WSHAPER_SUPPORTED` to `True`).
+
+
 `launch_tests.py` script
 ========================
 
