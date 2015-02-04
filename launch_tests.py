@@ -144,7 +144,6 @@ if s.CTRL_WIFI:
         my_print_err("Not able to be connected to the router, exit")
         exit(1)
     my_print("Reset Netem (tc), ignore errors")
-    net.router_shell("insmod /lib/modules/3.3.8/sch_netem.ko")
     if s.LIMIT_BW_WSHAPER_SUPPORTED:
         net.unlimit_bw_wshaper()
     net.disable_netem()
