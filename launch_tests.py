@@ -143,9 +143,13 @@ if s.CTRL_WIFI:
     if (not net.router_shell("echo OK")):
         my_print_err("Not able to be connected to the router, exit")
         exit(1)
-    my_print("Reset Netem (tc), ignore errors")
+    my_print("Limit Bandwidth")
     if s.LIMIT_BW_WSHAPER_SUPPORTED:
-        net.unlimit_bw_wshaper()
+        if s.LIMIT_BW:
+            net.limit_bw_wshaper(s.LIMIT_BW[0], s.LIMIT_BW[1])
+        else:
+            net.unlimit_bw_wshaper()
+    my_print("Reset Netem (tc), ignore errors")
     net.disable_netem()
     net.set_wlan_power('auto')
 
@@ -276,9 +280,6 @@ for tcp_mode in tcp_list:
 
         # Network of the router
         if tc:
-            # Bandwidth
-            if s.LIMIT_BW_WSHAPER_SUPPORTED and s.LIMIT_BW:
-                net.limit_bw_wshaper(s.LIMIT_BW[0], s.LIMIT_BW[1])
             # Losses
             netem = net.loss_cmd(net.get_value_between(tc, 'L', 'p'))
             # Delay
@@ -305,11 +306,16 @@ for tcp_mode in tcp_list:
 
         # Delete Netem
         if tc:
-            if s.LIMIT_BW_WSHAPER_SUPPORTED:
-                net.unlimit_bw_wshaper()
             net.disable_netem()
 
 my_print("================ DONE =================\n")
+
+##################################################
+##                ROUTER: CLEAN                 ##
+##################################################
+
+if s.LIMIT_BW_WSHAPER_SUPPORTED and s.LIMIT_BW:
+    net.unlimit_bw_wshaper() # we need to upload traces, wait
 
 
 ##################################################

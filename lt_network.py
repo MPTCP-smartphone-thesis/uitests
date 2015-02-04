@@ -19,6 +19,7 @@
 #  MA 02110-1301, USA.
 
 import subprocess
+import time
 
 import lt_settings as s
 import lt_device as dev
@@ -332,22 +333,27 @@ def disable_netem():
         rc &= router_shell("tc qdisc delete dev " + iface + " root")
     return rc
 
-def limit_bw_wshaper(up, down, iface='wan'):
+def limit_bw_wshaper(up, down, iface='wan', wait=10):
     uci = 'uci set wshaper.settings.'
     rc  = router_shell(uci + 'network=' + iface)
     rc &= router_shell(uci + 'uplink=' + str(up))
     rc &= router_shell(uci + 'downlink=' + str(down))
     rc &= router_shell('uci commit')
-    rc &= router_shell('/etc/init.d/wshaper enable')
+    rc &= router_shell('reboot') # was not able to change settings without a reboot...
+    if wait:
+        time.sleep(wait)
     return rc
 
-def unlimit_bw_wshaper():
+def unlimit_bw_wshaper(wait=10):
     uci = 'uci delete wshaper.settings.'
     rc  = router_shell(uci + 'network')
     rc &= router_shell(uci + 'uplink')
     rc &= router_shell(uci + 'downlink')
     rc &= router_shell('uci commit')
-    return router_shell('/etc/init.d/wshaper disable')
+    rc &= router_shell('reboot')
+    if wait:
+        time.sleep(wait)
+    return rc
 
 def manage_iw(status):
     rc = True
