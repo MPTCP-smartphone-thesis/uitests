@@ -317,6 +317,15 @@ def change_netem_var(case, value1, value2=0, user='root'):
         my_print_err("change_netem_var: case unknown - " + str(case))
         return False
 
+def limit_bw_netem(bw, default=12):
+    rc = True
+    for iface in s.IFACE_ROUTER:
+        cmd = 'tc qdisc add dev ' + iface + ' root handle 1: htb default ' + str(default)
+        rc &= router_shell(cmd)
+        cmd = 'tc class add dev ' + iface + ' parent 1:1 classid 1:' + str(default) + ' htb rate ' + str(bw) + ' ceil ' + str(bw)
+        rc &= router_shell(cmd)
+    return rc
+
 def disable_netem():
     rc = True
     for iface in s.IFACE_ROUTER:
