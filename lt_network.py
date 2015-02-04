@@ -243,12 +243,12 @@ def get_value_between(string, start, end):
 
 def loss_cmd(value):
     if value:
-        return " loss " + value + "%"
+        return " loss " + str(value) + "% " + str(int(value)/10) + "%"
     return ""
 
 def delay_cmd(value):
     if value:
-        return " delay " + value + "ms"
+        return " delay " + str(value) + "ms " + str(int(value)/10) + "ms"
     return ""
 
 def router_shell(cmd):
