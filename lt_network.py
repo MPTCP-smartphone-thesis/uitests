@@ -259,56 +259,63 @@ def router_shell(cmd):
         return False
     return True
 
-def manage_netem(status, netem):
+# user: 'root' or X for parent 1:X
+def manage_netem(status='add', netem, user='root'):
     rc = True
     for iface in s.IFACE_ROUTER:
-        cmd = "tc qdisc " + status + " dev " + iface + " root netem " + netem
+        if user == 'root':
+            u = user
+        else:
+            u = 'parent 1:' + str(user + i)
+        cmd = "tc qdisc " + status + " dev " + iface + " " + u + " netem " + netem
         rc &= router_shell(cmd)
     return rc
 
-def enable_netem(netem):
-    return manage_netem('add', netem)
+def enable_netem(netem, user='root'):
+    return manage_netem('add', netem, user)
 
-def enable_netem_loss(value):
-    return enable_netem(loss_cmd(str(value)))
+def enable_netem_loss(value, user='root'):
+    return enable_netem(loss_cmd(value), user)
 
-def enable_netem_delay(value):
-    return enable_netem(delay_cmd(str(value)))
+def enable_netem_delay(value, user='root'):
+    return enable_netem(delay_cmd(value), user)
 
-def enable_netem_loss_delay(loss, delay):
-    return enable_netem(loss_cmd(str(value)) + delay_cmd(str(value)))
+def enable_netem_loss_delay(loss, delay, user='root'):
+    return enable_netem(loss_cmd(value) + delay_cmd(value), user)
 
-def enable_netem_var(case, value1, value2=0):
+def enable_netem_var(case, value1, value2=0, user='root'):
     if case == 'loss':
-        enable_netem_loss(value1)
+        return enable_netem_loss(value1, user)
     elif case == 'delay':
-        enable_netem_delay(value1)
+        return enable_netem_delay(value1, user)
     elif case == 'both':
-        enable_netem_loss_delay(value1, value2)
+        return enable_netem_loss_delay(value1, value2, user)
     else:
-        my_print_err("enable_netem_var: case unknown - " + case)
+        my_print_err("enable_netem_var: case unknown - " + str(case))
+        return False
 
-def change_netem(netem):
-    return manage_netem('change', netem)
+def change_netem(netem, user='root'):
+    return manage_netem('change', netem, user)
 
-def change_netem_loss(value):
-    return change_netem(loss_cmd(str(value)))
+def change_netem_loss(value, user='root'):
+    return change_netem(loss_cmd(value), user)
 
-def change_netem_delay(value):
-    return change_netem(delay_cmd(str(value)))
+def change_netem_delay(value, user='root'):
+    return change_netem(delay_cmd(value), user)
 
-def change_netem_loss_delay(loss, delay):
-    return change_netem(loss_cmd(str(value)) + delay_cmd(str(value)))
+def change_netem_loss_delay(loss, delay, user='root'):
+    return change_netem(loss_cmd(loss) + delay_cmd(delay), user)
 
-def change_netem_var(case, value1, value2=0):
+def change_netem_var(case, value1, value2=0, user='root'):
     if case == 'loss':
-        change_netem_loss(value1)
+        return change_netem_loss(value1, user)
     elif case == 'delay':
-        change_netem_delay(value1)
+        return change_netem_delay(value1, user)
     elif case == 'both':
-        change_netem_loss_delay(value1, value2)
+        return change_netem_loss_delay(value1, value2, user)
     else:
-        my_print_err("change_netem_var: case unknown - " + case)
+        my_print_err("change_netem_var: case unknown - " + str(case))
+        return False
 
 def disable_netem():
     rc = True
