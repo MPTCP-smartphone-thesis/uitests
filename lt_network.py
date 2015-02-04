@@ -333,26 +333,29 @@ def disable_netem():
         rc &= router_shell("tc qdisc delete dev " + iface + " root")
     return rc
 
-def limit_bw_wshaper(up, down, iface='wan', wait=10):
+def reboot_router(wait=45):
+    rc &= router_shell('reboot')
+    if wait:
+        my_print('The router is rebooting, wait ' + str(wait) + ' seconds')
+        time.sleep(wait)
+    return rc
+
+def limit_bw_wshaper(up, down, iface='wan', wait=45):
     uci = 'uci set wshaper.settings.'
     rc  = router_shell(uci + 'network=' + iface)
     rc &= router_shell(uci + 'uplink=' + str(up))
     rc &= router_shell(uci + 'downlink=' + str(down))
     rc &= router_shell('uci commit')
-    rc &= router_shell('reboot') # was not able to change settings without a reboot...
-    if wait:
-        time.sleep(wait)
+    rc &= reboot_router(wait) # was not able to change settings without a reboot...
     return rc
 
-def unlimit_bw_wshaper(wait=10):
+def unlimit_bw_wshaper(wait=45):
     uci = 'uci delete wshaper.settings.'
     rc  = router_shell(uci + 'network')
     rc &= router_shell(uci + 'uplink')
     rc &= router_shell(uci + 'downlink')
     rc &= router_shell('uci commit')
-    rc &= router_shell('reboot')
-    if wait:
-        time.sleep(wait)
+    rc &= reboot_router(wait)
     return rc
 
 def manage_iw(status):
