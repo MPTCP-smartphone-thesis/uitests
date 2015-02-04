@@ -340,17 +340,17 @@ def reboot_router(wait=45):
         time.sleep(wait)
     return rc
 
-def limit_bw_wshaper(up, down, iface='wan'):
+def limit_bw_wshaper(up, down, iface='wan', wshaper_arg=''):
     uci = 'uci set wshaper.settings.'
     rc  = router_shell(uci + 'network=' + iface)
     rc &= router_shell(uci + 'uplink=' + str(up))
     rc &= router_shell(uci + 'downlink=' + str(down))
     rc &= router_shell('uci commit wshaper')
-    rc &= router_shell('wshaper.htb')
+    rc &= router_shell('wshaper.htb ' + wshaper_arg)
     return rc
 
 def unlimit_bw_wshaper():
-    return router_shell('wshaper.htb stop')
+    return limit_bw_wshaper(0, 0, wshaper_arg='stop') # set up/down to 0 if reboot
 
 def manage_iw(status):
     rc = True
