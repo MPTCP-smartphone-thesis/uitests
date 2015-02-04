@@ -103,7 +103,7 @@ NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD1
 # Enable Android's Wi-Fi option: Avoid Poor Connections (Don't use a Wi-Fi network unless it has a good Internet connection)
 AVOID_POOR_CONNECTIONS_TCP = False
 AVOID_POOR_CONNECTIONS_MPTCP = False
-# Limit Bandwidth: (up, down)
+# Limit Bandwidth: (up, down) ; ex: VDSL: (20000, 40000)
 LIMIT_BW = False
 LIMIT_BW_WSHAPER_SUPPORTED = False
 # Functions that can be launched just before/after each uitest

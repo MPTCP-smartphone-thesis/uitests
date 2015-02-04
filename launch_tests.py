@@ -315,7 +315,7 @@ my_print("================ DONE =================\n")
 ##################################################
 
 if s.LIMIT_BW_WSHAPER_SUPPORTED and s.LIMIT_BW:
-    net.unlimit_bw_wshaper() # we need to upload traces, wait
+    net.unlimit_bw_wshaper() # we need to upload traces, no need to keep limitation
 
 
 ##################################################
