@@ -355,6 +355,9 @@ def launch_capture_device(cmd, instances):
 
 def start_capture_device(arg_pcap, android_pcap_dir, net_name):
     my_print("Capture traces on the device")
+    adb_shell('mkdir -p ' + android_pcap_dir)
+    time.sleep(0.5)
+
     rc = True
     i = 1
     if s.CAPTURE_ON_ANY:
@@ -366,9 +369,6 @@ def start_capture_device(arg_pcap, android_pcap_dir, net_name):
         else: # both
             iface = "any"
             tcp_filter += ' and not ip host 127.0.0.1'
-
-        adb_shell('mkdir -p ' + android_pcap_dir)
-        time.sleep(0.5)
 
         pcap_file = android_pcap_dir + '/' + arg_pcap + '_' + iface + '.pcap'
         cmd = 'tcpdump -i ' + iface + ' -w ' + pcap_file + ' ' + tcp_filter + ' &'
