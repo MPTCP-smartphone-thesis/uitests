@@ -4,13 +4,11 @@
 BASE="/home/mptcp/smartphone"
 FILE="$BASE/.tcpdump-gzip"
 OUT="$BASE-server"
-
+CORES=$(grep -c '^processor' /proc/cpuinfo)
 cd "$OUT"
 
 > $FILE
 chmod 777 "$FILE"
 while inotifywait -e modify "$FILE"; do
-   for i in "*.pcap"; do
-       gzip -9 $i
-   done
+    find . -name "*.pcap" -type f -print0 | xargs -0 -n 1 -P $CORES gzip -9
 done
