@@ -314,13 +314,15 @@ def stop_proxy():
 ##################################################
 
 # Launch full capture on the server
-def manage_capture_server(mode, arg_pcap):
+def manage_capture_server(mode, arg_pcap=None):
     if not s.CAPTURE_ON_PROXY:
         return
     my_print("Send request to the server to " + mode + " a full capture")
-    cmd = ["bash", mode + "_full_pcap_distant.sh", arg_pcap]
+    cmd = ["bash", mode + "_full_pcap_distant.sh"]
+    if arg_pcap:
+        cmd.append(arg_pcap)
     if subprocess.call(cmd) != 0:
-        my_print_err("when using " + mode + "_full_pcap_distant.sh with " + arg_pcap)
+        my_print_err("when using " + mode + "_full_pcap_distant.sh with " + str(arg_pcap))
 
 def stop_capture_device():
     my_print("Stop capturing traces on the device")
