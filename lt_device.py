@@ -426,6 +426,9 @@ def manage_capture(start, tcp_mode, app, android_pcap_dir, net_name, time_now, r
 ##               DEVICE: GET INFO               ##
 ##################################################
 
+def get_info_netcfg(out_dir=None, filename=False):
+    return adb_shell_write_output('netcfg', out_dir, filename)
+
 def get_info_netstat(out_dir=None, filename=False):
     return adb_shell_write_output('netstat', out_dir, filename)
 
@@ -440,6 +443,12 @@ def get_info_wifi(out_dir=None, filename='dumpsys_wifi.txt'):
 
 def get_info_rmnet(out_dir=None, filename='dumpsys_rmnet.txt'):
     return adb_shell_write_output('dumpsys telephony.registry | grep mSignalStrength', out_dir, filename)
+
+def get_info_sysctl_tcp(out_dir=None, filename='sysctl_tcp.txt'):
+    return adb_shell_write_output('sysctl net 2> /dev/null | grep tcp', out_dir, filename)
+
+def get_info_sysctl_mptcp_only(out_dir=None, filename='sysctl_mptcp.txt'):
+    return adb_shell_write_output('sysctl net.mptcp', out_dir, filename)
 
 
 ##################################################
@@ -534,8 +543,11 @@ def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_
     random.shuffle(uitests_dir)
     my_print("Launch all tests for " + net_name + " with random list: " + str(uitests_dir))
 
-    adb_shell_write_output('netcfg', out_dir)
+    get_info_netcfg(out_dir)
     get_info_netstat(out_dir)
+    get_info_wifi(out_dir)
+    get_info_rmnet(out_dir)
+    get_info_sysctl_tcp(out_dir)
 
     for uitest in uitests_dir:
         app = uitest[8:]
