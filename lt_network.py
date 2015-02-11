@@ -232,8 +232,23 @@ def multipath_control_ndiffports(action='enable', subflows=s.NDIFFPORTS_DEFAULT_
     rc &= ndiffports_set_subflows(subflows)
     return rc
 
+
 ##################################################
-##                DEVICE: ROUTER                ##
+##               DEVICE: GET INFO               ##
+##################################################
+
+def get_info_netstat(out_dir=None, filename=False):
+    return dev.adb_shell_write_output('netstat', out_dir, filename)
+
+def get_info_mptcp(out_dir=None, filename=False):
+    return dev.adb_shell_write_output('cat /proc/net/mptcp', out_dir, filename)
+
+def get_info_mptcp_fm(out_dir=None, filename=False):
+    return dev.adb_shell_write_output('cat /proc/net/mptcp_fullmesh', out_dir, filename)
+
+
+##################################################
+##                    ROUTER                    ##
 ##################################################
 
 def get_value_between(string, start, end):

@@ -445,9 +445,9 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
         my_print_err("Error proxy: Skip test of " + app.upper())
         return
 
-    adb_shell_write_output('netstat', out_dir_app, filename='netstat_before.txt')
-    adb_shell_write_output('cat /proc/net/mptcp', out_dir_app, filename='mptcp_before.txt')
-    adb_shell_write_output('cat /proc/net/mptcp_fullmesh', out_dir_app, filename='mptcp_fm_before.txt')
+    net.get_info_netstat(out_dir_app, filename='netstat_before.txt')
+    net.get_info_mptcp(out_dir_app, filename='mptcp_before.txt')
+    net.get_info_mptcp_fm(out_dir_app, filename='mptcp_fm_before.txt')
 
     if func_init:
         func_init(*(app, net_name, tcp_mode, out_dir))
@@ -465,9 +465,9 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
     if func_end:
         func_end(*(app, net_name, tcp_mode, out_dir, success))
 
-    adb_shell_write_output('netstat', out_dir_app, filename='netstat_after.txt')
-    adb_shell_write_output('cat /proc/net/mptcp', out_dir_app, filename='mptcp_after.txt')
-    adb_shell_write_output('cat /proc/net/mptcp_fullmesh', out_dir_app, filename='mptcp_fm_after.txt')
+    net.get_info_netstat(out_dir_app, filename='netstat_after.txt')
+    net.get_info_mptcp(out_dir_app, filename='mptcp_after.txt')
+    net.get_info_mptcp_fm(out_dir_app, filename='mptcp_fm_after.txt')
 
     # Kill the app
     pkg_name_file = os.path.join("uitests-" + app, "pkg_name.txt")
