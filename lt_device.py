@@ -170,7 +170,7 @@ def adb_shell_write_output(cmd, out_dir=None, filename=False, verbose=False):
             out = adb_shell(cmd, log=out_file, quiet=not verbose)
         return out
     else:
-        return adb_shell(cmd)
+        return adb_shell(cmd, out=True)
 
 def adb_get_uptime():
     up_out = adb_shell("uptime", out=True)
