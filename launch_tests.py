@@ -314,7 +314,7 @@ my_print("================ DONE =================\n")
 ##                ROUTER: CLEAN                 ##
 ##################################################
 
-if s.LIMIT_BW_WSHAPER_SUPPORTED and s.LIMIT_BW:
+if s.CTRL_WIFI and s.LIMIT_BW_WSHAPER_SUPPORTED and s.LIMIT_BW:
     net.unlimit_bw_wshaper() # we need to upload traces, no need to keep limitation
 
 
