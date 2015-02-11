@@ -246,6 +246,12 @@ def get_info_mptcp(out_dir=None, filename=False):
 def get_info_mptcp_fm(out_dir=None, filename=False):
     return dev.adb_shell_write_output('cat /proc/net/mptcp_fullmesh', out_dir, filename)
 
+def get_info_wifi(out_dir=None, filename=False):
+    return dev.adb_shell_write_output('dumpsys wifi | grep -e "^  " -e "mWifiInfo:"', out_dir, filename)
+
+def get_info_rmnet(out_dir=None, filename=False):
+    return dev.adb_shell_write_output('dumpsys telephony.registry | grep mSignalStrength', out_dir, filename)
+
 
 ##################################################
 ##                    ROUTER                    ##
