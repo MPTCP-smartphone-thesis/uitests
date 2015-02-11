@@ -441,6 +441,22 @@ def get_info_mptcp_fm(out_dir=None, filename='mptcp_fm.txt'):
 def get_info_wifi(out_dir=None, filename='dumpsys_wifi.txt'):
     return adb_shell_write_output('dumpsys wifi | grep -e "^  " -e "mWifiInfo:"', out_dir, filename)
 
+def get_info_wifi_power_header():
+    return 'SSID,BSSID,MAC,RSSI,LINK'
+
+def get_info_wifi_power():
+    out = adb_shell_write_output('dumpsys wifi | grep "mWifiInfo:"')
+    try:
+        out = out[0][12:-1].split(',')
+        ssid = out[0][6:]
+        bssid = out[1][8:]
+        mac = out[2][6:]
+        rssi = out[4][7:]
+        link = out[5][13:]
+        return '{},{},{},{},{}'.format(ssid, bssid, mac, rssi, link)
+    except:
+        return ',,,0,0'
+
 def get_info_rmnet(out_dir=None, filename='dumpsys_rmnet.txt'):
     """ It will return: Gsm Signal Strength, Gsm Bit Error Rate, CDMA Dbm,
         CDMA Ecio, Evdo Dbm, Evdo Ecio, Evdo Snr, LTE Signal Strength, LTE Rsrp,
@@ -457,6 +473,18 @@ def get_info_rmnet(out_dir=None, filename='dumpsys_rmnet.txt'):
         Details: https://developer.android.com/reference/android/telephony/SignalStrength.html
     """
     return adb_shell_write_output('dumpsys telephony.registry | grep mSignalStrength', out_dir, filename)
+
+def get_info_rmnet_power_header():
+    return 'gsm signal strenght,gsm bit error rate,cdma dbm,cdma ecio,' \
+         + 'evdo dbm,evdo ecio,evdo snr,lte signal strength,lte rsrp,' \
+         + 'lte rsrq,lte rssnr,lte cqi,protocol'
+
+def get_info_rmnet_power():
+    out = get_info_rmnet()
+    try:
+        return out[0][34:].replace(' ', ',')
+    except:
+        return '99,0,-120,-160,-120,-1,-1,99,-99,0,0,gsm|lte'
 
 def get_info_sysctl_tcp(out_dir=None, filename='sysctl_tcp.txt'):
     return adb_shell_write_output('sysctl net 2> /dev/null | grep tcp', out_dir, filename)
