@@ -442,6 +442,20 @@ def get_info_wifi(out_dir=None, filename='dumpsys_wifi.txt'):
     return adb_shell_write_output('dumpsys wifi | grep -e "^  " -e "mWifiInfo:"', out_dir, filename)
 
 def get_info_rmnet(out_dir=None, filename='dumpsys_rmnet.txt'):
+    """ It will return: Gsm Signal Strength, Gsm Bit Error Rate, CDMA Dbm,
+        CDMA Ecio, Evdo Dbm, Evdo Ecio, Evdo Snr, LTE Signal Strength, LTE Rsrp,
+        LTE Rsrq, LTE Rssnr, LTE Cqi, "gsm|lte" or "cdma"
+
+        About Signal Strength, defined values:
+            <rssi> : integer type
+            0      : -113 dBm or less
+            1      : -111 dBm
+            2...30 : -109... -53 dBm ==> -2dBm
+            31     : -51 dBm or greater
+            99     : not known or not detectable
+
+        Details: https://developer.android.com/reference/android/telephony/SignalStrength.html
+    """
     return adb_shell_write_output('dumpsys telephony.registry | grep mSignalStrength', out_dir, filename)
 
 def get_info_sysctl_tcp(out_dir=None, filename='sysctl_tcp.txt'):
