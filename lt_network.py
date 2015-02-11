@@ -275,11 +275,14 @@ def delay_cmd(value):
 
 def router_shell(cmd):
     my_print("Router: exec: " + cmd)
-    router_cmd = "sshpass -p " + s.PASSWORD_ROUTER + " ssh " + s.USER_ROUTER + "@" + s.IP_ROUTER + " " + cmd
-    if subprocess.call(router_cmd.split()) != 0:
-        my_print_err("when launching this cmd on the router: " + cmd)
-        return False
-    return True
+    rc = True
+    sshpass = ("sshpass -p " + s.PASSWORD_ROUTER + " ") if s.PASSWORD_ROUTER else ""
+    for ip in s.IP_ROUTER:
+        router_cmd = sshpass + "ssh " + s.USER_ROUTER + "@" + ip + " " + cmd
+        if subprocess.call(router_cmd.split()) != 0:
+            my_print_err("when launching this cmd '" + cmd + "' on the router " + ip)
+            rc = False
+    return rc
 
 # user: 'root' or X for parent 1:X
 def manage_netem(status, netem, user='root'):

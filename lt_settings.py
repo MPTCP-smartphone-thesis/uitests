@@ -42,15 +42,15 @@ CAPTURE_ON_PROXY = True
 
 # If we can control WiFi router: don't forget to check ssh connexion is OK
 CTRL_WIFI = True
-# Ip of the router
-IP_ROUTER = "192.168.1.1"
+# IP of the routers
+IP_ROUTER = ["192.168.1.1"]
 # IFaces to modify on the router
 IFACE_ROUTER = ['wlan0'] # or ['wlan0','wlan1']
 # Devices to modify on the router
 DEVICES_ROUTER = ['phy0'] # ['phy0','phy1']
 # User and password
 USER_ROUTER = "root"
-PASSWORD_ROUTER = "root"
+PASSWORD_ROUTER = "root" # or None/False to use key and sshpass will no longer be needed
 
 # Tests with TCP (without MPTCP)
 WITH_TCP = True
@@ -105,7 +105,7 @@ AVOID_POOR_CONNECTIONS_TCP = False
 AVOID_POOR_CONNECTIONS_MPTCP = False
 # Limit Bandwidth: (up, down) ; ex: VDSL: (20000, 40000)
 LIMIT_BW = False
-LIMIT_BW_WSHAPER_SUPPORTED = False
+LIMIT_BW_WSHAPER_SUPPORTED = False # need to be switch to True to limit BW
 # Functions that can be launched just before/after each uitest
 LAUNCH_FUNC_INIT = False  # before start, in the current thread
 LAUNCH_FUNC_START = False # in a new thread, just before launching the uitests
