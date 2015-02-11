@@ -161,7 +161,7 @@ def func_end(app, net_name, tcp_mode, out_dir, success):
     net.disable_netem()
 
 def func_exit(app, net_name, tcp_mode, out_dir, thread):
-    # Wait for the end of the thread: avoid
+    # Wait for the end of the thread: avoid starting new uitests before this one
     if thread and thread.is_alive():
         my_print("Wait the end of the thread")
         thread.join(timeout=CHANGE_TIME+1)

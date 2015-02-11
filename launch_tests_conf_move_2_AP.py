@@ -23,6 +23,8 @@
 
 import os
 
+import lt_device as dev
+
 CTRL_WIFI = False # we will switch between APs, not possible to control them
 YELLOWB   = "\033[1;33m"
 WHITE_STD = "\033[0;39m"
@@ -54,10 +56,50 @@ WITH_MPTCP_FULLMESH_ROUND_ROBIN = False # can be useful only to see what happens
 WITH_MPTCP_BACKUP = True # should be the default behaviour
 WITH_MPTCP_NDIFFPORTS = False # can be interesting to use several subflows when having losses
 
+THREAD_CONTINUE = True
+def func_init(app, net_name, tcp_mode, out_dir):
+    global THREAD_CONTINUE
+    THREAD_CONTINUE = True
+
+
+def func_start(app, net_name, tcp_mode, out_dir):
+    """ log signal power """
+    global THREAD_CONTINUE
+
+    log_wlan  = open(os.path.join(out_dir, app, 'signal-wlan.csv'), 'w')
+    log_rmnet = open(os.path.join(out_dir, app, 'signal-rmnet.csv'), 'w')
+
+    print(dev.get_info_wifi_power_header(),  file=log_wlan)
+    print(dev.get_info_rmnet_power_header(), file=log_rmnet)
+
+    while True:
+        print(dev.get_info_wifi_power(),  file=log_wlan)
+        print(dev.get_info_rmnet_power(), file=log_rmnet)
+        time.sleep(1)
+        if not THREAD_CONTINUE:
+            break
+
+    log_wlan.close()
+    log_rmnet.close()
+
+def func_end(app, net_name, tcp_mode, out_dir, success):
+    global THREAD_CONTINUE
+    THREAD_CONTINUE = False
+
 def func_exit(app, net_name, tcp_mode, out_dir, thread):
+    # Wait for the end of the thread
+    if thread and thread.is_alive():
+        my_print("Wait the end of the thread")
+        thread.join(timeout=5)
+        if thread.is_alive():
+            my_print_err("Thread is still alive for " + app + " - " + net_name)
+
     input(YELLOWB + "\n\nEnd for " + app + " in " + net_name + " with " +
           tcp_mode + ".\nPress Enter to launch the next one\n\n" + WHITE_STD)
 
+LAUNCH_FUNC_INIT = func_init
+LAUNCH_FUNC_START = func_start
+LAUNCH_FUNC_END = func_end
 LAUNCH_FUNC_EXIT = func_exit
 
 if os.path.isfile('launch_tests_conf_move_2_AP_custom.py'):
