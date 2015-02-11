@@ -423,6 +423,26 @@ def manage_capture(start, tcp_mode, app, android_pcap_dir, net_name, time_now, r
 
 
 ##################################################
+##               DEVICE: GET INFO               ##
+##################################################
+
+def get_info_netstat(out_dir=None, filename=False):
+    return adb_shell_write_output('netstat', out_dir, filename)
+
+def get_info_mptcp(out_dir=None, filename='mptcp.txt'):
+    return adb_shell_write_output('cat /proc/net/mptcp', out_dir, filename)
+
+def get_info_mptcp_fm(out_dir=None, filename='mptcp_fm.txt'):
+    return adb_shell_write_output('cat /proc/net/mptcp_fullmesh', out_dir, filename)
+
+def get_info_wifi(out_dir=None, filename='dumpsys_wifi.txt'):
+    return adb_shell_write_output('dumpsys wifi | grep -e "^  " -e "mWifiInfo:"', out_dir, filename)
+
+def get_info_rmnet(out_dir=None, filename='dumpsys_rmnet.txt'):
+    return adb_shell_write_output('dumpsys telephony.registry | grep mSignalStrength', out_dir, filename)
+
+
+##################################################
 ##                DEVICE: LAUNCH                ##
 ##################################################
 
@@ -445,9 +465,9 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
         my_print_err("Error proxy: Skip test of " + app.upper())
         return
 
-    net.get_info_netstat(out_dir_app, filename='netstat_before.txt')
-    net.get_info_mptcp(out_dir_app, filename='mptcp_before.txt')
-    net.get_info_mptcp_fm(out_dir_app, filename='mptcp_fm_before.txt')
+    get_info_netstat(out_dir_app, filename='netstat_before.txt')
+    get_info_mptcp(out_dir_app, filename='mptcp_before.txt')
+    get_info_mptcp_fm(out_dir_app, filename='mptcp_fm_before.txt')
 
     if func_init:
         func_init(*(app, net_name, tcp_mode, out_dir))
@@ -465,9 +485,9 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
     if func_end:
         func_end(*(app, net_name, tcp_mode, out_dir, success))
 
-    net.get_info_netstat(out_dir_app, filename='netstat_after.txt')
-    net.get_info_mptcp(out_dir_app, filename='mptcp_after.txt')
-    net.get_info_mptcp_fm(out_dir_app, filename='mptcp_fm_after.txt')
+    get_info_netstat(out_dir_app, filename='netstat_after.txt')
+    get_info_mptcp(out_dir_app, filename='mptcp_after.txt')
+    get_info_mptcp_fm(out_dir_app, filename='mptcp_fm_after.txt')
 
     # Kill the app
     pkg_name_file = os.path.join("uitests-" + app, "pkg_name.txt")
@@ -515,7 +535,7 @@ def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_
     my_print("Launch all tests for " + net_name + " with random list: " + str(uitests_dir))
 
     adb_shell_write_output('netcfg', out_dir)
-    adb_shell_write_output('netstat', out_dir)
+    get_info_netstat(out_dir)
 
     for uitest in uitests_dir:
         app = uitest[8:]
