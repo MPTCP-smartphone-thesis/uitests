@@ -82,9 +82,9 @@ WITH_SHADOWSOCKS = False
 # Local port used by Redsocks with ShadowSocks (see ShadowSocks settings)
 SHADOWSOCKS_PORT = 1080
 # Capture on 'any' ifaces (all except lo with 127.0.0.1 filter)
-CAPTURE_ON_ANY = False
+CAPTURE_ON_ANY = True # useful to get ack retransmit, etc.
 # Capture on 'lo' iface (with filters)
-CAPTURE_ON_LO = True
+CAPTURE_ON_LO = True  # useful to get real server addresses
 
 # Timeout for each test which is launched: 3
 TIMEOUT = 60*3
