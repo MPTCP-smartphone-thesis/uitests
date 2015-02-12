@@ -17,8 +17,8 @@ while inotifywait -e modify "$FILE"; do
 
     # The last line of .analyse-start contains the directory to analyse
     LAST_LINE=$(tail -n 1 "$FILE" || echo "UNKNOWN")
-    DIR=$(echo $LAST_UPTIME | awk '{print $1}')
-    ARGS=$(echo $LAST_UPTIME | awk '{$1=""; print $0}')
+    DIR=$(echo $LAST_LINE | awk '{print $1}')
+    ARGS=$(echo $LAST_LINE | awk '{$1=""; print $0}')
     test -z "$ARGS" && ARGS="-c -b 1000 -P -j $CORES -l"
     OUT_DIR="pcap/"$(basename $DIR)
     mkdir -p "$OUT_DIR"
