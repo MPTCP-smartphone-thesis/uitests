@@ -329,7 +329,7 @@ def manage_capture_server(mode, arg_pcap=None):
     my_print("Send request to the server to " + mode + " a full capture")
     cmd = ["bash", mode + "_full_pcap_distant.sh"]
     if arg_pcap:
-        cmd.append(arg_pcap)
+        cmd += arg_pcap.split()
     if subprocess.call(cmd) != 0:
         my_print_err("when using " + mode + "_full_pcap_distant.sh with " + str(arg_pcap))
 
