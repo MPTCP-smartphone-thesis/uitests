@@ -130,6 +130,14 @@ for uitest in uitests_dir + s.UITESTS_EXCEPTIONS:
             my_print_err("when pushing jar for " + app)
             continue
 
+my_print("Getting external ip")
+ip = net.get_external_ip()
+if ip:
+    my_print("Get ip: " + ip)
+    s.EXTERNAL_IP = ip
+else:
+    my_print_err("Not able to get external ip, used the default one: " + s.EXTERNAL_IP)
+
 print("\n======================================\n\n")
 
 
@@ -301,8 +309,17 @@ for tcp_mode in tcp_list:
         else:
             net.multipath_control(action="disable")
 
+        rmnet_ip = False
+        # get rmnet ip
+        if name != 'wlan':
+            for i in range(10): # try during 10 seconds max
+                rmnet_ip = net.get_ipv4(net.RMNET)
+                if rmnet_ip:
+                    break
+                time.sleep(1)
+
         # Launch test (with net_mode.name to have the full name)
-        dev.launch_all(uitests_dir, net_mode.name, tcp_mode, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS)
+        dev.launch_all(uitests_dir, net_mode.name, tcp_mode, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS, rmnet_ip)
 
         # Delete Netem
         if tc:
