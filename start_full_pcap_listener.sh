@@ -17,7 +17,9 @@ TIMEOUT=300 # 5 minutes
 chmod 777 "$FILE"
 while inotifywait -e modify "$FILE"; do
    # The last line of .tcpdump-start-* contains the name of the application
-   CURR_APP=$(tail -n 1 "$FILE" || echo "UNKNOWN")
-   timeout $TIMEOUT /usr/sbin/tcpdump -i $IF -w "${OUT}/${MODE}_${CURR_APP}.pcap" &
+   LAST_LINE=$(tail -n 1 "$FILE" || echo "UNKNOWN")
+   CURR_APP=$(echo $LAST_LINE | awk '{print $1}')
+   ARGS=$(echo $LAST_LINE | awk '{$1=""; print $0}')
+   timeout $TIMEOUT /usr/sbin/tcpdump -i $IF -w "${OUT}/${MODE}_${CURR_APP}.pcap" $ARGS &
    echo $! >> "$PID"
 done
