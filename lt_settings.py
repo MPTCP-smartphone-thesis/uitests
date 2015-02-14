@@ -51,6 +51,8 @@ DEVICES_ROUTER = ['phy0'] # ['phy0','phy1']
 # User and password
 USER_ROUTER = "root"
 PASSWORD_ROUTER = "root" # or None/False to use key and sshpass will no longer be needed
+# Default External IP (will be overwritten in launch_tests.py except problem)
+EXTERNAL_IP = "127.0.0.1"
 
 # Tests with TCP (without MPTCP)
 WITH_TCP = True

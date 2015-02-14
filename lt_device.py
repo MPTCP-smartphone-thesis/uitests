@@ -311,6 +311,12 @@ def stop_proxy():
     my_print("Stop proxy")
     return adb_shell(False, uiautomator='ssh_tunnel', args='action stop')
 
+def get_proxy_filters(rmnet_ip=False):
+    filters = "tcp and host " + s.EXTERNAL_IP
+    if rmnet_ip:
+        filters += " or host " + rmnet_ip
+    return filters
+
 
 ##################################################
 ##                DEVICE: CAPTURE               ##
@@ -397,11 +403,12 @@ def start_capture_device(arg_pcap, android_pcap_dir, net_name):
     return rc
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
-def manage_capture(start, tcp_mode, app, android_pcap_dir, net_name, time_now, rm=False):
+def manage_capture(start, tcp_mode, app, android_pcap_dir, net_name, time_now, rm=False, rmnet_ip=False):
     arg_pcap = str(tcp_mode).lower() + "_" + app + "_" + net_name + "_" + time_now
 
     if start: # first the server, then the device
-        manage_capture_server("start_sshtunnel" if s.WITH_SSH_TUNNEL else "start_shadowsocks", arg_pcap)
+        filters = get_proxy_filters(rmnet_ip)
+        manage_capture_server("start_sshtunnel" if s.WITH_SSH_TUNNEL else "start_shadowsocks", arg_pcap + " " + filters)
         if not start_capture_device(arg_pcap, android_pcap_dir, net_name):
             manage_capture_server("stop", arg_pcap)
             manage_capture_server("rm", arg_pcap)
@@ -502,7 +509,7 @@ def get_info_sysctl_mptcp_only(out_dir=None, filename='sysctl_mptcp.txt'):
 #  func_start function will be launched with current args in a new thread just before launching tests.
 #  func_end will be launched with current args + success in the current thread just after the end of the test.
 #  func_exit will be launched with current args + thread in the current thread after having stopped capturing traces
-def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False):
+def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False, rmnet_ip=False):
     time_now = time.strftime("%Y%m%d-%H%M%S")
     out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net_name/app
     android_pcap_dir = s.ANDROID_TRACE_OUT + '/' + str(tcp_mode) + '/' + net_name + '/' + app
@@ -512,7 +519,7 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
         os.makedirs(out_dir_app)
 
     # Start full capture on the proxy and on the device
-    if not manage_capture(True, tcp_mode, app, android_pcap_dir, net_name, time_now):
+    if not manage_capture(True, tcp_mode, app, android_pcap_dir, net_name, time_now, rmnet_ip=rmnet_ip):
         my_print_err("Error proxy: Skip test of " + app.upper())
         return
 
@@ -571,7 +578,7 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
         my_print_err("when pulling traces for " + app)
     # Files will be saved in ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET/APP/MPTCP_APP_NET_DATE_HOUR.pcap + MPTCP_APP_NET_DATE_HOUR_lo.pcap
 
-def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False):
+def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False, rmnet_ip=False):
     # out_dir: ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET
     out_dir = os.path.join(out_base, str(tcp_mode), net_name)
     if (not os.path.isdir(out_dir)):
@@ -594,7 +601,7 @@ def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_
     for uitest in uitests_dir:
         app = uitest[8:]
         time_before = time.time()
-        launch(app, net_name, tcp_mode, out_dir, func_init, func_start, func_end, func_exit, uitests_args)
+        launch(app, net_name, tcp_mode, out_dir, func_init, func_start, func_end, func_exit, uitests_args, rmnet_ip)
         my_print('UITest ' + str(g.TEST_NO) + '/' + str(g.NB_TESTS) + ' for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
         g.TEST_NO += 1
 
