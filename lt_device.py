@@ -311,10 +311,13 @@ def stop_proxy():
     my_print("Stop proxy")
     return adb_shell(False, uiautomator='ssh_tunnel', args='action stop')
 
-def get_proxy_filters(rmnet_ip=False):
+def get_proxy_filters(rmnet_ip=False, out_dir=None, filename='proxy_filters.txt'):
     filters = "tcp and host " + s.EXTERNAL_IP
     if rmnet_ip:
         filters += " or host " + rmnet_ip
+    if out_dir:
+        with open(os.path.join(out_dir, filename), 'w') as out_file:
+            print(filters, file=out_file)
     return filters
 
 
@@ -403,11 +406,10 @@ def start_capture_device(arg_pcap, android_pcap_dir, net_name):
     return rc
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
-def manage_capture(start, tcp_mode, app, android_pcap_dir, net_name, time_now, rm=False, rmnet_ip=False):
+def manage_capture(start, tcp_mode, app, android_pcap_dir, net_name, time_now, rm=False, filters='tcp'):
     arg_pcap = str(tcp_mode).lower() + "_" + app + "_" + net_name + "_" + time_now
 
     if start: # first the server, then the device
-        filters = get_proxy_filters(rmnet_ip)
         manage_capture_server("start_sshtunnel" if s.WITH_SSH_TUNNEL else "start_shadowsocks", arg_pcap + " " + filters)
         if not start_capture_device(arg_pcap, android_pcap_dir, net_name):
             manage_capture_server("stop", arg_pcap)
@@ -509,7 +511,7 @@ def get_info_sysctl_mptcp_only(out_dir=None, filename='sysctl_mptcp.txt'):
 #  func_start function will be launched with current args in a new thread just before launching tests.
 #  func_end will be launched with current args + success in the current thread just after the end of the test.
 #  func_exit will be launched with current args + thread in the current thread after having stopped capturing traces
-def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False, rmnet_ip=False):
+def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False, filters='tcp'):
     time_now = time.strftime("%Y%m%d-%H%M%S")
     out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net_name/app
     android_pcap_dir = s.ANDROID_TRACE_OUT + '/' + str(tcp_mode) + '/' + net_name + '/' + app
@@ -519,7 +521,7 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
         os.makedirs(out_dir_app)
 
     # Start full capture on the proxy and on the device
-    if not manage_capture(True, tcp_mode, app, android_pcap_dir, net_name, time_now, rmnet_ip=rmnet_ip):
+    if not manage_capture(True, tcp_mode, app, android_pcap_dir, net_name, time_now, filters=filters):
         my_print_err("Error proxy: Skip test of " + app.upper())
         return
 
@@ -597,11 +599,12 @@ def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_
     get_info_wifi(out_dir)
     get_info_rmnet(out_dir)
     get_info_sysctl_tcp(out_dir)
+    filters = get_proxy_filters(rmnet_ip, out_dir)
 
     for uitest in uitests_dir:
         app = uitest[8:]
         time_before = time.time()
-        launch(app, net_name, tcp_mode, out_dir, func_init, func_start, func_end, func_exit, uitests_args, rmnet_ip)
+        launch(app, net_name, tcp_mode, out_dir, func_init, func_start, func_end, func_exit, uitests_args, filters)
         my_print('UITest ' + str(g.TEST_NO) + '/' + str(g.NB_TESTS) + ' for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
         g.TEST_NO += 1
 
