@@ -371,3 +371,10 @@ def set_wlan_power(value='auto'):
     else:
         status = 'fixed ' + str(value)
     return manage_iw('txpower ' + status)
+
+# will be launched on the machine
+def get_external_ip():
+    ip = subprocess.check_output('dig +short myip.opendns.com @resolver1.opendns.com'.split(), universal_newlines=True)
+    if ip:
+        return ip[:-1] # without the new line
+    return ip
