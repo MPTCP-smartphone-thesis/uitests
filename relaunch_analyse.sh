@@ -1,4 +1,7 @@
 #!/bin/bash
+# Relaunch an analyse when the clean part as already been done.
+# /PATH/TO/relaunch_analyse.sh /PATH/TO/ORIG_DIR
+
 test -z "$1" && echo "No dir, exit" && exit 1
 test ! -d "$1" && echo "Dir '$1' doesn't exist, exit" && exit 1
 
