@@ -61,6 +61,7 @@ my_print("Starting tests " + time.ctime())
 now_dir = time.strftime("%Y%m%d-%H%M%S") + "_" + git_rev
 
 # Prepare output dir
+g.SAVE_DIR = os.path.basename(s.OUTPUT_DIR) + '/' + now_dir
 arg_dir_exp = os.path.expanduser(s.OUTPUT_DIR)
 output_dir = os.path.join(arg_dir_exp, now_dir)
 if (not os.path.isdir(output_dir)):
