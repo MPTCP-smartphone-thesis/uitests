@@ -428,6 +428,7 @@ def manage_capture(start, tcp_mode, app, android_pcap_dir, net_name, time_now, r
         manage_capture_server("stop", arg_pcap)
         if rm:
             manage_capture_server("rm", arg_pcap)
+            adb_shell('rm -rf ' + android_pcap_dir)
         return success
 
 
@@ -566,11 +567,8 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
     if func_exit:
         func_exit(*(app, net_name, tcp_mode, out_dir, thread))
 
-    # no need to pull useless traces
+    # no need to pull useless and removed traces
     if not success:
-        my_print("Error during the test, remove traces")
-        cmd = "rm -rf " + android_pcap_dir
-        adb_shell(cmd)
         return False
 
     # Save files: 'traces' external dir already contains the app name
