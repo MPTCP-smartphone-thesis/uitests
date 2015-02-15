@@ -406,28 +406,28 @@ def start_capture_device(arg_pcap, android_pcap_dir, net_name):
     return rc
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
-def manage_capture(start, tcp_mode, app, android_pcap_dir, net_name, time_now, rm=False, filters='tcp'):
-    arg_pcap = str(tcp_mode).lower() + "_" + app + "_" + net_name + "_" + time_now
+def manage_capture(start, arg_pcap, server_pcap_dir, android_pcap_dir, net_name, rm=False, filters='tcp'):
+    arg_pcap_path = server_pcap_dir + '/' + arg_pcap
 
     if start: # first the server, then the device
-        manage_capture_server("start_sshtunnel" if s.WITH_SSH_TUNNEL else "start_shadowsocks", arg_pcap + " " + filters)
+        manage_capture_server("start_" + ("sshtunnel" if s.WITH_SSH_TUNNEL else "shadowsocks"), arg_pcap_path + " " + filters)
         if not start_capture_device(arg_pcap, android_pcap_dir, net_name):
-            manage_capture_server("stop", arg_pcap)
-            manage_capture_server("rm", arg_pcap)
+            manage_capture_server("stop", arg_pcap_path)
+            manage_capture_server("rm", arg_pcap_path)
             return False
         if not restart_proxy():
             stop_capture_device()
             adb_shell('rm -rf ' + android_pcap_dir)
-            manage_capture_server("stop", arg_pcap)
-            manage_capture_server("rm", arg_pcap)
+            manage_capture_server("stop", arg_pcap_path)
+            manage_capture_server("rm", arg_pcap_path)
             return False
         return True
     else:
         success = stop_proxy()
         stop_capture_device()
-        manage_capture_server("stop", arg_pcap)
+        manage_capture_server("stop", arg_pcap_path)
         if rm:
-            manage_capture_server("rm", arg_pcap)
+            manage_capture_server("rm", arg_pcap_path)
             adb_shell('rm -rf ' + android_pcap_dir)
         return success
 
@@ -515,14 +515,17 @@ def get_info_sysctl_mptcp_only(out_dir=None, filename='sysctl_mptcp.txt'):
 def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False, filters='tcp'):
     time_now = time.strftime("%Y%m%d-%H%M%S")
     out_dir_app = os.path.abspath(os.path.join(out_dir, app)) # mptcp/net_name/app
-    android_pcap_dir = s.ANDROID_TRACE_OUT + '/' + str(tcp_mode) + '/' + net_name + '/' + app
+    arg_pcap = str(tcp_mode).lower() + "_" + app + "_" + net_name + "_" + time_now
+    unix_pcap_dir = str(tcp_mode) + '/' + net_name + '/' + app # unix, not used os.path.join
+    server_pcap_dir = g.SAVE_DIR + '/' + unix_pcap_dir
+    android_pcap_dir = s.ANDROID_TRACE_OUT + '/' + unix_pcap_dir
 
     # Create dir and put netstat info + pcap in it
     if not os.path.isdir(out_dir_app):
         os.makedirs(out_dir_app)
 
     # Start full capture on the proxy and on the device
-    if not manage_capture(True, tcp_mode, app, android_pcap_dir, net_name, time_now, filters=filters):
+    if not manage_capture(True, arg_pcap, server_pcap_dir, android_pcap_dir, net_name, filters=filters):
         my_print_err("Error proxy: Skip test of " + app.upper())
         return
 
@@ -562,7 +565,7 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
         my_print_err("Not able to find pkg name and then kill " + app)
 
     # Stop full capture on the proxy and on the device
-    manage_capture(False, tcp_mode, app, android_pcap_dir, net_name, time_now, not success)
+    manage_capture(False, arg_pcap, server_pcap_dir, android_pcap_dir, net_name, not success)
 
     if func_exit:
         func_exit(*(app, net_name, tcp_mode, out_dir, thread))
