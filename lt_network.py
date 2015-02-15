@@ -350,7 +350,7 @@ def limit_bw_wshaper(up, down, iface='wan', start=True):
     rc &= router_shell(uci + 'uplink=' + str(up))
     rc &= router_shell(uci + 'downlink=' + str(down))
     rc &= router_shell('uci commit wshaper')
-    rc &= router_shell('/etc/init.d/wshaper ' + 'start' if start else 'stop')
+    rc &= router_shell('/etc/init.d/wshaper ' + ('start' if start else 'stop'))
     return rc
 
 def unlimit_bw_wshaper():
