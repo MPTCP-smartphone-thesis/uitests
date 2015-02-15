@@ -542,7 +542,7 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
     elif func_exit:
         thread = None
 
-    my_print("*** Launching tests for [ " + s.YELLOW + app.upper() + s.GREEN + " ] at " + time_now + " for " + net_name + " ***")
+    my_print("*** Launching tests " + str(g.TEST_NO) + '/' + str(g.NB_TESTS) + " for [ " + s.YELLOW + app.upper() + s.GREEN + " ] at " + time_now + " for " + net_name + " ***")
     with open(os.path.join(out_dir_app, 'uitests.log'), "w") as log_file:
         success = adb_shell(False, uiautomator=app, log=log_file, args=uitests_args)
 
