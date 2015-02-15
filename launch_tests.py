@@ -311,7 +311,8 @@ for tcp_mode in tcp_list:
 
         rmnet_ip = False
         # get rmnet ip
-        if name != 'wlan':
+        if (tcp_mode.is_tcp() and name.startswith('rmnet')) \
+        or (tcp_mode.is_mptcp() and name != 'wlan'):
             for i in range(10): # try during 10 seconds max
                 rmnet_ip = net.get_ipv4(net.RMNET)
                 if rmnet_ip:
