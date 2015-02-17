@@ -20,7 +20,7 @@ while inotifywait -e modify "$FILE"; do
    LAST_LINE=$(tail -n 1 "$FILE" || echo "UNKNOWN")
    CURR_APP=$(echo $LAST_LINE | awk '{print $1}')
    ARGS=$(echo $LAST_LINE | awk '{$1=""; print $0}')
-   DIR=$(dirname CURR_APP)
+   DIR=$(dirname $CURR_APP)
    mkdir -p "${OUT}/${DIR}"
    timeout $TIMEOUT /usr/sbin/tcpdump -i $IF -w "${OUT}/${CURR_APP}.pcap" $ARGS &
    echo $! >> "$PID"
