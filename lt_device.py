@@ -407,7 +407,7 @@ def start_capture_device(arg_pcap, android_pcap_dir, net_name):
 
 # Launch/Stop full capture on the server and on the device, then restart/stop proxy
 def manage_capture(start, arg_pcap, server_pcap_dir, android_pcap_dir, net_name, rm=False, filters='tcp'):
-    arg_pcap_path = server_pcap_dir + '/' + arg_pcap
+    arg_pcap_path = server_pcap_dir + '/server_' + arg_pcap
 
     if start: # first the server, then the device
         manage_capture_server("start_" + ("sshtunnel" if s.WITH_SSH_TUNNEL else "shadowsocks"), arg_pcap_path + " " + filters)
