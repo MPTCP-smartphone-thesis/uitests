@@ -101,7 +101,7 @@ FORCE_COLORS = False
 # With TC:
 #      - L5p: Losses of 5%
 #      - D10m: Delay of 10ms
-NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL5p both4TCL15p both4TCD10m both4TCD100m both4TCD1000m both4TCL5pD100m'
+NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL1p both4TCL5p both4TCD10m both4TCD100m'
 # Enable Android's Wi-Fi option: Avoid Poor Connections (Don't use a Wi-Fi network unless it has a good Internet connection)
 AVOID_POOR_CONNECTIONS_TCP = False
 AVOID_POOR_CONNECTIONS_MPTCP = False
