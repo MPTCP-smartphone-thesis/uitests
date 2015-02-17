@@ -33,8 +33,8 @@ while inotifywait -e modify "$FILE"; do
     echo $GIT > "$LOG_SERVER"
 
     # For any
-    ./analyze.py -i "$DIR" $ARGS >> "$LOG" 2>>&1 & # accepts other jobs
+    ./analyze.py -i "$DIR" $ARGS >> "$LOG" 2>&1 & # accepts other jobs
     # For the server ()
-    ./analyze.py -i "$DIR" -p 'server' $ARGS >> "$LOG_SERVER" 2>>&1 & # accepts other jobs
+    ./analyze.py -i "$DIR" -p 'server' $ARGS >> "$LOG_SERVER" 2>&1 & # accepts other jobs
     echo $! >> "$PID"
 done
