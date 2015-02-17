@@ -24,9 +24,17 @@ while inotifywait -e modify "$FILE"; do
     test -z "$ARGS" && ARGS="-j $CORES"
     OUT_DIR="pcap/"$(basename $DIR)
     mkdir -p "$OUT_DIR"
-    LOG="$OUT_DIR/log_$(date +%Y%m%d_%H%M%S).txt"
-    git describe --abbrev=0 --dirty --always > "$LOG"
+    LOG_NAME="$OUT_DIR/log_$(date +%Y%m%d_%H%M%S)"
+    LOG="${LOG_NAME}_any.txt"
+    LOG_SERVER="${LOG_NAME}_server.txt"
 
+    GIT=$(git describe --abbrev=0 --dirty --always)
+    echo $GIT > "$LOG"
+    echo $GIT > "$LOG_SERVER"
+
+    # For any
     ./analyze.py -i "$DIR" $ARGS >> "$LOG" 2>>&1 & # accepts other jobs
+    # For the server ()
+    ./analyze.py -i "$DIR" -p 'server' $ARGS >> "$LOG_SERVER" 2>>&1 & # accepts other jobs
     echo $! >> "$PID"
 done
