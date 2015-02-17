@@ -19,13 +19,13 @@ while inotifywait -e modify "$FILE"; do
     LAST_LINE=$(tail -n 1 "$FILE" || echo "UNKNOWN")
     DIR=$(echo $LAST_LINE | awk '{print $1}')
     ARGS=$(echo $LAST_LINE | awk '{$1=""; print $0}')
-    test -z "$ARGS" && ARGS="-c -b 1000 -P -j $CORES -l"
+    # -c clean, -P keep cleaned traces, -j 4 jobs, -l log to stderr (GnuPlot.py also writes pdf in stdout)
+    test -z "$ARGS" && ARGS="-c -P -j $CORES -l"
     OUT_DIR="pcap/"$(basename $DIR)
     mkdir -p "$OUT_DIR"
     LOG="$OUT_DIR/log_$(date +%Y%m%d_%H%M%S).txt"
     git describe --abbrev=0 --dirty --always > "$LOG"
 
-    # -c clean, -b no graph when using < 1k, -P keep cleaned traces, -j 4 jobs, -l log to stderr (GnuPlot.py also writes pdf in stdout)
     ./analyze.py -i "$DIR" $ARGS > /dev/null 2>> "$LOG" & # accepts other jobs
     echo $! >> "$PID"
 done
