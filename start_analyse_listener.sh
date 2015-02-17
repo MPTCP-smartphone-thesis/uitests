@@ -5,8 +5,9 @@
 
 FILE="/home/mptcp/smartphone/.analyse-start"
 PID="$FILE.pid"
-CORES=$(grep -c "^processor" /proc/cpuinfo)
-CORES=$(($CORES + $CORES/2)) # we have locks which take time
+CORES=2 # just used two threads: we need to lock for matplotlib, no need to consumes lot of ram just to wait
+#CORES=$(grep -c "^processor" /proc/cpuinfo)
+#CORES=$(($CORES + $CORES/2)) # we have locks which take time
 
 cd "$ANALYSE_DIR"
 
