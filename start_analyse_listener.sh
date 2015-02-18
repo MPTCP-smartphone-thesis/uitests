@@ -39,6 +39,6 @@ while inotifywait -e modify "$FILE"; do
     # For any
     ./analyze.py -i "$DIR" $ARGS >> "$LOG" 2>&1 & # accepts other jobs
     # For the server (/smartphone-server/, with 'server' prefix)
-    ./analyze.py -i "$SERVER_DIR" -p 'server' $ARGS >> "$LOG_SERVER" 2>&1 & # accepts other jobs
+    ./analyze.py -i "$SERVER_DIR" -p '_server.' $ARGS >> "$LOG_SERVER" 2>&1 & # accepts other jobs
     echo $! >> "$PID"
 done
