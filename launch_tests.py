@@ -366,14 +366,17 @@ if s.BACKUP_TRACES:
     if subprocess.call(cmd.split()) != 0:
         my_print_err(" when using backup_traces.sh with " + arg_dir_exp)
     else:
-        my_print("Launch distant compression")
-        dev.manage_capture_server('gzip')
-
         if s.START_ANALYSE and not os.path.exists('analyse.skip'):
             my_print("Remotely launch analyze script")
             cmd = ["bash", "start_analyse_distant.sh", os.path.basename(arg_dir_exp) + "/" + now_dir]
             if subprocess.call(cmd) != 0:
                 my_print_err(" when using start_analyse.sh with " + cmd[2])
+            else:
+                my_print("Wait 5 minutes before launching compression")
+                time.sleep(300) # we need time to duplicate files for the analyse
+
+        my_print("Launch distant compression")
+        dev.manage_capture_server('gzip')
 
 
 if s.KEEP_TRACES_NB:
