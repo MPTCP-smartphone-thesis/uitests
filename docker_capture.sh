@@ -24,4 +24,8 @@ fi
 /home/mptcp/uitests/gzip_full_pcap_listener.sh &
 
 # Other:
-docker start ripe janus ssh-simple openvpn
+docker start ripe janus ssh-simple openvpn collectd
+
+COLLECTD_IP=$(docker inspect collectd | grep IPAddress | cut -d\" -f4)
+sed -i '/"49155"/ s/.*/      Server "'$COLLECTD_IP'" "49155"/g' /etc/collectd/collectd.conf
+service collectd restart
