@@ -45,7 +45,7 @@ CTRL_WIFI = True
 # IP of the routers
 IP_ROUTER = ["192.168.1.1"]
 # IFaces to modify on the router
-IFACE_ROUTER = ['wlan0'] # or ['wlan0','wlan1']
+IFACE_ROUTER = ['wlan0', 'eth0.2'] # or ['wlan0','eth1']
 # Devices to modify on the router
 DEVICES_ROUTER = ['phy0'] # ['phy0','phy1']
 # User and password
@@ -101,7 +101,7 @@ FORCE_COLORS = False
 # With TC:
 #      - L5p: Losses of 5%
 #      - D10m: Delay of 10ms
-NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL1p both4TCL5p both4TCD10m both4TCD100m'
+NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL1p both4TCL5p both4TCD5m both4TCD50m'
 # Enable Android's Wi-Fi option: Avoid Poor Connections (Don't use a Wi-Fi network unless it has a good Internet connection)
 AVOID_POOR_CONNECTIONS_TCP = False
 AVOID_POOR_CONNECTIONS_MPTCP = False
