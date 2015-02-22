@@ -174,7 +174,11 @@ for i in range(5): # check 5 time, max 30sec: should be enough
     dev.adb_check_reboot()
     if g.LAST_UPTIME:
         break
-    time.sleep(6)
+    if i == 2:
+        my_print_err('Not able to contact the device: reboot')
+        dev.adb_reboot()
+    else:
+        time.sleep(6)
 
 if not g.LAST_UPTIME:
     my_print_err("Not able to contact the device... Stop")
