@@ -237,6 +237,30 @@ def multipath_control_ndiffports(action='enable', subflows=s.NDIFFPORTS_DEFAULT_
 ##                    ROUTER                    ##
 ##################################################
 
+def router_shell(cmd, ips=s.IP_ROUTER):
+    my_print("Router: exec: " + cmd)
+    rc = True
+    sshpass = ("sshpass -p " + s.PASSWORD_ROUTER + " ") if s.PASSWORD_ROUTER else ""
+    for ip in ips:
+        router_cmd = sshpass + "ssh " + s.USER_ROUTER + "@" + ip + " " + cmd
+        if subprocess.call(router_cmd.split()) != 0:
+            my_print_err("when launching this cmd '" + cmd + "' on the router " + ip)
+            rc = False
+    return rc
+
+def router_send_file(file, chmod=False, ips=s.IP_ROUTER):
+    my_print("Router: send: " + file)
+    rc = True
+    sshpass = ("sshpass -p " + s.PASSWORD_ROUTER + " ") if s.PASSWORD_ROUTER else ""
+    for ip in ips:
+        router_cmd = sshpass + "scp " + file + " " + s.USER_ROUTER + "@" + ip + ":."
+        if subprocess.call(router_cmd.split()) != 0:
+            my_print_err("when sending this file '" + file + "' on the router " + ip)
+            rc = False
+    if chmod:
+        rc &= router_shell("chmod " + chmod + " " + file) # os.path.basename
+    return rc
+
 def get_value_between(string, start, end):
     index = string.find(start)
     if index >= 0:
@@ -252,17 +276,6 @@ def delay_cmd(value):
     if value:
         return " delay " + str(value) + "ms " + str(int(value)/10) + "ms"
     return ""
-
-def router_shell(cmd):
-    my_print("Router: exec: " + cmd)
-    rc = True
-    sshpass = ("sshpass -p " + s.PASSWORD_ROUTER + " ") if s.PASSWORD_ROUTER else ""
-    for ip in s.IP_ROUTER:
-        router_cmd = sshpass + "ssh " + s.USER_ROUTER + "@" + ip + " " + cmd
-        if subprocess.call(router_cmd.split()) != 0:
-            my_print_err("when launching this cmd '" + cmd + "' on the router " + ip)
-            rc = False
-    return rc
 
 # user: 'root' or X for parent 1:X
 def manage_netem(status, netem, user='root'):
@@ -344,6 +357,8 @@ def reboot_router(wait=45):
         time.sleep(wait)
     return rc
 
+# WShaper: work fine alone, not dynamic (with delay, losses)
+
 def limit_bw_wshaper_start():
     return router_shell('/etc/init.d/wshaper start')
 
@@ -366,6 +381,48 @@ def limit_bw_wshaper(up, down, iface='wan', start=True):
 
 def unlimit_bw_wshaper():
     return limit_bw_wshaper(0, 0, start=False) # set up/down to 0 if reboot
+
+# Our Shaper script: can manage delay/losses and change them dynamically
+
+def shaper_start(up, down, netem=False, iface=s.WAN_IFACE, ips=s.IP_ROUTER):
+    cmd = './shaper.sh start ' + iface + ' ' + str(up) + ' ' + str(down) + ' ' + (netem if netem else '')
+    return router_shell(cmd, ips=ips)
+
+def shaper_stop(iface=s.WAN_IFACE):
+    return router_shell('./shaper.sh stop ' + iface)
+
+def shaper_enable_netem(netem, iface=s.WAN_IFACE):
+    return router_shell('./shaper.sh addnetem ' + iface + ' ' + netem)
+
+def shaper_enable_netem_var(case, value1, value2=0, iface=s.WAN_IFACE):
+    if case == 'loss':
+        return shaper_enable_netem(loss_cmd(value1), iface=iface)
+    elif case == 'delay':
+        return shaper_enable_netem(delay_cmd(value1), iface=iface)
+    elif case == 'both':
+        return shaper_enable_netem(loss_cmd(value1) + delay_cmd(value2), iface=iface)
+    else:
+        my_print_err("shaper_add_netem_var: case unknown - " + str(case))
+        return False
+
+def shaper_change_netem(netem, iface=s.WAN_IFACE):
+    return router_shell('./shaper.sh chnetem ' + iface + ' ' + netem)
+
+def shaper_change_netem_var(case, value1, value2=0, iface=s.WAN_IFACE):
+    if case == 'loss':
+        return shaper_change_netem(loss_cmd(value1), iface=iface)
+    elif case == 'delay':
+        return shaper_change_netem(delay_cmd(value1), iface=iface)
+    elif case == 'both':
+        return shaper_change_netem(loss_cmd(value1) + delay_cmd(value2), iface=iface)
+    else:
+        my_print_err("shaper_change_netem_var: case unknown - " + str(case))
+        return False
+
+def shaper_change_bw(up, down, iface=s.WAN_IFACE):
+    return router_shell('./shaper.sh chbw ' + iface + ' ' + str(up) + ' ' + str(down))
+
+# Wireless
 
 def manage_iw(status):
     rc = True

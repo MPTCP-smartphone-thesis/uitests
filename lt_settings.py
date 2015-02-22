@@ -105,9 +105,12 @@ NETWORK_TESTS = 'wlan both4 both3 rmnet4 rmnet3 both4TCL1p both4TCL5p both4TCD5m
 # Enable Android's Wi-Fi option: Avoid Poor Connections (Don't use a Wi-Fi network unless it has a good Internet connection)
 AVOID_POOR_CONNECTIONS_TCP = False
 AVOID_POOR_CONNECTIONS_MPTCP = False
-# Limit Bandwidth: (up, down) ; ex: VDSL: (20000, 40000)
+# Limit Bandwidth: (up, down) or [(up, down), (up, dow)] in kpbs ; e.g.:
+#   1Mbps↓, 15Mbps↑: (1000, 15000)
+#   1Mbps↓, 15Mbps↑ for router 1 (see IP_ROUTER) and 100kbps↓, 1.5Mbps↑ for router 2: [(1000, 15000), (100, 1500)]
 LIMIT_BW = False
 LIMIT_BW_WSHAPER_SUPPORTED = False # need to be switch to True to limit BW
+WAN_IFACE = 'eth0.2'
 # Functions that can be launched just before/after each uitest
 LAUNCH_FUNC_INIT = False  # before start, in the current thread
 LAUNCH_FUNC_START = False # in a new thread, just before launching the uitests
@@ -191,6 +194,12 @@ def init():
     if WITH_MPTCP_BACKUP and not IPROUTE_WITH_MULTIPATH:
         my_print_err("Iproute not supporting multipath but using Backup mode: disable MPTCP with backup")
         WITH_MPTCP_BACKUP = False
+
+    # LIMIT BW only if LIMIT_BW_WSHAPER_SUPPORTED
+    global LIMIT_BW_WSHAPER_SUPPORTED, LIMIT_BW, CTRL_WIFI
+    if LIMIT_BW and (not LIMIT_BW_WSHAPER_SUPPORTED or not CTRL_WIFI):
+        my_print_err("Wshaper not supported, not able to limit bandwidth")
+        LIMIT_BW = False
 
 def print_vars(file=sys.stdout):
     g = globals().copy()
