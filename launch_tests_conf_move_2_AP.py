@@ -25,6 +25,8 @@ import os
 
 import lt_device as dev
 
+from lt_utils import * # my_print
+
 CTRL_WIFI = False # we will switch between APs, not possible to control them
 YELLOWB   = "\033[1;33m"
 WHITE_STD = "\033[0;39m"
@@ -38,8 +40,8 @@ OUTPUT_DIR = '~/Thesis/TCPDump_move_2_AP'
 # Only both4: we will modify the router during the tests
 NETWORK_TESTS = 'both4' # both3 ?
 # Limit Bandwidth: (up, down) ; ex: VDSL: (20000, 40000)
-LIMIT_BW = False # can be interested but we need to be able to contact router at the beginning end/script
-LIMIT_BW_WSHAPER_SUPPORTED = False
+LIMIT_BW = (1000, 15000) # can be interested but we need to be able to contact router at the beginning end/script
+LIMIT_BW_WSHAPER_SUPPORTED = True
 
 # Do not Enable Android's Wi-Fi option
 AVOID_POOR_CONNECTIONS_TCP = False
@@ -95,7 +97,8 @@ def func_exit(app, net_name, tcp_mode, out_dir, thread):
             my_print_err("Thread is still alive for " + app + " - " + net_name)
 
     input(YELLOWB + "\n\nEnd for " + app + " in " + net_name + " with " +
-          tcp_mode + ".\nPress Enter to launch the next one\n\n" + WHITE_STD)
+          tcp_mode + ".\nPress Enter to launch the next one: " +
+          "be sure that you're connected to the network\n\n" + WHITE_STD)
 
 LAUNCH_FUNC_INIT = func_init
 LAUNCH_FUNC_START = func_start
@@ -104,3 +107,6 @@ LAUNCH_FUNC_EXIT = func_exit
 
 if os.path.isfile('launch_tests_conf_move_2_AP_custom.py'):
     from launch_tests_conf_move_2_AP_custom import *
+
+if LIMIT_BW and len(IP_ROUTER) < 2:
+    my_print_err("Only control one router, is it normal?")
