@@ -31,6 +31,7 @@ from lt_utils import *
 
 IPROUTE_WITH_MULTIPATH = False
 CTRL_WIFI = True
+LIMIT_BW = False
 
 if os.path.isfile('launch_tests_conf.py'):
     from launch_tests_conf import *
@@ -80,7 +81,7 @@ def func_init(app, net_name, tcp_mode, out_dir):
 
 # we have ~4.5 minutes: inc losses/delay every 15 sec
 def func_start(app, net_name, tcp_mode, out_dir):
-    global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP, AVOID_POOR_CONNECTIONS_MPTCP
+    global THREAD_CONTINUE, CHANGE_CASE, CHANGE_SWITCH, CHANGE_INC, CHANGE_INC_BOTH_DELAY, CHANGE_TIME, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP, AVOID_POOR_CONNECTIONS_MPTCP, LIMIT_BW
 
     i = CHANGE_INC
     while True:
@@ -88,7 +89,12 @@ def func_start(app, net_name, tcp_mode, out_dir):
         if not THREAD_CONTINUE: return
 
         if i == CHANGE_INC:
-            net.enable_netem_var(CHANGE_CASE, i, i * CHANGE_INC_BOTH_DELAY)
+            if LIMIT_BW:
+                net.shaper_enable_netem_var(CHANGE_CASE, i, i * CHANGE_INC_BOTH_DELAY)
+            else:
+                net.enable_netem_var(CHANGE_CASE, i, i * CHANGE_INC_BOTH_DELAY)
+        elif LIMIT_BW:
+            net.shaper_change_netem_var(CHANGE_CASE, i, i * CHANGE_INC_BOTH_DELAY)
         else:
             net.change_netem_var(CHANGE_CASE, i, i * CHANGE_INC_BOTH_DELAY)
 
@@ -122,7 +128,7 @@ def func_start(app, net_name, tcp_mode, out_dir):
 
 
 def func_end(app, net_name, tcp_mode, out_dir, success):
-    global THREAD_CONTINUE, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP, AVOID_POOR_CONNECTIONS_MPTCP
+    global THREAD_CONTINUE, CHANGE_METHOD, AVOID_POOR_CONNECTIONS_TCP, AVOID_POOR_CONNECTIONS_MPTCP, LIMIT_BW
     THREAD_CONTINUE = False
 
     if (AVOID_POOR_CONNECTIONS_TCP and tcp_mode.is_tcp()) \
@@ -158,7 +164,11 @@ def func_end(app, net_name, tcp_mode, out_dir, success):
     if not rc:
         my_print_err("Not able to return to init state with method " + CHANGE_METHOD)
 
-    net.disable_netem()
+    # disable shaper
+    if LIMIT_BW:
+        net.shaper_stop()
+    else:
+        net.disable_netem()
 
 def func_exit(app, net_name, tcp_mode, out_dir, thread):
     # Wait for the end of the thread: avoid starting new uitests before this one
