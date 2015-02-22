@@ -316,6 +316,10 @@ for tcp_mode in tcp_list:
             if netem:
                 net.enable_netem(netem)
 
+        # Restart wshaper
+        if s.CTRL_WIFI and s.LIMIT_BW_WSHAPER_SUPPORTED and s.LIMIT_BW:
+            net.limit_bw_wshaper_start()
+
         # On reboot, set mutipath_control
         if tcp_mode is TCP.MPTCP:
             net.multipath_control()
@@ -346,6 +350,10 @@ for tcp_mode in tcp_list:
         # Delete Netem
         if tc:
             net.disable_netem()
+
+        # Stop WShaper
+        if s.CTRL_WIFI and s.LIMIT_BW_WSHAPER_SUPPORTED and s.LIMIT_BW:
+            net.limit_bw_wshaper_stop()
 
 my_print("================ DONE =================\n")
 

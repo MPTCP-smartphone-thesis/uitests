@@ -344,13 +344,24 @@ def reboot_router(wait=45):
         time.sleep(wait)
     return rc
 
+def limit_bw_wshaper_start():
+    return router_shell('/etc/init.d/wshaper start')
+
+def limit_bw_wshaper_stop():
+    return router_shell('/etc/init.d/wshaper stop')
+
+def limit_bw_wshaper_restart():
+    rc =  limit_bw_wshaper_stop()
+    rc &= limit_bw_wshaper_start()
+    return rc
+
 def limit_bw_wshaper(up, down, iface='wan', start=True):
     uci = 'uci set wshaper.settings.'
     rc  = router_shell(uci + 'network=' + iface)
     rc &= router_shell(uci + 'uplink=' + str(up))
     rc &= router_shell(uci + 'downlink=' + str(down))
     rc &= router_shell('uci commit wshaper')
-    rc &= router_shell('/etc/init.d/wshaper ' + ('start' if start else 'stop'))
+    rc &= limit_bw_wshaper_start() if start else limit_bw_wshaper_stop()
     return rc
 
 def unlimit_bw_wshaper():
