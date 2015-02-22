@@ -152,14 +152,14 @@ if s.CTRL_WIFI:
     if (not net.router_shell("echo OK")):
         my_print_err("Not able to be connected to the router, exit")
         exit(1)
-    my_print("Reset Netem (tc), ignore errors")
-    net.disable_netem()
     my_print("Limit Bandwidth")
     if s.LIMIT_BW_WSHAPER_SUPPORTED:
         if s.LIMIT_BW:
             net.limit_bw_wshaper(s.LIMIT_BW[0], s.LIMIT_BW[1])
         else:
             net.unlimit_bw_wshaper()
+    my_print("Reset Netem (tc), ignore errors")
+    net.disable_netem() # need to be made after wshaper!
     net.set_wlan_power('auto')
 
 
