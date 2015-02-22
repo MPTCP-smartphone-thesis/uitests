@@ -155,7 +155,7 @@ if s.CTRL_WIFI:
     if LIMIT_BW_WSHAPER_SUPPORTED:
         my_print("Limit Bandwidth, ignore errors")
         net.router_send_file('shaper.sh', chmod='+x')
-        shaper_stop()
+        net.shaper_stop()
     my_print("Reset Netem (tc), ignore errors")
     net.disable_netem()
     net.set_wlan_power('auto')
