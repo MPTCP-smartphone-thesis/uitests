@@ -33,9 +33,9 @@ mgbw() {
 }
 
 start() {
-    BWU=${1}kbit
+    BWU=$1
     shift
-    BWD=${1}kbit
+    BWD=$1
     shift
     NETEM="$@"
 
