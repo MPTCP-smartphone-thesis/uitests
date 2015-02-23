@@ -159,7 +159,7 @@ if s.CTRL_WIFI:
     if not net.router_shell("echo OK"):
         my_print_err("Not able to be connected to the router, exit")
         exit(1)
-    if LIMIT_BW_WSHAPER_SUPPORTED:
+    if s.LIMIT_BW_WSHAPER_SUPPORTED:
         my_print("Limit Bandwidth, ignore errors")
         net.router_send_file('shaper.sh', chmod='+x')
         net.shaper_stop()
