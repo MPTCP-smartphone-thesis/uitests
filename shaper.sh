@@ -55,7 +55,7 @@ start() {
 stop() {
     tc qdisc del dev ifb0 root
     tc qdisc del dev $IF root
-    ifconfig ifb0 down
+#    ifconfig ifb0 down
 #    for i in $MODULES; do
 #        rmmod $i
 #    done
