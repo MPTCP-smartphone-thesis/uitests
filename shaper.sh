@@ -59,10 +59,14 @@ stop() {
         modprobe $i > /dev/null
     done
 
+    echo "Ingress"
     tc qdisc del dev $IF ingress
+    echo "filter"
     tc filter del dev $IF parent ffff:
+    echo "parents"
     tc qdisc del dev $IF parent 2:1
     tc qdisc del dev eth0.2 parent 1:1
+    echo "root"
     tc qdisc del dev ifb0 root
     tc qdisc del dev $IF root
 
