@@ -20,6 +20,7 @@ MODULES='sch_ingress sch_sfq sch_htb cls_u32 act_police ifb'
 mgnetem() {
     STATUS=$1
     shift
+    echo "Netem: $STATUS : $@"
     tc qdisc $STATUS dev ifb0 root handle 1:0 netem $@
     tc qdisc $STATUS dev $IF  root handle 2:0 netem $@
 }
@@ -28,6 +29,7 @@ mgnetem() {
 mgbw() {
     STATUS=$1
     shift
+    echo "BW: $STATUS : $@"
     tc qdisc $STATUS dev $IF  parent 2:1 handle 10: tbf rate ${1}kbit buffer 3200 limit 6000
     tc qdisc $STATUS dev ifb0 parent 1:1 handle 10: tbf rate ${2}kbit buffer 3200 limit 6000
 }
@@ -40,7 +42,7 @@ start() {
     NETEM="$@"
 
     for i in $MODULES; do
-        insmod $i
+        modprobe $i 2> /dev/null
     done
 
     # Download: use virtual iface, redirect egress traffic to it
@@ -117,7 +119,7 @@ case "$ACTION" in
         echo "done"
     ;;
     *)
-        echo "Usage: $0 {start|stop|restart|show|addnetem|chnetem|chbw} [BWup BWdw [netem rules]] [netem rules]"
+        echo "Usage: $0 {start|stop|restart|show|addnetem|chnetem|chbw} IFace [BWup BWdw [netem rules]] [netem rules]"
     ;;
 esac
 
