@@ -55,9 +55,20 @@ start() {
 }
 
 stop() {
+    for i in $MODULES; do
+        modprobe $i 2> /dev/null
+    done
+
+    tc qdisc del dev $IF ingress
+    tc filter del dev $IF parent ffff:
+    tc qdisc del dev $IF parent 2:1
+    tc qdisc del dev eth0.2 parent 1:1
     tc qdisc del dev ifb0 root
     tc qdisc del dev $IF root
-#    ifconfig ifb0 down
+
+#    ifconfig ifb0 down # can be a problem
+
+    # not needed
 #    for i in $MODULES; do
 #        rmmod $i
 #    done
