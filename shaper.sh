@@ -42,7 +42,7 @@ start() {
     NETEM="$@"
 
     for i in $MODULES; do
-        modprobe $i 2> /dev/null
+        modprobe $i > /dev/null
     done
 
     # Download: use virtual iface, redirect egress traffic to it
@@ -56,7 +56,7 @@ start() {
 
 stop() {
     for i in $MODULES; do
-        modprobe $i 2> /dev/null
+        modprobe $i > /dev/null
     done
 
     tc qdisc del dev $IF ingress
