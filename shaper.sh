@@ -21,8 +21,10 @@ mgnetem() {
     STATUS=$1
     shift
     echo "Netem: $STATUS : $@"
-    tc qdisc $STATUS dev ifb0 root handle 1:0 netem $@
-    tc qdisc $STATUS dev $IF  root handle 2:0 netem $@
+    rc=0
+    tc qdisc $STATUS dev ifb0 root handle 1:0 netem $@ || rc=$?
+    tc qdisc $STATUS dev $IF  root handle 2:0 netem $@ || rc=$?
+    return $rc
 }
 
 # To be launched after having used 'start' method: mgbw add 1000 15000 => up: 1M
@@ -30,8 +32,10 @@ mgbw() {
     STATUS=$1
     shift
     echo "BW: $STATUS : $@"
-    tc qdisc $STATUS dev $IF  parent 2:1 handle 10: tbf rate ${1}kbit buffer 3200 limit 6000
-    tc qdisc $STATUS dev ifb0 parent 1:1 handle 10: tbf rate ${2}kbit buffer 3200 limit 6000
+    rc=0
+    tc qdisc $STATUS dev $IF  parent 2:1 handle 10: tbf rate ${1}kbit buffer 3200 limit 6000 || rc=$?
+    tc qdisc $STATUS dev ifb0 parent 1:1 handle 10: tbf rate ${2}kbit buffer 3200 limit 6000 || rc=$?
+    return $rc
 }
 
 start() {
@@ -46,12 +50,14 @@ start() {
     done
 
     # Download: use virtual iface, redirect egress traffic to it
+    rc=0
     ifconfig ifb0 up
-    tc qdisc add dev $IF ingress
-    tc filter add dev $IF parent ffff: protocol ip u32 match u32 0 0 flowid 1:1 action mirred egress redirect dev ifb0
+    tc qdisc add dev $IF ingress || rc=$?
+    tc filter add dev $IF parent ffff: protocol ip u32 match u32 0 0 flowid 1:1 action mirred egress redirect dev ifb0 || rc=$?
 
-    test -n "$NETEM" && mgnetem add $NETEM
-    mgbw add $BWU $BWD
+    test -n "$NETEM" && (mgnetem add $NETEM || rc=$?)
+    mgbw add $BWU $BWD || rc=$?
+    return $rc
 }
 
 stop() {
@@ -59,16 +65,17 @@ stop() {
         modprobe $i > /dev/null
     done
 
+    rc=0
     echo "Ingress"
-    tc qdisc del dev $IF ingress
+    tc qdisc del dev $IF ingress || rc=$?
     echo "filter"
-    tc filter del dev $IF parent ffff:
+    tc filter del dev $IF parent ffff: || rc=$?
     echo "parents"
-    tc qdisc del dev $IF parent 2:1
-    tc qdisc del dev eth0.2 parent 1:1
+    tc qdisc del dev $IF parent 2:1 || rc=$?
+    tc qdisc del dev eth0.2 parent 1:1 || rc=$?
     echo "root"
-    tc qdisc del dev ifb0 root
-    tc qdisc del dev $IF root
+    tc qdisc del dev ifb0 root || rc=$?
+    tc qdisc del dev $IF root || rc=$?
 
 #    ifconfig ifb0 down # can be a problem
 
@@ -76,12 +83,15 @@ stop() {
 #    for i in $MODULES; do
 #        rmmod $i
 #    done
+    return $rc
 }
 
 restart() {
-    stop
+    rc=0
+    stop || rc=$?
     sleep 1
-    start $@
+    start $@ || rc=$?
+    return $rc
 }
 
 show() {
@@ -96,18 +106,18 @@ case "$ACTION" in
     start)
         echo -n "Starting shaping rules: "
         test -z "$1" -o -z "$2" && echo "No up and down args, exit" && exit 1
-        start $@
+        start $@ || exit $?
         echo "done"
     ;;
     stop)
         echo -n "Stopping shaping rules: "
-        stop
+        stop || exit $?
         echo "done"
     ;;
     restart)
         echo -n "Restarting shaping rules: "
         test -z "$1" -o -z "$2" && echo "No up and down args, exit" && exit 1
-        restart $@
+        restart $@ || exit $?
         echo "done"
     ;;
     show)
@@ -118,19 +128,19 @@ case "$ACTION" in
     addnetem)
         echo -n "Add Netem rules: "
         test -z "$1" && echo "No netem args, exit" && exit 1
-        mgnetem add $@
+        mgnetem add $@ || exit $?
         echo "done"
     ;;
     chnetem)
         echo -n "Change Netem rules: "
         test -z "$1" && echo "No netem args, exit" && exit 1
-        mgnetem change $@
+        mgnetem change $@ || exit $?
         echo "done"
     ;;
     chbw)
         echo -n "Change bandwidth: "
         test -z "$1" -o -z "$2" && echo "No up and down args, exit" && exit 1
-        mgbw change $1 $2
+        mgbw change $1 $2 || exit $?
         echo "done"
     ;;
     *)
