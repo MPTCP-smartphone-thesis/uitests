@@ -133,8 +133,15 @@ for uitest in uitests_dir + s.UITESTS_EXCEPTIONS:
 
 my_print("Getting external ip")
 ip = net.get_external_ip()
+
+if not ip and s.CTRL_WIFI:
+    my_print_err("Not able to get external ip, reboot router")
+    net.router_shell("reboot")
+    time.sleep(60)
+    ip = net.get_external_ip()
+
 if ip:
-    my_print("Get ip: " + ip)
+    my_print("Got ip: " + ip)
     s.EXTERNAL_IP = ip
 else:
     my_print_err("Not able to get external ip, used the default one: " + s.EXTERNAL_IP)
