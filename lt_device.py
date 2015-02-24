@@ -560,7 +560,9 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
         pkg_name = file.readlines()[0].replace('\n', '')
         file.close()
         my_print("Force stop app " + app + " - " + pkg_name)
-        adb_shell_root("am force-stop " + pkg_name) # root should not be needed
+        adb_shell("am kill " + pkg_name) # should be soft kill
+        time.sleep(0.5)
+        adb_shell("am force-stop " + pkg_name) # to be sure that nothing more is running
     except:
         my_print_err("Not able to find pkg name and then kill " + app)
 
