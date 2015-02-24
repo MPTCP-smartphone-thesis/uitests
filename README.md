@@ -13,7 +13,7 @@ Of course, you'll need to install all supported apps:
 
 * Dailymotion: Change the quality to HD. Disable the option "only download on WiFi". Check the box "Sync in HD when available". Follow one video channel (where the videos will be taken). The version tested is 4.3.2.
 * Dropbox: You will need to sign up/in, skip the welcome screen (no need to turn on camera upload option) and send at least one file that you can delete just after.
-* Google Drive: You need a Google account and skip the initial menu (how to use GDrive). Then, click on the `upload`, menu on the top right, `settings`, `Display advanced devices`. You need also to go to Settings and uncheck "Transfer files only on Wi-Fi"
+* Google Drive: You need a Google account and skip the initial menu (how to use GDrive). Then, click on the `upload`, menu on the top right, `settings`, `Display advanced devices`. You need also to go to Settings and uncheck "Transfer files only on Wi-Fi". The tested versino is 2.0.222.51.
 * Facebook: You need to be connected with a Facebook account. GPS should be enabled to find the nearest location.
 * Firefox Beta: Go to Settings / Privacy / Clear Private Data / Always clear when quitting (check that you'll clear everything, you need Firefox 33+). You also need to install the module `Janus Proxy Configurator`. If you want to setup your own Janus server, you can use this Docker image [here](https://registry.hub.docker.com/u/matttbe/docker-janus-node/) (don't forget to generate a new SSL key and accept it on your Android device as written in the `README` file)
 * Messenger: You need to be connected with a Facebook account and have at least one contact and one previous discussion
