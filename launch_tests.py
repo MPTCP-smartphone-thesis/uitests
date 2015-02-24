@@ -159,10 +159,10 @@ if s.CTRL_WIFI:
     if not net.router_shell("echo OK"):
         my_print_err("Not able to be connected to the router, exit")
         exit(1)
-    if s.LIMIT_BW_WSHAPER_SUPPORTED:
-        my_print("Limit Bandwidth, ignore errors")
-        net.router_send_file('shaper.sh', chmod='+x')
-        net.shaper_stop()
+#    if s.LIMIT_BW_WSHAPER_SUPPORTED: # TODO: wshaper + delay/losses
+#        my_print("Limit Bandwidth, ignore errors")
+#        net.router_send_file('shaper.sh', chmod='+x')
+#        net.shaper_stop()
     my_print("Reset Netem (tc), ignore errors")
     net.disable_netem()
     net.set_wlan_power('auto')
@@ -319,11 +319,15 @@ for tcp_mode in tcp_list:
 
         # Network of the router
         if s.LIMIT_BW:
-            if isinstance(s.LIMIT_BW[0], int):
-                net.shaper_start(s.LIMIT_BW[0], s.LIMIT_BW[1], netem=netem) # netem can be False
-            else: # different limit per router
-                for id_router in range(len(s.LIMIT_BW)):
-                    net.shaper_start(s.LIMIT_BW[id_router][0], s.LIMIT_BW[id_router][1], netem=netem, ips=[s.IP_ROUTER[id_router]])
+            if not netem: netem = ''
+            net.enable_netem(netem + net.rate_cmd(s.LIMIT_BW[1], iface=[s.IFACE_ROUTER[0]])
+            net.enable_netem(netem + net.rate_cmd(s.LIMIT_BW[0], iface=[s.IFACE_ROUTER[1]])
+#            # TODO: wshaper + delay/losses
+#            if isinstance(s.LIMIT_BW[0], int):
+#                net.shaper_start(s.LIMIT_BW[0], s.LIMIT_BW[1], netem=netem) # netem can be False
+#            else: # different limit per router
+#                for id_router in range(len(s.LIMIT_BW)):
+#                    net.shaper_start(s.LIMIT_BW[id_router][0], s.LIMIT_BW[id_router][1], netem=netem, ips=[s.IP_ROUTER[id_router]])
         elif netem:
             net.enable_netem(netem)
 
@@ -355,9 +359,11 @@ for tcp_mode in tcp_list:
         dev.launch_all(uitests_dir, net_mode.name, tcp_mode, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS, rmnet_ip)
 
         # Delete Netem
-        if s.LIMIT_BW:
-            net.shaper_stop()
-        elif netem:
+        # if s.LIMIT_BW:
+        # TODO: wshaper + delay/losses
+        #    net.shaper_stop()
+        #elif netem:
+        if s.LIMIT_BW or netem:
             net.disable_netem()
 
 my_print("================ DONE =================\n")
