@@ -109,7 +109,10 @@ AVOID_POOR_CONNECTIONS_MPTCP = False
 #   1Mbps↓, 15Mbps↑: (1000, 15000)
 #   1Mbps↓, 15Mbps↑ for router 1 (see IP_ROUTER) and 100kbps↓, 1.5Mbps↑ for router 2: [(1000, 15000), (100, 1500)]
 LIMIT_BW = False
-LIMIT_BW_WSHAPER_SUPPORTED = False # need to be switch to True to limit BW
+# Shaper mode, select the first one which is true
+LIMIT_BW_WITH_SHAPER = False # our script which also support losses/delays
+LIMIT_BW_WITH_WSHAPER = False # losses/delays at the same time not supported!
+LIMIT_BW_WITH_RATE = True # TODO: switch to SHAPER when ready
 WAN_IFACE = 'eth0.2'
 # Functions that can be launched just before/after each uitest
 LAUNCH_FUNC_INIT = False  # before start, in the current thread
@@ -195,11 +198,18 @@ def init():
         my_print_err("Iproute not supporting multipath but using Backup mode: disable MPTCP with backup")
         WITH_MPTCP_BACKUP = False
 
-    # LIMIT BW only if LIMIT_BW_WSHAPER_SUPPORTED
-    global LIMIT_BW_WSHAPER_SUPPORTED, LIMIT_BW, CTRL_WIFI
-    if LIMIT_BW and (not LIMIT_BW_WSHAPER_SUPPORTED or not CTRL_WIFI):
-        my_print_err("Wshaper not supported, not able to limit bandwidth")
-        LIMIT_BW = False
+    # LIMIT BW only if LIMIT_BW_WITH_*
+    global LIMIT_BW_WITH_SHAPER, LIMIT_BW_WITH_WSHAPER, LIMIT_BW_WITH_RATE, LIMIT_BW, CTRL_WIFI, NETWORK_TESTS
+    if LIMIT_BW:
+        if not CTRL_WIFI:
+            my_print_err("Not controlling WiFi router: not able to limit bandwidth")
+            sys.exit(1)
+        elif LIMIT_BW_WITH_WSHAPER and NETWORK_TESTS.find('TC') < 0:
+            my_print_err("WShaper doesn't support delays/losses")
+            sys.exit(1)
+        elif not LIMIT_BW_WITH_SHAPER and not LIMIT_BW_WITH_WSHAPER and not LIMIT_BW_WITH_RATE:
+            my_print_err("No shaper detected, disable shaping")
+            LIMIT_BW = False
 
 def print_vars(file=sys.stdout):
     g = globals().copy()

@@ -277,10 +277,15 @@ def delay_cmd(value):
         return " delay " + str(value) + "ms " + str(int(value)/10) + "ms"
     return ""
 
+def rate_cmd(value):
+    if value:
+        return " rate " + str(value) + "kbit"
+    return ""
+
 # user: 'root' or X for parent 1:X
-def manage_netem(status, netem, user='root'):
+def manage_netem(status, netem, user='root', ifaces=s.IFACE_ROUTER):
     rc = True
-    for iface in s.IFACE_ROUTER:
+    for iface in ifaces:
         if user == 'root':
             u = user
         else:
@@ -289,8 +294,8 @@ def manage_netem(status, netem, user='root'):
         rc &= router_shell(cmd)
     return rc
 
-def enable_netem(netem, user='root'):
-    return manage_netem('add', netem, user)
+def enable_netem(netem, user='root', ifaces=s.IFACE_ROUTER):
+    return manage_netem('add', netem, user, ifaces)
 
 def enable_netem_loss(value, user='root'):
     return enable_netem(loss_cmd(value), user)
