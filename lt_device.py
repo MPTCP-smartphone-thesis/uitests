@@ -563,6 +563,7 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
         adb_shell("am kill " + pkg_name) # should be soft kill
         time.sleep(0.5)
         adb_shell("am force-stop " + pkg_name) # to be sure that nothing more is running
+        adb_shell_root("rm -rf /data/data/" + pkg_name + "/cache/*")
     except:
         my_print_err("Not able to find pkg name and then kill " + app)
 
