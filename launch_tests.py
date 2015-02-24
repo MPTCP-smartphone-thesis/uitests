@@ -320,8 +320,8 @@ for tcp_mode in tcp_list:
         # Network of the router
         if s.LIMIT_BW:
             if not netem: netem = ''
-            net.enable_netem(netem + net.rate_cmd(s.LIMIT_BW[1]), iface=[s.IFACE_ROUTER[0]])
-            net.enable_netem(netem + net.rate_cmd(s.LIMIT_BW[0]), iface=[s.IFACE_ROUTER[1]])
+            net.enable_netem(netem + net.rate_cmd(s.LIMIT_BW[1]), ifaces=[s.IFACE_ROUTER[0]])
+            net.enable_netem(netem + net.rate_cmd(s.LIMIT_BW[0]), ifaces=[s.IFACE_ROUTER[1]])
 #            # TODO: wshaper + delay/losses
 #            if isinstance(s.LIMIT_BW[0], int):
 #                net.shaper_start(s.LIMIT_BW[0], s.LIMIT_BW[1], netem=netem) # netem can be False
