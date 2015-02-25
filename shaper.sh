@@ -143,10 +143,10 @@ stop() {
     tc qdisc del dev $IFUP   root 2> /dev/null > /dev/null
     tc qdisc del dev $IFDOWN root 2> /dev/null > /dev/null
     # not needed?
-    for i in $MODULES; do
-        rmmod $i
-    done
-    return $rc
+    # for i in $MODULES; do
+    #     rmmod $i
+    # done
+    return 0 # ignore and hide errors
 }
 
 restart() {
