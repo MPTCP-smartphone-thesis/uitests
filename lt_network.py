@@ -390,7 +390,7 @@ def unlimit_bw_wshaper():
 # Our Shaper script: can manage delay/losses and change them dynamically
 
 def shaper_start(up, down, netem=False, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, ips=s.IP_ROUTER):
-    cmd = './shaper.sh start ' + iface_up + ' ' + iface_down + str(up) + ' ' + str(down) + ' ' + (netem if netem else '')
+    cmd = './shaper.sh start ' + iface_up + ' ' + iface_down + ' ' + str(up) + ' ' + str(down) + ' ' + (netem if netem else '')
     return router_shell(cmd, ips=ips)
 
 def shaper_stop(iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
