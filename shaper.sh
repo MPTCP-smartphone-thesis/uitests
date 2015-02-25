@@ -2,18 +2,11 @@
 #
 # With the help of Nicolargo's limitbw script and OpenWRT's WShaper tool:
 # limitbw: http://blog.nicolargo.com/2009/03/simuler-un-lien-wan-sous-linux.html
-#
-#     ./shaper.sh ACTION IFup IFdown [BWup BWdw [netem rules]]
-#
-# e.g.: ./shaper.sh start   eth0.2 wlan0 2000 15000 delay 50ms 5ms loss 0.5% 25%
-#                                  wlan0 kbps kbps
-#       ./shaper.sh chnetem eth0.2 wlan0 delay 15ms 2ms loss 0.05% 5%
-#       ./shaper.sh stop    eth0.2 wlan0
 
 test -n "$1" && ACTION=$1 && shift || ACTION='help'
 # Interface name (e.g. eth0.2)
-test -n "$1" && IFUP=$1 && shift || ACTION='help'
-test -n "$1" && IFDOWN=$1 && shift || ACTION='help'
+test -n "$1" && IFUP=$1 && shift || ACTION='errorif'
+test -n "$1" && IFDOWN=$1 && shift || ACTION='errorif'
 
 MODULES='sch_ingress sch_sfq sch_htb cls_u32 act_police'
 
@@ -168,6 +161,16 @@ show() {
     tc -s class ls dev $IFDOWN
 }
 
+usage() {
+    echo "Usage: $0 {start|stop|restart|show|addnetem|chnetem|chbw} IFaceUp IFaceDown [BWup BWdw [netem rules]] [netem rules]"
+    echo
+    echo "Examples:"
+    echo "    ./$0 start   eth0.2 wlan0 2000 15000 delay 50ms 5ms loss 0.5% 25%"
+    echo "                                     kbps kbps"
+    echo "    ./$0 chnetem eth0.2 wlan0 delay 15ms 2ms loss 0.05% 5%"
+    echo "    ./$0 stop    eth0.2 wlan0"
+}
+
 case "$ACTION" in
     start)
         echo -n "Starting shaping rules: "
@@ -209,8 +212,12 @@ case "$ACTION" in
         chbw $1 $2 || exit $?
         echo "done"
     ;;
+    errorif)
+        echo "!! ERROR, no interfaces !!"
+        usage
+    ;;
     *)
-        echo "Usage: $0 {start|stop|restart|show|addnetem|chnetem|chbw} IFaceUp IFaceDown [BWup BWdw [netem rules]] [netem rules]"
+        usage
     ;;
 esac
 
