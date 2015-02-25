@@ -135,7 +135,7 @@ start() {
 
 
     ########## downlink #############
-    tc qdisc add dev $IFDOWN handle 1: root htb default 20
+    tc qdisc add dev $IFDOWN handle 1: root htb default 10
     tc class add dev $IFDOWN parent 1: classid 1:1 htb rate ${DOWNLINK}kbit burst 10k
     # high prio class 1:10:
     tc class add dev $IFDOWN parent 1:1 classid 1:10 htb rate ${DOWNLINK}kbit burst 10k prio 1
