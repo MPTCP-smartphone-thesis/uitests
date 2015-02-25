@@ -132,6 +132,11 @@ start() {
     tc class add dev $IFDOWN parent 1: classid 1:1 htb rate ${DOWNLINK}kbit burst 10k
     # high prio class 1:10:
     tc class add dev $IFDOWN parent 1:1 classid 1:10 htb rate ${DOWNLINK}kbit burst 10k prio 1
+    if test -n "$NETEM"; then
+        tc qdisc add dev $IFDOWN parent 1:10 handle 10: netem $@NETEM
+    else
+        tc qdisc add dev $IFDOWN parent 1:10 handle 10: sfq perturb 10
+    fi
 }
 
 stop() {
