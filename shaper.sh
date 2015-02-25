@@ -63,6 +63,7 @@ start() {
     DOWNLINK=$1
     shift
     NETEM="$@"
+    rc=0
 
     for i in $MODULES; do
         # hide/ignore errors
@@ -73,39 +74,39 @@ start() {
     ###### uplink
 
     # install root HTB, point default traffic to 1:20:
-    tc qdisc add dev $IFUP handle 1: root htb default 20
+    tc qdisc add dev $IFUP handle 1: root htb default 20 || rc=$?
 
     # shape everything at $UPLINK speed - this prevents huge queues in your
     # DSL modem which destroy latency:
-    tc class add dev $IFUP parent 1: classid 1:1 htb rate ${UPLINK}kbit burst 6k
+    tc class add dev $IFUP parent 1: classid 1:1 htb rate ${UPLINK}kbit burst 6k || rc=$?
 
     # high prio class 1:10:
-    tc class add dev $IFUP parent 1:1 classid 1:10 htb rate ${UPLINK}kbit burst 6k prio 1
+    tc class add dev $IFUP parent 1:1 classid 1:10 htb rate ${UPLINK}kbit burst 6k prio 1 || rc=$?
 
     # bulk & default class 1:20 - gets slightly less traffic, and a lower priority:
-    tc class add dev $IFUP parent 1:1 classid 1:20 htb rate $((9*$UPLINK/10))kbit burst 6k prio 2
-    tc class add dev $IFUP parent 1:1 classid 1:30 htb rate $((8*$UPLINK/10))kbit burst 6k prio 2
+    tc class add dev $IFUP parent 1:1 classid 1:20 htb rate $((9*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
+    tc class add dev $IFUP parent 1:1 classid 1:30 htb rate $((8*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
 
     if test -n "$NETEM"; then
         # Delay/losses
-        tc qdisc add dev $IFUP parent 1:10 handle 10: netem $NETEM
-        tc qdisc add dev $IFUP parent 1:20 handle 20: netem $NETEM
-        tc qdisc add dev $IFUP parent 1:30 handle 30: netem $NETEM
+        tc qdisc add dev $IFUP parent 1:10 handle 10: netem $NETEM || rc=$?
+        tc qdisc add dev $IFUP parent 1:20 handle 20: netem $NETEM || rc=$?
+        tc qdisc add dev $IFUP parent 1:30 handle 30: netem $NETEM || rc=$?
     else
         # all get Stochastic Fairness:
-        tc qdisc add dev $IFUP parent 1:10 handle 10: sfq perturb 10
-        tc qdisc add dev $IFUP parent 1:20 handle 20: sfq perturb 10
-        tc qdisc add dev $IFUP parent 1:30 handle 30: sfq perturb 10
+        tc qdisc add dev $IFUP parent 1:10 handle 10: sfq perturb 10 || rc=$?
+        tc qdisc add dev $IFUP parent 1:20 handle 20: sfq perturb 10 || rc=$?
+        tc qdisc add dev $IFUP parent 1:30 handle 30: sfq perturb 10 || rc=$?
     fi
 
     # TOS Minimum Delay (ssh, NOT scp) in 1:10:
     tc filter add dev $IFUP parent 1:0 protocol ip prio 10 u32 \
-          match ip tos 0x10 0xff  flowid 1:10
+          match ip tos 0x10 0xff  flowid 1:10 || rc=$?
 
     # ICMP (ip protocol 1) in the interactive class 1:10 so we
     # can do measurements & impress our friends:
     tc filter add dev $IFUP parent 1:0 protocol ip prio 10 u32 \
-            match ip protocol 1 0xff flowid 1:10
+            match ip protocol 1 0xff flowid 1:10 || rc=$?
 
     # To speed up downloads while an upload is going on, put ACK packets in
     # the interactive class:
@@ -114,7 +115,7 @@ start() {
        match u8 0x05 0x0f at 0 \
        match u16 0x0000 0xffc0 at 2 \
        match u8 0x10 0xff at 33 \
-       flowid 1:10
+       flowid 1:10 || rc=$?
        # match:
        #  * u8: check by 8 bits
        #  * 0x10: value to be matched
@@ -125,19 +126,20 @@ start() {
 
     # rest is 'non-interactive' ie 'bulk' and ends up in 1:20
     tc filter add dev $IFUP parent 1: protocol ip prio 18 u32 \
-       match ip dst 0.0.0.0/0 flowid 1:20
+       match ip dst 0.0.0.0/0 flowid 1:20 || rc=$?
 
 
     ########## downlink #############
-    tc qdisc add dev $IFDOWN handle 1: root htb default 10
-    tc class add dev $IFDOWN parent 1: classid 1:1 htb rate ${DOWNLINK}kbit burst 10k
+    tc qdisc add dev $IFDOWN handle 1: root htb default 10 || rc=$?
+    tc class add dev $IFDOWN parent 1: classid 1:1 htb rate ${DOWNLINK}kbit burst 10k || rc=$?
     # high prio class 1:10:
-    tc class add dev $IFDOWN parent 1:1 classid 1:10 htb rate ${DOWNLINK}kbit burst 10k prio 1
+    tc class add dev $IFDOWN parent 1:1 classid 1:10 htb rate ${DOWNLINK}kbit burst 10k prio 1 || rc=$?
     if test -n "$NETEM"; then
-        tc qdisc add dev $IFDOWN parent 1:10 handle 10: netem $@NETEM
+        tc qdisc add dev $IFDOWN parent 1:10 handle 10: netem $@NETEM || rc=$?
     else
-        tc qdisc add dev $IFDOWN parent 1:10 handle 10: sfq perturb 10
+        tc qdisc add dev $IFDOWN parent 1:10 handle 10: sfq perturb 10 || rc=$?
     fi
+    return $rc
 }
 
 stop() {
