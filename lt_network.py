@@ -447,7 +447,11 @@ def set_wlan_power(value='auto'):
 
 # will be launched on the machine
 def get_external_ip():
-    ip = subprocess.check_output('dig +short myip.opendns.com @resolver1.opendns.com'.split(), universal_newlines=True)
+    try:
+        ip = subprocess.check_output('dig +short myip.opendns.com @resolver1.opendns.com'.split(), universal_newlines=True)
+    except:
+        my_print_err('Not able to get IP')
+        return False
     if ip:
-        return ip[:-1] # without the new line
+        return ip[:-1] # without the new line char
     return ip
