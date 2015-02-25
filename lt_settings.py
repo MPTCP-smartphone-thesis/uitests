@@ -21,8 +21,6 @@
 import os
 import sys
 
-from lt_utils import *
-
 ##################################################
 ##                    CONFIG                    ##
 ##################################################
@@ -181,36 +179,36 @@ def init():
     # Cannot have both SSH/Shadow socks proxy
     global WITH_SSH_TUNNEL, WITH_SHADOWSOCKS, SSH_TUNNEL_INSTALLED, SHADOWSOCKS_INSTALLED
     if WITH_SSH_TUNNEL and WITH_SHADOWSOCKS:
-        my_print_err("Cannot have both SSHTunnel and ShadowSocks: used ShadowSocks")
+        print("Cannot have both SSHTunnel and ShadowSocks: used ShadowSocks", file=sys.stderr)
         WITH_SSH_TUNNEL = False
 
     if WITH_SSH_TUNNEL and not SSH_TUNNEL_INSTALLED:
-        my_print_err("SSHTunnel not installed: switch to ShadowSocks if installed")
+        print("SSHTunnel not installed: switch to ShadowSocks if installed", file=sys.stderr)
         WITH_SSH_TUNNEL = False
         WITH_SHADOWSOCKS = SHADOWSOCKS_INSTALLED
 
     if WITH_SHADOWSOCKS and not SHADOWSOCKS_INSTALLED:
-        my_print_err("ShadowSocks not installed: switch to SSHTunnel if installed")
+        print("ShadowSocks not installed: switch to SSHTunnel if installed", file=sys.stderr)
         WITH_SHADOWSOCKS = False
         WITH_SSH_TUNNEL = SSH_TUNNEL_INSTALLED
 
     # Cannot use Backup if IPRoute doesn't support multipath option
     global WITH_MPTCP_BACKUP, IPROUTE_WITH_MULTIPATH
     if WITH_MPTCP_BACKUP and not IPROUTE_WITH_MULTIPATH:
-        my_print_err("Iproute not supporting multipath but using Backup mode: disable MPTCP with backup")
+        print("Iproute not supporting multipath but using Backup mode: disable MPTCP with backup", file=sys.stderr)
         WITH_MPTCP_BACKUP = False
 
     # LIMIT BW only if LIMIT_BW_WITH_*
     global LIMIT_BW_WITH_SHAPER, LIMIT_BW_WITH_WSHAPER, LIMIT_BW_WITH_RATE, LIMIT_BW, CTRL_WIFI, NETWORK_TESTS
     if LIMIT_BW:
         if not CTRL_WIFI:
-            my_print_err("Not controlling WiFi router: not able to limit bandwidth")
+            print("Not controlling WiFi router: not able to limit bandwidth", file=sys.stderr)
             sys.exit(1)
         elif LIMIT_BW_WITH_WSHAPER and NETWORK_TESTS.find('TC') >= 0:
-            my_print_err("WShaper doesn't support delays/losses")
+            print("WShaper doesn't support delays/losses", file=sys.stderr)
             sys.exit(1)
         elif not LIMIT_BW_WITH_SHAPER and not LIMIT_BW_WITH_WSHAPER and not LIMIT_BW_WITH_RATE:
-            my_print_err("No shaper detected, disable shaping")
+            print("No shaper detected, disable shaping", file=sys.stderr)
             LIMIT_BW = False
 
 def print_vars(file=sys.stdout):
