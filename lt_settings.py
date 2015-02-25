@@ -110,16 +110,16 @@ AVOID_POOR_CONNECTIONS_MPTCP = False
 #   1Mbps↓, 15Mbps↑ for router 1 (see IP_ROUTER) and 100kbps↓, 1.5Mbps↑ for router 2: [(1000, 15000), (100, 1500)]
 LIMIT_BW = False
 # Shaper mode, select the first one which is true
-LIMIT_BW_WITH_SHAPER = False # our script which also support losses/delays
+LIMIT_BW_WITH_SHAPER  = True  # our script which also support losses/delays
 LIMIT_BW_WITH_WSHAPER = False # losses/delays at the same time not supported!
-LIMIT_BW_WITH_RATE = True # TODO: switch to SHAPER when ready
+LIMIT_BW_WITH_RATE    = False # just use 'rate' without other rules
 WAN_IFACE = 'eth0.2' # UPLINK
 LAN_IFACE = 'wlan0'  # DOWNLING
 # Functions that can be launched just before/after each uitest
-LAUNCH_FUNC_INIT = False  # before start, in the current thread
+LAUNCH_FUNC_INIT  = False # before start, in the current thread
 LAUNCH_FUNC_START = False # in a new thread, just before launching the uitests
-LAUNCH_FUNC_END = False   # just after the uitest, in the current thread
-LAUNCH_FUNC_EXIT = False  # just after having stopped captures
+LAUNCH_FUNC_END   = False # just after the uitest, in the current thread
+LAUNCH_FUNC_EXIT  = False # just after having stopped captures
 # Extras args that could be added to each uitests (not the exceptions)
 LAUNCH_UITESTS_ARGS = False
 
