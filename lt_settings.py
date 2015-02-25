@@ -21,6 +21,8 @@
 import os
 import sys
 
+from lt_utils import *
+
 ##################################################
 ##                    CONFIG                    ##
 ##################################################
@@ -204,7 +206,7 @@ def init():
         if not CTRL_WIFI:
             my_print_err("Not controlling WiFi router: not able to limit bandwidth")
             sys.exit(1)
-        elif LIMIT_BW_WITH_WSHAPER and NETWORK_TESTS.find('TC') < 0:
+        elif LIMIT_BW_WITH_WSHAPER and NETWORK_TESTS.find('TC') >= 0:
             my_print_err("WShaper doesn't support delays/losses")
             sys.exit(1)
         elif not LIMIT_BW_WITH_SHAPER and not LIMIT_BW_WITH_WSHAPER and not LIMIT_BW_WITH_RATE:
