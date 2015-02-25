@@ -3,27 +3,47 @@
 # With the help of Nicolargo's limitbw script and OpenWRT's WShaper tool:
 # limitbw: http://blog.nicolargo.com/2009/03/simuler-un-lien-wan-sous-linux.html
 #
-#     ./shaper.sh ACTION IF [BWup BWdw [netem rules]]
+#     ./shaper.sh ACTION IFup IFdown [BWup BWdw [netem rules]]
 #
-# e.g.: ./shaper.sh start   eth0.2 2000 15000 delay 50ms 5ms loss 0.5% 25%
-#                                  kbps kbps
-#       ./shaper.sh chnetem eth0.2 delay 15ms 2ms loss 0.05% 5%
-#       ./shaper.sh stop    eth0.2
+# e.g.: ./shaper.sh start   eth0.2 wlan0 2000 15000 delay 50ms 5ms loss 0.5% 25%
+#                                  wlan0 kbps kbps
+#       ./shaper.sh chnetem eth0.2 wlan0 delay 15ms 2ms loss 0.05% 5%
+#       ./shaper.sh stop    eth0.2 wlan0
 
 test -n "$1" && ACTION=$1 && shift || ACTION='help'
 # Interface name (e.g. eth0.2)
-test -n "$1" && IF=$1 && shift || ACTION='help'
+test -n "$1" && IFUP=$1 && shift || ACTION='help'
+test -n "$1" && IFDOWN=$1 && shift || ACTION='help'
 
 MODULES='sch_ingress sch_sfq sch_htb cls_u32 act_police'
 
 # To be launched after having used 'start' method
-mgnetem() {
-    STATUS=$1
-    shift
-    echo "Netem: $STATUS : $@"
+addnetem() {
+    echo "Add Netem: $@"
     rc=0
-    tc qdisc $STATUS dev ifb0 root handle 1:0 netem $@ || rc=$?
-    tc qdisc $STATUS dev $IF  root handle 2:0 netem $@ || rc=$?
+    # upload
+    tc qdisc del dev $IFUP parent 1:10 handle 10: || rc=$?
+    tc qdisc add dev $IFUP parent 1:10 handle 10: netem $@ || rc=$?
+    tc qdisc del dev $IFUP parent 1:20 handle 20: || rc=$?
+    tc qdisc add dev $IFUP parent 1:20 handle 20: netem $@ || rc=$?
+    tc qdisc del dev $IFUP parent 1:30 handle 30: || rc=$?
+    tc qdisc add dev $IFUP parent 1:30 handle 30: netem $@ || rc=$?
+    # download
+    tc qdisc del dev $IFDOWN parent 1:10 handle 10: || rc=$?
+    tc qdisc add dev $IFDOWN parent 1:10 handle 10: netem $@ || rc=$?
+    return $rc
+}
+
+# To be launched after having used 'start' method
+chnetem() {
+    echo "hange Netem: $@"
+    rc=0
+    # upload
+    tc qdisc change dev $IFUP parent 1:10 handle 10: netem $@ || rc=$?
+    tc qdisc change dev $IFUP parent 1:20 handle 20: netem $@ || rc=$?
+    tc qdisc change dev $IFUP parent 1:30 handle 30: netem $@ || rc=$?
+    # download
+    tc qdisc change dev $IFDOWN parent 1:10 handle 10: netem $@ || rc=$?
     return $rc
 }
 
@@ -33,12 +53,14 @@ chbw() {
     DOWNLINK=$2
     echo "BW: $@"
     rc=0
-    tc class change dev $IF parent 1:  classid 1:1  htb rate ${UPLINK}kbit burst 6k || rc=$?
-    tc class change dev $IF parent 1:1 classid 1:10 htb rate ${UPLINK}kbit burst 6k prio 1 || rc=$?
-    tc class change dev $IF parent 1:1 classid 1:20 htb rate $((9*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
-    tc class change dev $IF parent 1:1 classid 1:30 htb rate $((8*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
-    tc filter change dev $IF parent ffff: protocol ip prio 50 u32 match ip src \
-       0.0.0.0/0 police rate ${DOWNLINK}kbit burst 10k drop flowid :1 || rc=$?
+    # Upload
+    tc class change dev $IFUP parent 1:  classid 1:1  htb rate ${UPLINK}kbit burst 6k || rc=$?
+    tc class change dev $IFUP parent 1:1 classid 1:10 htb rate ${UPLINK}kbit burst 6k prio 1 || rc=$?
+    tc class change dev $IFUP parent 1:1 classid 1:20 htb rate $((9*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
+    tc class change dev $IFUP parent 1:1 classid 1:30 htb rate $((8*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
+    # Download
+    tc class change dev $IFDOWN parent 1:  classid 1:1  htb rate ${DOWNLINK}kbit burst 10k || rc=$?
+    tc class change dev $IFDOWN parent 1:1 classid 1:10 htb rate ${DOWNLINK}kbit burst 10k prio 1 || rc=$?
     return $rc
 }
 
@@ -57,72 +79,75 @@ start() {
     ###### uplink
 
     # install root HTB, point default traffic to 1:20:
-    tc qdisc add dev $IF root handle 1: htb default 20
+    tc qdisc add dev $IFUP handle 1: root htb default 20
 
     # shape everything at $UPLINK speed - this prevents huge queues in your
     # DSL modem which destroy latency:
-    tc class add dev $IF parent 1: classid 1:1 htb rate ${UPLINK}kbit burst 6k
+    tc class add dev $IFUP parent 1: classid 1:1 htb rate ${UPLINK}kbit burst 6k
 
     # high prio class 1:10:
-    tc class add dev $IF parent 1:1 classid 1:10 htb rate ${UPLINK}kbit burst 6k prio 1
+    tc class add dev $IFUP parent 1:1 classid 1:10 htb rate ${UPLINK}kbit burst 6k prio 1
 
     # bulk & default class 1:20 - gets slightly less traffic, and a lower priority:
-    tc class add dev $IF parent 1:1 classid 1:20 htb rate $((9*$UPLINK/10))kbit burst 6k prio 2
-    tc class add dev $IF parent 1:1 classid 1:30 htb rate $((8*$UPLINK/10))kbit burst 6k prio 2
+    tc class add dev $IFUP parent 1:1 classid 1:20 htb rate $((9*$UPLINK/10))kbit burst 6k prio 2
+    tc class add dev $IFUP parent 1:1 classid 1:30 htb rate $((8*$UPLINK/10))kbit burst 6k prio 2
 
-    # all get Stochastic Fairness:
-    tc qdisc add dev $IF parent 1:10 handle 10: sfq perturb 10
-    tc qdisc add dev $IF parent 1:20 handle 20: sfq perturb 10
-    tc qdisc add dev $IF parent 1:30 handle 30: sfq perturb 10
+    if test -n "$NETEM"; then
+        # Delay/losses
+        tc qdisc add dev $IFUP parent 1:10 handle 10: netem $@NETEM
+        tc qdisc add dev $IFUP parent 1:20 handle 20: netem $@NETEM
+        tc qdisc add dev $IFUP parent 1:30 handle 30: netem $@NETEM
+    else
+        # all get Stochastic Fairness:
+        tc qdisc add dev $IFUP parent 1:10 handle 10: sfq perturb 10
+        tc qdisc add dev $IFUP parent 1:20 handle 20: sfq perturb 10
+        tc qdisc add dev $IFUP parent 1:30 handle 30: sfq perturb 10
+    fi
 
     # TOS Minimum Delay (ssh, NOT scp) in 1:10:
-    tc filter add dev $IF parent 1:0 protocol ip prio 10 u32 \
+    tc filter add dev $IFUP parent 1:0 protocol ip prio 10 u32 \
           match ip tos 0x10 0xff  flowid 1:10
 
     # ICMP (ip protocol 1) in the interactive class 1:10 so we
     # can do measurements & impress our friends:
-    tc filter add dev $IF parent 1:0 protocol ip prio 10 u32 \
+    tc filter add dev $IFUP parent 1:0 protocol ip prio 10 u32 \
             match ip protocol 1 0xff flowid 1:10
 
     # To speed up downloads while an upload is going on, put ACK packets in
     # the interactive class:
-    tc filter add dev $IF parent 1: protocol ip prio 10 u32 \
+    tc filter add dev $IFUP parent 1: protocol ip prio 10 u32 \
        match ip protocol 6 0xff \
        match u8 0x05 0x0f at 0 \
        match u16 0x0000 0xffc0 at 2 \
        match u8 0x10 0xff at 33 \
        flowid 1:10
+       # match:
+       #  * u8: check by 8 bits
+       #  * 0x10: value to be matched
+       #  * 0xff: mask on which the previous value has to be matched => here, exactly match 0x10 ; if mask = 0x0f, only match last 4 bits.
+       #  * at 33: at 33th byte since IP header start.
+       # Here: protocol TCP, header length == 5 (20 bytes), max total length header 64 bytes and pure ACK.
+       # source: http://lartc.org/howto/lartc.adv-filter.html
 
     # rest is 'non-interactive' ie 'bulk' and ends up in 1:20
-    tc filter add dev $IF parent 1: protocol ip prio 18 u32 \
+    tc filter add dev $IFUP parent 1: protocol ip prio 18 u32 \
        match ip dst 0.0.0.0/0 flowid 1:20
 
 
     ########## downlink #############
-    # slow downloads down to somewhat less than the real speed  to prevent
-    # queuing at our ISP. Tune to see how high you can set it.
-    # ISPs tend to have *huge* queues to make sure big downloads are fast
-    #
-    # attach ingress policer:
-    tc qdisc add dev $IF handle ffff: ingress
-
-    # filter *everything* to it (0.0.0.0/0), drop everything that's
-    # coming in too fast:
-    tc filter add dev $IF parent ffff: protocol ip prio 50 u32 match ip src \
-       0.0.0.0/0 police rate ${DOWNLINK}kbit burst 10k drop flowid :1
-
-    # test -n "$NETEM" && (mgnetem add $NETEM || rc=$?)
-    # mgbw add $UPLINK $DOWNLINK || rc=$?
-    #return $rc
+    tc qdisc add dev $IFDOWN handle 1: root htb default 20
+    tc class add dev $IFDOWN parent 1: classid 1:1 htb rate ${DOWNLINK}kbit burst 10k
+    # high prio class 1:10:
+    tc class add dev $IFDOWN parent 1:1 classid 1:10 htb rate ${DOWNLINK}kbit burst 10k prio 1
 }
 
 stop() {
-    tc qdisc del dev $IF root    2> /dev/null > /dev/null
-    tc qdisc del dev $IF ingress 2> /dev/null > /dev/null
-    ## not needed?
-    # for i in $MODULES; do
-    #     rmmod $i
-    # done
+    tc qdisc del dev $IFUP   root 2> /dev/null > /dev/null
+    tc qdisc del dev $IFDOWN root 2> /dev/null > /dev/null
+    # not needed?
+    for i in $MODULES; do
+        rmmod $i
+    done
     return $rc
 }
 
@@ -135,8 +160,12 @@ restart() {
 }
 
 show() {
-    tc -s qdisc ls dev $IF
-    tc -s class ls dev $IF
+    echo "Interface uplink: $IFUP"
+    tc -s qdisc ls dev $IFUP
+    tc -s class ls dev $IFUP
+    echo "Interface downlink: $IFDOWN"
+    tc -s qdisc ls dev $IFDOWN
+    tc -s class ls dev $IFDOWN
 }
 
 case "$ACTION" in
@@ -165,13 +194,13 @@ case "$ACTION" in
     addnetem)
         echo -n "Add Netem rules: "
         test -z "$1" && echo "No netem args, exit" && exit 1
-        mgnetem add $@ || exit $?
+        addnetem $@ || exit $?
         echo "done"
     ;;
     chnetem)
         echo -n "Change Netem rules: "
         test -z "$1" && echo "No netem args, exit" && exit 1
-        mgnetem change $@ || exit $?
+        chnetem $@ || exit $?
         echo "done"
     ;;
     chbw)
@@ -181,7 +210,7 @@ case "$ACTION" in
         echo "done"
     ;;
     *)
-        echo "Usage: $0 {start|stop|restart|show|addnetem|chnetem|chbw} IFace [BWup BWdw [netem rules]] [netem rules]"
+        echo "Usage: $0 {start|stop|restart|show|addnetem|chnetem|chbw} IFaceUp IFaceDown [BWup BWdw [netem rules]] [netem rules]"
     ;;
 esac
 
