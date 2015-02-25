@@ -29,7 +29,7 @@ addnetem() {
 
 # To be launched after having used 'start' method
 chnetem() {
-    echo "hange Netem: $@"
+    echo "Change Netem: $@"
     rc=0
     # upload
     tc qdisc change dev $IFUP parent 1:10 handle 10: netem $@ || rc=$?
@@ -87,9 +87,9 @@ start() {
 
     if test -n "$NETEM"; then
         # Delay/losses
-        tc qdisc add dev $IFUP parent 1:10 handle 10: netem $@NETEM
-        tc qdisc add dev $IFUP parent 1:20 handle 20: netem $@NETEM
-        tc qdisc add dev $IFUP parent 1:30 handle 30: netem $@NETEM
+        tc qdisc add dev $IFUP parent 1:10 handle 10: netem $NETEM
+        tc qdisc add dev $IFUP parent 1:20 handle 20: netem $NETEM
+        tc qdisc add dev $IFUP parent 1:30 handle 30: netem $NETEM
     else
         # all get Stochastic Fairness:
         tc qdisc add dev $IFUP parent 1:10 handle 10: sfq perturb 10
