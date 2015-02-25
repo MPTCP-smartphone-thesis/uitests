@@ -113,7 +113,8 @@ LIMIT_BW = False
 LIMIT_BW_WITH_SHAPER = False # our script which also support losses/delays
 LIMIT_BW_WITH_WSHAPER = False # losses/delays at the same time not supported!
 LIMIT_BW_WITH_RATE = True # TODO: switch to SHAPER when ready
-WAN_IFACE = 'eth0.2'
+WAN_IFACE = 'eth0.2' # UPLINK
+LAN_IFACE = 'wlan0'  # DOWNLING
 # Functions that can be launched just before/after each uitest
 LAUNCH_FUNC_INIT = False  # before start, in the current thread
 LAUNCH_FUNC_START = False # in a new thread, just before launching the uitests

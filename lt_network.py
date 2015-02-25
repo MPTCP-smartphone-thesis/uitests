@@ -389,43 +389,43 @@ def unlimit_bw_wshaper():
 
 # Our Shaper script: can manage delay/losses and change them dynamically
 
-def shaper_start(up, down, netem=False, iface=s.WAN_IFACE, ips=s.IP_ROUTER):
-    cmd = './shaper.sh start ' + iface + ' ' + str(up) + ' ' + str(down) + ' ' + (netem if netem else '')
+def shaper_start(up, down, netem=False, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, ips=s.IP_ROUTER):
+    cmd = './shaper.sh start ' + iface_up + ' ' + iface_down + str(up) + ' ' + str(down) + ' ' + (netem if netem else '')
     return router_shell(cmd, ips=ips)
 
-def shaper_stop(iface=s.WAN_IFACE):
-    return router_shell('./shaper.sh stop ' + iface)
+def shaper_stop(iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
+    return router_shell('./shaper.sh stop ' + iface_up + ' ' + iface_down)
 
-def shaper_enable_netem(netem, iface=s.WAN_IFACE):
-    return router_shell('./shaper.sh addnetem ' + iface + ' ' + netem)
+def shaper_enable_netem(netem, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
+    return router_shell('./shaper.sh addnetem ' + iface_up + ' ' + iface_down + ' ' + netem)
 
-def shaper_enable_netem_var(case, value1, value2=0, iface=s.WAN_IFACE):
+def shaper_enable_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
     if case == 'loss':
-        return shaper_enable_netem(loss_cmd(value1), iface=iface)
+        return shaper_enable_netem(loss_cmd(value1), iface_up=iface_up, iface_down=iface_down)
     elif case == 'delay':
-        return shaper_enable_netem(delay_cmd(value1), iface=iface)
+        return shaper_enable_netem(delay_cmd(value1), iface_up=iface_up, iface_down=iface_down)
     elif case == 'both':
-        return shaper_enable_netem(loss_cmd(value1) + delay_cmd(value2), iface=iface)
+        return shaper_enable_netem(loss_cmd(value1) + delay_cmd(value2), iface_up=iface_up, iface_down=iface_down)
     else:
         my_print_err("shaper_add_netem_var: case unknown - " + str(case))
         return False
 
-def shaper_change_netem(netem, iface=s.WAN_IFACE):
-    return router_shell('./shaper.sh chnetem ' + iface + ' ' + netem)
+def shaper_change_netem(netem, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
+    return router_shell('./shaper.sh chnetem ' + iface_up + ' ' + iface_down + ' ' + netem)
 
-def shaper_change_netem_var(case, value1, value2=0, iface=s.WAN_IFACE):
+def shaper_change_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
     if case == 'loss':
-        return shaper_change_netem(loss_cmd(value1), iface=iface)
+        return shaper_change_netem(loss_cmd(value1), iface_up=iface_up, iface_down=iface_down)
     elif case == 'delay':
-        return shaper_change_netem(delay_cmd(value1), iface=iface)
+        return shaper_change_netem(delay_cmd(value1), iface_up=iface_up, iface_down=iface_down)
     elif case == 'both':
-        return shaper_change_netem(loss_cmd(value1) + delay_cmd(value2), iface=iface)
+        return shaper_change_netem(loss_cmd(value1) + delay_cmd(value2), iface_up=iface_up, iface_down=iface_down)
     else:
         my_print_err("shaper_change_netem_var: case unknown - " + str(case))
         return False
 
-def shaper_change_bw(up, down, iface=s.WAN_IFACE):
-    return router_shell('./shaper.sh chbw ' + iface + ' ' + str(up) + ' ' + str(down))
+def shaper_change_bw(up, down, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
+    return router_shell('./shaper.sh chbw ' + iface_up + ' ' + iface_down + ' ' + str(up) + ' ' + str(down))
 
 # Wireless
 
