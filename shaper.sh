@@ -29,7 +29,7 @@ addnetem() {
 
 # To be launched after having used 'start' method
 chnetem() {
-    echo "Change Netem: $@"
+    echo -n "Change Netem: $@ "
     rc=0
     # upload
     tc qdisc change dev $IFUP parent 1:10 handle 10: netem $@ || rc=$?
@@ -44,7 +44,7 @@ chnetem() {
 chbw() {
     UPLINK=$1
     DOWNLINK=$2
-    echo "BW: $@"
+    echo -n "BW: $@ "
     rc=0
     # Upload
     tc class change dev $IFUP parent 1:  classid 1:1  htb rate ${UPLINK}kbit burst 6k || rc=$?
@@ -65,6 +65,7 @@ start() {
     NETEM="$@"
 
     for i in $MODULES; do
+        # hide/ignore errors
         modprobe $i > /dev/null
     done
 
