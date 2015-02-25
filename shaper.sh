@@ -14,7 +14,7 @@ test -n "$1" && ACTION=$1 && shift || ACTION='help'
 # Interface name (e.g. eth0.2)
 test -n "$1" && IF=$1 && shift || ACTION='help'
 
-MODULES='sch_ingress sch_sfq sch_htb cls_u32 act_police ifb'
+MODULES='sch_ingress sch_sfq sch_htb cls_u32 act_police'
 
 # To be launched after having used 'start' method
 mgnetem() {
@@ -28,20 +28,24 @@ mgnetem() {
 }
 
 # To be launched after having used 'start' method: mgbw add 1000 15000 => up: 1M
-mgbw() {
-    STATUS=$1
-    shift
-    echo "BW: $STATUS : $@"
+chbw() {
+    UPLINK=$1
+    DOWNLINK=$2
+    echo "BW: $@"
     rc=0
-    tc qdisc $STATUS dev $IF  parent 2:1 handle 10: tbf rate ${1}kbit buffer 3200 limit 6000 || rc=$?
-    tc qdisc $STATUS dev ifb0 parent 1:1 handle 10: tbf rate ${2}kbit buffer 3200 limit 6000 || rc=$?
+    tc class change dev $IF parent 1:  classid 1:1  htb rate ${UPLINK}kbit burst 6k || rc=$?
+    tc class change dev $IF parent 1:1 classid 1:10 htb rate ${UPLINK}kbit burst 6k prio 1 || rc=$?
+    tc class change dev $IF parent 1:1 classid 1:20 htb rate $((9*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
+    tc class change dev $IF parent 1:1 classid 1:30 htb rate $((8*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
+    tc filter change dev $IF parent ffff: protocol ip prio 50 u32 match ip src \
+       0.0.0.0/0 police rate ${DOWNLINK}kbit burst 10k drop flowid :1 || rc=$?
     return $rc
 }
 
 start() {
-    BWU=$1
+    UPLINK=$1
     shift
-    BWD=$1
+    DOWNLINK=$1
     shift
     NETEM="$@"
 
@@ -49,40 +53,76 @@ start() {
         modprobe $i > /dev/null
     done
 
-    # Download: use virtual iface, redirect egress traffic to it
-    rc=0
-    ifconfig ifb0 up
-    tc qdisc add dev $IF ingress || rc=$?
-    tc filter add dev $IF parent ffff: protocol ip u32 match u32 0 0 flowid 1:1 action mirred egress redirect dev ifb0 || rc=$?
+    # From OpenWRT's WShaper script:
+    ###### uplink
 
-    test -n "$NETEM" && (mgnetem add $NETEM || rc=$?)
-    mgbw add $BWU $BWD || rc=$?
-    return $rc
+    # install root HTB, point default traffic to 1:20:
+    tc qdisc add dev $IF root handle 1: htb default 20
+
+    # shape everything at $UPLINK speed - this prevents huge queues in your
+    # DSL modem which destroy latency:
+    tc class add dev $IF parent 1: classid 1:1 htb rate ${UPLINK}kbit burst 6k
+
+    # high prio class 1:10:
+    tc class add dev $IF parent 1:1 classid 1:10 htb rate ${UPLINK}kbit burst 6k prio 1
+
+    # bulk & default class 1:20 - gets slightly less traffic, and a lower priority:
+    tc class add dev $IF parent 1:1 classid 1:20 htb rate $((9*$UPLINK/10))kbit burst 6k prio 2
+    tc class add dev $IF parent 1:1 classid 1:30 htb rate $((8*$UPLINK/10))kbit burst 6k prio 2
+
+    # all get Stochastic Fairness:
+    tc qdisc add dev $IF parent 1:10 handle 10: sfq perturb 10
+    tc qdisc add dev $IF parent 1:20 handle 20: sfq perturb 10
+    tc qdisc add dev $IF parent 1:30 handle 30: sfq perturb 10
+
+    # TOS Minimum Delay (ssh, NOT scp) in 1:10:
+    tc filter add dev $IF parent 1:0 protocol ip prio 10 u32 \
+          match ip tos 0x10 0xff  flowid 1:10
+
+    # ICMP (ip protocol 1) in the interactive class 1:10 so we
+    # can do measurements & impress our friends:
+    tc filter add dev $IF parent 1:0 protocol ip prio 10 u32 \
+            match ip protocol 1 0xff flowid 1:10
+
+    # To speed up downloads while an upload is going on, put ACK packets in
+    # the interactive class:
+    tc filter add dev $IF parent 1: protocol ip prio 10 u32 \
+       match ip protocol 6 0xff \
+       match u8 0x05 0x0f at 0 \
+       match u16 0x0000 0xffc0 at 2 \
+       match u8 0x10 0xff at 33 \
+       flowid 1:10
+
+    # rest is 'non-interactive' ie 'bulk' and ends up in 1:20
+    tc filter add dev $IF parent 1: protocol ip prio 18 u32 \
+       match ip dst 0.0.0.0/0 flowid 1:20
+
+
+    ########## downlink #############
+    # slow downloads down to somewhat less than the real speed  to prevent
+    # queuing at our ISP. Tune to see how high you can set it.
+    # ISPs tend to have *huge* queues to make sure big downloads are fast
+    #
+    # attach ingress policer:
+    tc qdisc add dev $IF handle ffff: ingress
+
+    # filter *everything* to it (0.0.0.0/0), drop everything that's
+    # coming in too fast:
+    tc filter add dev $IF parent ffff: protocol ip prio 50 u32 match ip src \
+       0.0.0.0/0 police rate ${DOWNLINK}kbit burst 10k drop flowid :1
+
+    # test -n "$NETEM" && (mgnetem add $NETEM || rc=$?)
+    # mgbw add $UPLINK $DOWNLINK || rc=$?
+    #return $rc
 }
 
 stop() {
-    for i in $MODULES; do
-        modprobe $i > /dev/null
-    done
-
-    rc=0
-    echo "Ingress"
-    tc qdisc del dev $IF ingress || rc=$?
-    echo "filter"
-    tc filter del dev $IF parent ffff: || rc=$?
-    echo "parents"
-    tc qdisc del dev $IF parent 2:1 || rc=$?
-    tc qdisc del dev eth0.2 parent 1:1 || rc=$?
-    echo "root"
-    tc qdisc del dev ifb0 root || rc=$?
-    tc qdisc del dev $IF root || rc=$?
-
-#    ifconfig ifb0 down # can be a problem
-
-    # not needed
-#    for i in $MODULES; do
-#        rmmod $i
-#    done
+    tc qdisc del dev $IF root    2> /dev/null > /dev/null
+    tc qdisc del dev $IF ingress 2> /dev/null > /dev/null
+    ## not needed?
+    # for i in $MODULES; do
+    #     rmmod $i
+    # done
     return $rc
 }
 
@@ -95,11 +135,8 @@ restart() {
 }
 
 show() {
-    echo "Download link:"
-    tc -s qdisc ls dev ifb0
-
-    echo "Upload link:"
     tc -s qdisc ls dev $IF
+    tc -s class ls dev $IF
 }
 
 case "$ACTION" in
@@ -140,7 +177,7 @@ case "$ACTION" in
     chbw)
         echo -n "Change bandwidth: "
         test -z "$1" -o -z "$2" && echo "No up and down args, exit" && exit 1
-        mgbw change $1 $2 || exit $?
+        chbw $1 $2 || exit $?
         echo "done"
     ;;
     *)
