@@ -110,15 +110,16 @@ AVOID_POOR_CONNECTIONS_MPTCP = False
 #   1Mbps↓, 15Mbps↑ for router 1 (see IP_ROUTER) and 100kbps↓, 1.5Mbps↑ for router 2: [(1000, 15000), (100, 1500)]
 LIMIT_BW = False
 # Shaper mode, select the first one which is true
-LIMIT_BW_WITH_SHAPER = False # our script which also support losses/delays
+LIMIT_BW_WITH_SHAPER  = True  # our script which also support losses/delays
 LIMIT_BW_WITH_WSHAPER = False # losses/delays at the same time not supported!
-LIMIT_BW_WITH_RATE = True # TODO: switch to SHAPER when ready
-WAN_IFACE = 'eth0.2'
+LIMIT_BW_WITH_RATE    = False # just use 'rate' without other rules
+WAN_IFACE = 'eth0.2' # UPLINK
+LAN_IFACE = 'wlan0'  # DOWNLING
 # Functions that can be launched just before/after each uitest
-LAUNCH_FUNC_INIT = False  # before start, in the current thread
+LAUNCH_FUNC_INIT  = False # before start, in the current thread
 LAUNCH_FUNC_START = False # in a new thread, just before launching the uitests
-LAUNCH_FUNC_END = False   # just after the uitest, in the current thread
-LAUNCH_FUNC_EXIT = False  # just after having stopped captures
+LAUNCH_FUNC_END   = False # just after the uitest, in the current thread
+LAUNCH_FUNC_EXIT  = False # just after having stopped captures
 # Extras args that could be added to each uitests (not the exceptions)
 LAUNCH_UITESTS_ARGS = False
 
@@ -179,36 +180,36 @@ def init():
     # Cannot have both SSH/Shadow socks proxy
     global WITH_SSH_TUNNEL, WITH_SHADOWSOCKS, SSH_TUNNEL_INSTALLED, SHADOWSOCKS_INSTALLED
     if WITH_SSH_TUNNEL and WITH_SHADOWSOCKS:
-        my_print_err("Cannot have both SSHTunnel and ShadowSocks: used ShadowSocks")
+        print("Cannot have both SSHTunnel and ShadowSocks: used ShadowSocks", file=sys.stderr)
         WITH_SSH_TUNNEL = False
 
     if WITH_SSH_TUNNEL and not SSH_TUNNEL_INSTALLED:
-        my_print_err("SSHTunnel not installed: switch to ShadowSocks if installed")
+        print("SSHTunnel not installed: switch to ShadowSocks if installed", file=sys.stderr)
         WITH_SSH_TUNNEL = False
         WITH_SHADOWSOCKS = SHADOWSOCKS_INSTALLED
 
     if WITH_SHADOWSOCKS and not SHADOWSOCKS_INSTALLED:
-        my_print_err("ShadowSocks not installed: switch to SSHTunnel if installed")
+        print("ShadowSocks not installed: switch to SSHTunnel if installed", file=sys.stderr)
         WITH_SHADOWSOCKS = False
         WITH_SSH_TUNNEL = SSH_TUNNEL_INSTALLED
 
     # Cannot use Backup if IPRoute doesn't support multipath option
     global WITH_MPTCP_BACKUP, IPROUTE_WITH_MULTIPATH
     if WITH_MPTCP_BACKUP and not IPROUTE_WITH_MULTIPATH:
-        my_print_err("Iproute not supporting multipath but using Backup mode: disable MPTCP with backup")
+        print("Iproute not supporting multipath but using Backup mode: disable MPTCP with backup", file=sys.stderr)
         WITH_MPTCP_BACKUP = False
 
     # LIMIT BW only if LIMIT_BW_WITH_*
     global LIMIT_BW_WITH_SHAPER, LIMIT_BW_WITH_WSHAPER, LIMIT_BW_WITH_RATE, LIMIT_BW, CTRL_WIFI, NETWORK_TESTS
     if LIMIT_BW:
         if not CTRL_WIFI:
-            my_print_err("Not controlling WiFi router: not able to limit bandwidth")
+            print("Not controlling WiFi router: not able to limit bandwidth", file=sys.stderr)
             sys.exit(1)
-        elif LIMIT_BW_WITH_WSHAPER and NETWORK_TESTS.find('TC') < 0:
-            my_print_err("WShaper doesn't support delays/losses")
+        elif LIMIT_BW_WITH_WSHAPER and NETWORK_TESTS.find('TC') >= 0:
+            print("WShaper doesn't support delays/losses", file=sys.stderr)
             sys.exit(1)
         elif not LIMIT_BW_WITH_SHAPER and not LIMIT_BW_WITH_WSHAPER and not LIMIT_BW_WITH_RATE:
-            my_print_err("No shaper detected, disable shaping")
+            print("No shaper detected, disable shaping", file=sys.stderr)
             LIMIT_BW = False
 
 def print_vars(file=sys.stdout):
