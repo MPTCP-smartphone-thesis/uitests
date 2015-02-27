@@ -9,6 +9,7 @@ test -n "$1" && IFUP=$1 && shift || ACTION='errorif'
 test -n "$1" && IFDOWN=$1 && shift || ACTION='errorif'
 
 MODULES='sch_ingress sch_sfq sch_htb cls_u32 act_police'
+FILTER=0
 
 # if no delay, add 0ms delay to add a queue.
 get_netem_delay() {
@@ -25,8 +26,10 @@ mg_netem_up() {
     rc=0
 
     tc qdisc $STATUS dev $IFUP parent 1:10 handle 10: netem $NETEM || rc=$?
-    tc qdisc $STATUS dev $IFUP parent 1:20 handle 20: netem $NETEM || rc=$?
-    tc qdisc $STATUS dev $IFUP parent 1:30 handle 30: netem $NETEM || rc=$?
+    if test $FILTER -eq 1; then
+        tc qdisc $STATUS dev $IFUP parent 1:20 handle 20: netem $NETEM || rc=$?
+        tc qdisc $STATUS dev $IFUP parent 1:30 handle 30: netem $NETEM || rc=$?
+    fi
 
     return $rc
 }
@@ -65,9 +68,11 @@ mg_bw_up() {
     # high prio class 1:10:
     tc class $STATUS dev $IFUP parent 1:1 classid 1:10 htb rate ${UPLINK}kbit burst 6k prio 1 || rc=$?
 
-    # bulk & default class 1:20 - gets slightly less traffic, and a lower priority:
-    tc class $STATUS dev $IFUP parent 1:1 classid 1:20 htb rate $((9*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
-    tc class $STATUS dev $IFUP parent 1:1 classid 1:30 htb rate $((8*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
+    if test $FILTER -eq 1; then
+        # bulk & default class 1:20 - gets slightly less traffic, and a lower priority:
+        tc class $STATUS dev $IFUP parent 1:1 classid 1:20 htb rate $((9*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
+        tc class $STATUS dev $IFUP parent 1:1 classid 1:30 htb rate $((8*$UPLINK/10))kbit burst 6k prio 2 || rc=$?
+    fi
 
     return $rc
 }
@@ -114,41 +119,41 @@ start() {
     ###### uplink
 
     # install root HTB, point default traffic to 1:20:
-    tc qdisc add dev $IFUP handle 1: root htb default 20 || rc=$?
-
+    test $FILTER -eq 1 && DEFAULT=20 || DEFAULT=10
+    tc qdisc add dev $IFUP handle 1: root htb default $DEFAULT || rc=$?
     mg_bw_up add $UPLINK || rc=$?
-
-    # if no delay, add 0ms delay to add a queue.
     mg_netem_up add $NETEM || rc=$?
 
-    # TOS Minimum Delay (ssh, NOT scp) in 1:10:
-    tc filter add dev $IFUP parent 1:0 protocol ip prio 10 u32 \
-          match ip tos 0x10 0xff  flowid 1:10 || rc=$?
+    if test $FILTER -eq 1; then
+        # TOS Minimum Delay (ssh, NOT scp) in 1:10:
+        tc filter add dev $IFUP parent 1:0 protocol ip prio 10 u32 \
+            match ip tos 0x10 0xff  flowid 1:10 || rc=$?
 
-    # ICMP (ip protocol 1) in the interactive class 1:10 so we
-    # can do measurements & impress our friends:
-    tc filter add dev $IFUP parent 1:0 protocol ip prio 10 u32 \
+        # ICMP (ip protocol 1) in the interactive class 1:10 so we
+        # can do measurements & impress our friends:
+        tc filter add dev $IFUP parent 1:0 protocol ip prio 10 u32 \
             match ip protocol 1 0xff flowid 1:10 || rc=$?
 
-    # To speed up downloads while an upload is going on, put ACK packets in
-    # the interactive class:
-    tc filter add dev $IFUP parent 1: protocol ip prio 10 u32 \
-       match ip protocol 6 0xff \
-       match u8 0x05 0x0f at 0 \
-       match u16 0x0000 0xffc0 at 2 \
-       match u8 0x10 0xff at 33 \
-       flowid 1:10 || rc=$?
-       # match:
-       #  * u8: check by 8 bits
-       #  * 0x10: value to be matched
-       #  * 0xff: mask on which the previous value has to be matched => here, exactly match 0x10 ; if mask = 0x0f, only match last 4 bits.
-       #  * at 33: at 33th byte since IP header start.
-       # Here: protocol TCP, header length == 5 (20 bytes), max total length header 64 bytes and pure ACK.
-       # source: http://lartc.org/howto/lartc.adv-filter.html
+        # To speed up downloads while an upload is going on, put ACK packets in
+        # the interactive class:
+        tc filter add dev $IFUP parent 1: protocol ip prio 10 u32 \
+            match ip protocol 6 0xff \
+            match u8 0x05 0x0f at 0 \
+            match u16 0x0000 0xffc0 at 2 \
+            match u8 0x10 0xff at 33 \
+            flowid 1:10 || rc=$?
+            # match:
+            #  * u8: check by 8 bits
+            #  * 0x10: value to be matched
+            #  * 0xff: mask on which the previous value has to be matched => here, exactly match 0x10 ; if mask = 0x0f, only match last 4 bits.
+            #  * at 33: at 33th byte since IP header start.
+            # Here: protocol TCP, header length == 5 (20 bytes), max total length header 64 bytes and pure ACK.
+            # source: http://lartc.org/howto/lartc.adv-filter.html
 
-    # rest is 'non-interactive' ie 'bulk' and ends up in 1:20
-    tc filter add dev $IFUP parent 1: protocol ip prio 18 u32 \
-       match ip dst 0.0.0.0/0 flowid 1:20 || rc=$?
+        # rest is 'non-interactive' ie 'bulk' and ends up in 1:20
+        tc filter add dev $IFUP parent 1: protocol ip prio 18 u32 \
+            match ip dst 0.0.0.0/0 flowid 1:20 || rc=$?
+    fi
 
 
     ########## downlink #############
