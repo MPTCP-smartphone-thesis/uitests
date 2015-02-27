@@ -397,7 +397,7 @@ def shaper_stop(iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
     return router_shell('./shaper.sh stop ' + iface_up + ' ' + iface_down)
 
 def shaper_enable_netem(netem, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
-    return router_shell('./shaper.sh addnetem ' + iface_up + ' ' + iface_down + ' ' + netem)
+    return router_shell('./shaper.sh netem ' + iface_up + ' ' + iface_down + ' ' + netem)
 
 def shaper_enable_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
     if case == 'loss':
@@ -411,7 +411,7 @@ def shaper_enable_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_
         return False
 
 def shaper_change_netem(netem, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
-    return router_shell('./shaper.sh chnetem ' + iface_up + ' ' + iface_down + ' ' + netem)
+    return router_shell('./shaper.sh netem ' + iface_up + ' ' + iface_down + ' ' + netem)
 
 def shaper_change_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
     if case == 'loss':
