@@ -87,8 +87,9 @@ SHADOWSOCKS_PORT = 1080
 CAPTURE_ON_ANY = True # useful to get ack retransmit, etc.
 # Capture on 'lo' iface (with filters)
 CAPTURE_ON_LO = True  # useful to get real server addresses
-# IP Proxy: when capturing on 'any', only catch TCP packages from/to this IP
-IP_PROXY = False
+# IP/port Proxy: when capturing on 'any', only catch TCP packages from/to this IP and/or port
+PROXY_IP = False
+PROXY_PORT = False
 
 # Timeout for each test which is launched: 3
 TIMEOUT = 60*3

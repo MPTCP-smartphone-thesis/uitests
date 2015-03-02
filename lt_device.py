@@ -376,8 +376,11 @@ def start_capture_device(arg_pcap, android_pcap_dir, net_name):
     i = 1
     if s.CAPTURE_ON_ANY:
         tcp_filter = 'tcp'
-        if s.IP_PROXY:
-            tcp_filter += ' and ip host ' + s.IP_PROXY
+        # To not have duplicated data on ANY and remove unwanted traffic
+        if s.PROXY_IP:
+            tcp_filter += ' and ip host ' + s.PROXY_IP
+        if s.PROXY_PORT:
+            tcp_filter += ' and port ' + str(s.PROXY_PORT)
         if net_name.startswith('wlan'):
             iface = "wlan0"
         elif net_name.startswith('rmnet'):
