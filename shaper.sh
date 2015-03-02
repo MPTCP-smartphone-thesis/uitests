@@ -14,7 +14,7 @@ FILTER=0
 # if no delay, add 0ms delay to add a queue.
 get_netem_delay() {
     NETEM="$@"
-    test "${NETEM#*delay}" = "$NETEM" && NETEM="$NETEM delay 0ms limit 70000" # (10M*7m)
+    test "${NETEM#*delay}" = "$NETEM" && NETEM="$NETEM delay 0ms" # limit 70000" # (10M*7m)
     echo "$NETEM"
 }
 
