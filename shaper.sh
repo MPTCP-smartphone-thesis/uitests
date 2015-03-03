@@ -8,7 +8,7 @@ test -n "$1" && ACTION=$1 && shift || ACTION='help'
 test -n "$1" && IFUP=$1 && shift || ACTION='errorif'
 test -n "$1" && IFDOWN=$1 && shift || ACTION='errorif'
 
-MODULES='sch_ingress sch_sfq sch_htb cls_u32 act_police'
+MODULES='sch_netem sch_htb cls_u32 act_police'
 FILTER=0
 
 # if no delay, add 0ms delay to add a queue.
