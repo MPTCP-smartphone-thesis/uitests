@@ -46,6 +46,6 @@ def reload(module=None):
         importlib.reload(s)
         importlib.reload(dev)
         importlib.reload(net)
-        importlib.reload(TCP)
+        # importlib.reload(TCP)
 
 embed()
