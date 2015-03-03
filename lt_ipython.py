@@ -38,7 +38,7 @@ import lt_network as net
 from lt_tcp import TCP
 from lt_utils import *
 
-def reload(module):
+def reload(module=None):
     if module:
         importlib.reload(module)
     else:
