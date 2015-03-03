@@ -264,8 +264,11 @@ def router_send_file(file, chmod=False, ips=s.IP_ROUTER):
 def get_value_between(string, start, end):
     index = string.find(start)
     if index >= 0:
-        return string[index+1:string.index(end, index+1)]
-    return False
+        try:
+            return int(string[index+1:string.index(end, index+1)])
+        except:
+            return 0
+    return 0
 
 def loss_cmd(value):
     if value:
