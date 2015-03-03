@@ -9,6 +9,10 @@ CORES=2 # just used two threads: we need to lock for matplotlib, no need to cons
 #CORES=$(grep -c "^processor" /proc/cpuinfo)
 #CORES=$(($CORES + $CORES/2)) # we have locks which take time
 
+# increase limit to avoid crashes of mptcptrace (it will open a lot of files)
+ulimit -n 4096 # default max value
+ulimit -n 51200 # try a bigger one
+
 cd "$ANALYSE_DIR"
 
 > $FILE
