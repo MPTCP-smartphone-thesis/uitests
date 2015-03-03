@@ -290,6 +290,7 @@ for tcp_mode in tcp_list:
         # Check if we need to simulate errors
         netem = False
         index = name.find('TC')
+        delay = 0
         if index >= 0:
             if not s.CTRL_WIFI:
                 my_print_err('We do not control the WiFi router, skip this test')
@@ -300,7 +301,8 @@ for tcp_mode in tcp_list:
                 # Losses
                 netem = net.loss_cmd(net.get_value_between(tc, 'L', 'p'))
                 # Delay
-                netem += net.delay_cmd(net.get_value_between(tc, 'D', 'm'))
+                delay = net.get_value_between(tc, 'D', 'm')
+                netem += net.delay_cmd(delay)
 
         # Network of the device
         if name == 'wlan': # net_mode == Network.wlan: cannot use this dynamic enum
@@ -327,10 +329,10 @@ for tcp_mode in tcp_list:
         if s.LIMIT_BW:
             if s.LIMIT_BW_WITH_SHAPER:
                 if isinstance(s.LIMIT_BW[0], int):
-                    net.shaper_start(s.LIMIT_BW[0], s.LIMIT_BW[1], netem=netem) # netem can be False
+                    net.shaper_start(s.LIMIT_BW[0], s.LIMIT_BW[1], netem=netem, delay=delay) # netem can be False
                 else: # different limit per router
                     for id_router in range(len(s.LIMIT_BW)):
-                        net.shaper_start(s.LIMIT_BW[id_router][0], s.LIMIT_BW[id_router][1], netem=netem, ips=[s.IP_ROUTER[id_router]])
+                        net.shaper_start(s.LIMIT_BW[id_router][0], s.LIMIT_BW[id_router][1], netem=netem, delay=delay, ips=[s.IP_ROUTER[id_router]])
             elif s.LIMIT_BW_WITH_WSHAPER:
                 net.limit_bw_wshaper(s.LIMIT_BW[0], s.LIMIT_BW[1])
             elif s.LIMIT_BW_WITH_RATE:

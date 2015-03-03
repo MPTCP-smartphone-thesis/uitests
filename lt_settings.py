@@ -90,6 +90,8 @@ CAPTURE_ON_LO = True  # useful to get real server addresses
 # IP/port Proxy: when capturing on 'any', only catch TCP packages from/to this IP and/or port
 PROXY_IP = False
 PROXY_PORT = False
+# Mean value for a RTT to the proxy (in ms)
+PROXY_RTT = 7
 
 # Timeout for each test which is launched: 3
 TIMEOUT = 60*3

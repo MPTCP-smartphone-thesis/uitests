@@ -14,21 +14,22 @@ FILTER=0
 # if no delay, add 0ms delay to add a queue.
 get_netem_delay() {
     NETEM="$@"
-    test "${NETEM#*delay}" = "$NETEM" && NETEM="$NETEM delay 0ms" # limit 70000" # (10M*7m)
+    test "${NETEM#*delay}" = "$NETEM" && NETEM="$NETEM delay 0ms" # limit 4375" # (10M/8*7m/2)
     echo "$NETEM"
 }
 
 mg_netem_up() {
     STATUS=$1
     shift
-    NETEM="$@"
-    NETEM=$(get_netem_delay $NETEM)
+    LIMIT=$1
+    shift
+    NETEM="$(get_netem_delay $@)"
     rc=0
 
-    tc qdisc $STATUS dev $IFUP parent 1:10 handle 10: netem $NETEM || rc=$?
+    tc qdisc $STATUS dev $IFUP parent 1:10 handle 10: netem $NETEM limit $LIMIT || rc=$?
     if test $FILTER -eq 1; then
-        tc qdisc $STATUS dev $IFUP parent 1:20 handle 20: netem $NETEM || rc=$?
-        tc qdisc $STATUS dev $IFUP parent 1:30 handle 30: netem $NETEM || rc=$?
+        tc qdisc $STATUS dev $IFUP parent 1:20 handle 20: netem $NETEM limit $((9*$LIMIT/10)) || rc=$?
+        tc qdisc $STATUS dev $IFUP parent 1:30 handle 30: netem $NETEM limit $((8*$LIMIT/10)) || rc=$?
     fi
 
     return $rc
@@ -37,8 +38,9 @@ mg_netem_up() {
 mg_netem_down() {
     STATUS=$1
     shift
-    NETEM="$@"
-    NETEM=$(get_netem_delay $NETEM)
+    LIMIT=$1
+    shift
+    NETEM="$(get_netem_delay $@) limit $LIMIT"
     rc=0
 
     tc qdisc $STATUS dev $IFDOWN parent 1:10 handle 10: netem $NETEM || rc=$?
@@ -48,11 +50,15 @@ mg_netem_down() {
 
 # To be launched after having used 'start' method
 netem() {
+    LIMIT_UP=$1
+    shift
+    LIMIT_DW=$1
+    shift
     NETEM="$@"
     echo -n "Change Netem: $NETEM "
     rc=0
-    mg_netem_up change $NETEM || rc=$?
-    mg_netem_down change $NETEM || rc=$?
+    mg_netem_up change $LIMIT_UP $NETEM || rc=$?
+    mg_netem_down change $LIMIT_DW $NETEM || rc=$?
     return $rc
 }
 
@@ -103,6 +109,10 @@ ch_bw() {
 }
 
 start() {
+    LIMIT_UP=$1
+    shift
+    LIMIT_DW=$1
+    shift
     UPLINK=$1
     shift
     DOWNLINK=$1
@@ -122,7 +132,7 @@ start() {
     test $FILTER -eq 1 && DEFAULT=20 || DEFAULT=10
     tc qdisc add dev $IFUP handle 1: root htb default $DEFAULT || rc=$?
     mg_bw_up add $UPLINK || rc=$?
-    mg_netem_up add $NETEM || rc=$?
+    mg_netem_up add $LIMIT_UP $NETEM || rc=$?
 
     if test $FILTER -eq 1; then
         # TOS Minimum Delay (ssh, NOT scp) in 1:10:
@@ -159,7 +169,7 @@ start() {
     ########## downlink #############
     tc qdisc add dev $IFDOWN handle 1: root htb default 10 || rc=$?
     mg_bw_down add $DOWNLINK || rc=$?
-    mg_netem_down add $NETEM || rc=$?
+    mg_netem_down add $LIMIT_DW $NETEM || rc=$?
     return $rc
 }
 
@@ -193,12 +203,18 @@ show() {
 }
 
 usage() {
-    echo "Usage: $0 {start|stop|restart|show|netem|chbw} IFaceUp IFaceDown [BWup BWdw [netem rules]] [netem rules]"
+    echo "Usage: $0 {start|stop|restart|show|netem|chbw} IFaceUp IFaceDw [limitUp limitDw [BWup BWdw] [netem rules]]"
+    echo
+    echo "  * IFaceUp / IFaceDw is the interface corresponding to uplink (wan) / downlink (lan)"
+    echo "  * limitUp / limitDw is the netem limit's option for the uplink (wan) / downlink (lan): bandwidth (bytes/sec) * RTT/2 (sec)"
+    echo "  * BWup / BWdw is the bandwidth allocated for the uplink (wan) / downlink (lan)"
+    echo "  * netem rules: to add delay/losses but not rate/limit. See 'man netem'"
     echo
     echo "Examples:"
-    echo "    ./$0 start eth0.2 wlan0 2000 15000 delay 50ms 5ms loss 0.5% 25%"
-    echo "                            kbps kbps"
-    echo "    ./$0 netem eth0.2 wlan0 delay 15ms 2ms loss 0.05% 5%"
+    echo "    ./$0 start eth0.2 wlan0 1750 13125 2000 15000"
+    echo "    ./$0 start eth0.2 wlan0 13375 100312 2000 15000 delay 50ms 5ms loss 0.5% 25%"
+    echo "                            limits       kbps kbps  netem"
+    echo "    ./$0 netem eth0.2 wlan0 4625 34687 delay 15ms 2ms loss 0.05% 5%"
     echo "    ./$0 stop  eth0.2 wlan0"
 }
 

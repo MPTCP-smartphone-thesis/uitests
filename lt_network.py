@@ -392,37 +392,49 @@ def unlimit_bw_wshaper():
 
 # Our Shaper script: can manage delay/losses and change them dynamically
 
-def shaper_start(up, down, netem=False, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, ips=s.IP_ROUTER):
-    cmd = './shaper.sh start ' + iface_up + ' ' + iface_down + ' ' + str(up) + ' ' + str(down) + ' ' + (netem if netem else '')
+# limit arg for netem
+def get_limit(rtt, up, down, delay=0):
+    if not delay:
+        delay = 0
+    # rtt/delay could be strings. RTT / 2, delay is the delay added on 1 iface, cast to int to avoid float numbers
+    return (int(up / 8 * (int(rtt)/2 + int(delay))), int(down / 8 * (int(rtt)/2 + int(delay))))
+
+def get_limit_str(rtt, up, down, delay=0):
+    limits = get_limit(rtt, up, down, delay)
+    return str(limits[0]) + ' ' + str(limits[1])
+
+def shaper_start(up, down, netem=False, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, ips=s.IP_ROUTER, rtt=s.PROXY_RTT, delay=0):
+    cmd = './shaper.sh start ' + iface_up + ' ' + iface_down + ' ' + get_limit_str(rtt, up, down, delay) + ' ' + str(up) + ' ' + str(down) + ' ' + (netem if netem else '')
     return router_shell(cmd, ips=ips)
 
 def shaper_stop(iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
     return router_shell('./shaper.sh stop ' + iface_up + ' ' + iface_down)
 
-def shaper_enable_netem(netem, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
-    return router_shell('./shaper.sh netem ' + iface_up + ' ' + iface_down + ' ' + netem)
+# limits from get_limit_str
+def shaper_enable_netem(netem, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, limits=False):
+    return router_shell('./shaper.sh netem ' + iface_up + ' ' + iface_down + ' ' + (limits if limits else '1000 1000') + ' ' + netem)
 
-def shaper_enable_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
+def shaper_enable_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, up=s.LIMIT_BW[0], down=s.LIMIT_BW[1], rtt=s.PROXY_RTT):
     if case == 'loss':
-        return shaper_enable_netem(loss_cmd(value1), iface_up=iface_up, iface_down=iface_down)
+        return shaper_enable_netem(loss_cmd(value1), iface_up=iface_up, iface_down=iface_down, limits=get_limit_str(rtt, up, down, 0))
     elif case == 'delay':
-        return shaper_enable_netem(delay_cmd(value1), iface_up=iface_up, iface_down=iface_down)
+        return shaper_enable_netem(delay_cmd(value1), iface_up=iface_up, iface_down=iface_down, limits=get_limit_str(rtt, up, down, value1))
     elif case == 'both':
-        return shaper_enable_netem(loss_cmd(value1) + delay_cmd(value2), iface_up=iface_up, iface_down=iface_down)
+        return shaper_enable_netem(loss_cmd(value1) + delay_cmd(value2), iface_up=iface_up, iface_down=iface_down, limits=get_limit_str(rtt, up, down, value2))
     else:
         my_print_err("shaper_add_netem_var: case unknown - " + str(case))
         return False
 
-def shaper_change_netem(netem, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
-    return router_shell('./shaper.sh netem ' + iface_up + ' ' + iface_down + ' ' + netem)
+def shaper_change_netem(netem, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, limits=False):
+    return shaper_enable_netem(netem, iface_up, iface_down, limits)
 
-def shaper_change_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE):
+def shaper_change_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, up=s.LIMIT_BW[0], down=s.LIMIT_BW[1]), rtt=s.PROXY_RTT):
     if case == 'loss':
-        return shaper_change_netem(loss_cmd(value1), iface_up=iface_up, iface_down=iface_down)
+        return shaper_change_netem(loss_cmd(value1), iface_up=iface_up, iface_down=iface_down, limits=get_limit_str(rtt, up, down, 0))
     elif case == 'delay':
-        return shaper_change_netem(delay_cmd(value1), iface_up=iface_up, iface_down=iface_down)
+        return shaper_change_netem(delay_cmd(value1), iface_up=iface_up, iface_down=iface_down, limits=get_limit_str(rtt, up, down, value1))
     elif case == 'both':
-        return shaper_change_netem(loss_cmd(value1) + delay_cmd(value2), iface_up=iface_up, iface_down=iface_down)
+        return shaper_change_netem(loss_cmd(value1) + delay_cmd(value2), iface_up=iface_up, iface_down=iface_down, limits=get_limit_str(rtt, up, down, value2))
     else:
         my_print_err("shaper_change_netem_var: case unknown - " + str(case))
         return False
