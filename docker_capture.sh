@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# increase limit for number of fd: needed at least for ShadowSocks
+ulimit -n 4096 # default max value
+ulimit -n 51200 # try a bigger one
+
 ## Docker
 # SSH Tunnel: we need to dump traffic
 docker start ssh-tunnel
