@@ -428,7 +428,7 @@ def shaper_enable_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_
 def shaper_change_netem(netem, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, limits=False):
     return shaper_enable_netem(netem, iface_up, iface_down, limits)
 
-def shaper_change_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, up=s.LIMIT_BW[0], down=s.LIMIT_BW[1]), rtt=s.PROXY_RTT):
+def shaper_change_netem_var(case, value1, value2=0, iface_up=s.WAN_IFACE, iface_down=s.LAN_IFACE, up=s.LIMIT_BW[0], down=s.LIMIT_BW[1], rtt=s.PROXY_RTT):
     if case == 'loss':
         return shaper_change_netem(loss_cmd(value1), iface_up=iface_up, iface_down=iface_down, limits=get_limit_str(rtt, up, down, 0))
     elif case == 'delay':
