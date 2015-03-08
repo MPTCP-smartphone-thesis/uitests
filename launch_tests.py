@@ -197,7 +197,7 @@ if not g.LAST_UPTIME:
 
 if s.PURGE_TRACES_SMARTPHONE:
     my_print("Remove previous traces located on the phone")
-    dev.adb_shell("rm -r " + s.ANDROID_TRACE_OUT + "*")
+    dev.adb_shell("rm -rf " + s.ANDROID_TRACE_OUT + "*")
 
 # remove sim if any to launch the first UiTest
 dev.adb_check_reboot_sim()
