@@ -153,10 +153,20 @@ def change_default_route_rmnet():
 ##              DEVICE: MULTIPATH               ##
 ##################################################
 
+def sysctl(key, value=False):
+    if value:
+        arg = '-w ' + key + '=' + str(value)
+        my_print("Sysctl: write: " + key + ' = ' + str(value))
+        return dev.adb_shell_root("sysctl " + arg)
+    else:
+        my_print("Sysctl: read: " + key)
+        out = dev.adb_shell("sysctl " + key, out=True)
+        if not out:
+            return out
+        return out[0][len(key)+3:]
+
 def sysctl_mptcp(key, value):
-    arg = "net.mptcp.mptcp_" + key + "=" + value
-    my_print("Sysctl: " + arg)
-    return dev.adb_shell_root("sysctl -w " + arg)
+    return systcl("net.mptcp.mptcp_" + key, value)
 
 def iproute_set_multipath(iface, status):
     my_print("Multipath: status " + status + " for " + iface)
