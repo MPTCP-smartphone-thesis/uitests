@@ -166,7 +166,7 @@ def sysctl(key, value=False):
         return out[0][len(key)+3:]
 
 def sysctl_mptcp(key, value):
-    return systcl("net.mptcp.mptcp_" + key, value)
+    return sysctl("net.mptcp.mptcp_" + key, value)
 
 def iproute_set_multipath(iface, status):
     my_print("Multipath: status " + status + " for " + iface)
