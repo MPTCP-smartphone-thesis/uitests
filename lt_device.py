@@ -60,6 +60,14 @@ def adb_restart_root():
     time.sleep(15)
     return subprocess.call("adb start-server".split()) != 0
 
+# launch a command to the connected device
+# cmd: command to launch (execpt if it's an uitest)
+# uiautomator: name of the uitest to launch (if any)
+# args: extra args for the uiautomator command
+# out: return the output messages
+# log: write output messages to an opened file descriptor
+# quiet: don't print output to stdout/stderr
+# restart: used to know if there are problems with ADB
 def adb_shell(cmd, uiautomator=False, args=False, out=False, log=False, quiet=False, restart=0):
     if uiautomator:
         full_cmd = "uiautomator runtest " + s.ANDROID_HOME + "/uitests-" + uiautomator + ".jar -c " + uiautomator + ".LaunchSettings"
