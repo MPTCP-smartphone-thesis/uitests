@@ -242,6 +242,39 @@ def multipath_control_ndiffports(action='enable', subflows=s.NDIFFPORTS_DEFAULT_
     rc &= ndiffports_set_subflows(subflows)
     return rc
 
+# allowed: to force allowed congestion control
+def tcp_congestion_control(algo, allowed=False):
+    available = sysctl("net.ipv4.tcp_available_congestion_control")
+    if not available or not algo in available:
+        my_print_err("Congestion control algorithm " + algo + " is not supported: " + str(available))
+        return False
+
+    rc = True
+    if allowed:
+        rc = sysctl("net.ipv4.tcp_allowed_congestion_control", "'" + allowed + "'")
+    else:
+        allowed = sysctl("net.ipv4.tcp_allowed_congestion_control")
+
+    if not rc or not allowed:
+        my_print_err("Not able to get allowed congestion control algorithms")
+        return False
+
+    if not algo in allowed:
+        my_print("Congestion control algorithm " + algo + " is not allowed, adding it to: " + allowed)
+        if not sysctl("net.ipv4.tcp_allowed_congestion_control", "'" + algo + " " + allowed + "'"):
+            my_print_err("Not able to change allowed congestion control algorithms")
+            return False
+
+    # print previous algo
+    sysctl("net.ipv4.tcp_congestion_control")
+    return sysctl("net.ipv4.tcp_congestion_control", algo)
+
+def tcp_congestion_control_cubic():
+    return tcp_congestion_control("cubic", allowed="cubic reno")
+
+def tcp_congestion_control_wvegas():
+    return tcp_congestion_control("wvegas", allowed="wvegas vegas cubic reno")
+
 
 ##################################################
 ##                    ROUTER                    ##
