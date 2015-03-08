@@ -356,6 +356,12 @@ for tcp_mode in tcp_list:
         else:
             net.multipath_control(action="disable")
 
+        # Set congestion control algorithm
+        if s.WITH_TCP_CONGESTION_CONTROL_WVEGAS:
+            net.tcp_congestion_control_wvegas()
+        else:
+            net.tcp_congestion_control(s.TCP_CONGESTION_CONTROL_DEFAULT, allowed=s.TCP_CONGESTION_CONTROL_ALLOWED_DEFAULT)
+
         rmnet_ip = False
         # get rmnet ip
         if (tcp_mode.is_tcp() and name.startswith('rmnet')) \

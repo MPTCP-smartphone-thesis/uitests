@@ -71,6 +71,15 @@ WITH_MPTCP_NDIFFPORTS = False
 # Number of subflows per IP-addresses
 NDIFFPORTS_DEFAULT_NB = 2
 
+# Default list of allowed TCP congestion control algorithms (set to false to not override the default list)
+# Full list: "cubic reno bic westwood highspeed hybla htcp vegas veno scalable lp yeah illinois lia olia wvegas"
+TCP_CONGESTION_CONTROL_ALLOWED_DEFAULT = "cubic reno"
+# Default TCP congestion control algorithms
+TCP_CONGESTION_CONTROL_DEFAULT = "cubic"
+# With weighted Vegas (wvegas) instead of the default one
+WITH_TCP_CONGESTION_CONTROL_WVEGAS = False
+
+
 # If SSH tunnel is installed
 SSH_TUNNEL_INSTALLED = True
 # Using SSH tunnel (proxy socks via SSH)
