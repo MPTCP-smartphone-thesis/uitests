@@ -143,9 +143,9 @@ def func_end(app, net_name, tcp_mode, out_dir, success):
         if tcp_mode is TCP.MPTCP:
             rc &= net.multipath_control()
         elif tcp_mode is TCP.MPTCP_FULLMESH:
-            rc &= net.multipath_control_fullmesh(backup=False)
+            rc &= net.multipath_control_fullmesh(backup=False, def_route_wlan=s.IPROUTE_DEFAULT_ROUTE_WLAN)
         elif tcp_mode is TCP.MPTCP_BACKUP:
-            rc &= net.multipath_control_fullmesh(backup=True)
+            rc &= net.multipath_control_fullmesh(backup=True, def_route_wlan=s.IPROUTE_DEFAULT_ROUTE_WLAN)
         elif tcp_mode is TCP.MPTCP_NDIFFPORTS:
             rc &= net.multipath_control(path_manager="ndiffports")
     elif CHANGE_METHOD == 'ip' and tcp_mode.is_mptcp_not_default():

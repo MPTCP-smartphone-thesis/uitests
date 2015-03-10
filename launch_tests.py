@@ -346,11 +346,11 @@ for tcp_mode in tcp_list:
         if tcp_mode is TCP.MPTCP:
             net.multipath_control()
         elif tcp_mode is TCP.MPTCP_FULLMESH:
-            net.multipath_control_fullmesh(backup=False)
+            net.multipath_control_fullmesh(backup=False, def_route_wlan=s.IPROUTE_DEFAULT_ROUTE_WLAN)
         elif tcp_mode is TCP.MPTCP_FULLMESH_RR:
-            net.multipath_control_fullmesh(backup=False, rr=True)
+            net.multipath_control_fullmesh(backup=False, rr=True, def_route_wlan=s.IPROUTE_DEFAULT_ROUTE_WLAN)
         elif tcp_mode is TCP.MPTCP_BACKUP:
-            net.multipath_control_fullmesh(backup=True)
+            net.multipath_control_fullmesh(backup=True, def_route_wlan=s.IPROUTE_DEFAULT_ROUTE_WLAN)
         elif tcp_mode is TCP.MPTCP_NDIFFPORTS:
             net.multipath_control_ndiffports()
         else:

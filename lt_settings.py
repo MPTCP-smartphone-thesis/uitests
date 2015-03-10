@@ -62,14 +62,16 @@ WITH_MPTCP = False
 WITH_MPTCP_FULLMESH = True
 # MPTCP with FULLMESH and round robin as schedulers
 WITH_MPTCP_FULLMESH_ROUND_ROBIN = False
-# iproute needs to support multipath: https://github.com/MPTCP-smartphone-thesis/android-iproute2
-IPROUTE_WITH_MULTIPATH = False
 # MPTCP with backup mode (for data), iproute with multipath support is needed
 WITH_MPTCP_BACKUP = False
 # MPTCP with 'ndiffports' path manager: X subflows will be created across the same pair of IP-addresses, modifying the source-port
 WITH_MPTCP_NDIFFPORTS = False
 # Number of subflows per IP-addresses
 NDIFFPORTS_DEFAULT_NB = 2
+# iproute needs to support multipath: https://github.com/MPTCP-smartphone-thesis/android-iproute2
+IPROUTE_WITH_MULTIPATH = False
+# Default route via WLan or RMNet?
+IPROUTE_DEFAULT_ROUTE_WLAN = True
 
 # Default list of allowed TCP congestion control algorithms (set to false to not override the default list)
 # Full list: "cubic reno bic westwood highspeed hybla htcp vegas veno scalable lp yeah illinois lia olia wvegas"

@@ -223,13 +223,19 @@ def multipath_control(action='enable', path_mgr='default', rr=False):
     rc &= mptcp_round_robin(rr)
     return rc
 
-def multipath_control_fullmesh(action='enable', backup=False, rr=False):
+def multipath_control_fullmesh(action='enable', backup=False, rr=False, def_route_wlan=True):
     rc = multipath_control(action, path_mgr='fullmesh', rr=rr)
     if s.IPROUTE_WITH_MULTIPATH:
+        # backup / fm
         if backup:
-            rc &= iproute_set_multipath_backup_rmnet()
+            rc &= iproute_set_multipath_backup_rmnet(route=False)
         else:
             rc &= iproute_set_multipath_on()
+        # default route
+        if def_route_wlan:
+            rc &= change_default_route_wlan()
+        else:
+            rc &= change_default_route_rmnet()
     return rc
 
 def ndiffports_set_subflows(subflows):
