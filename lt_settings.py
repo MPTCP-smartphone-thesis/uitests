@@ -83,15 +83,15 @@ WITH_TCP_CONGESTION_CONTROL_WVEGAS = False
 
 
 # If SSH tunnel is installed
-SSH_TUNNEL_INSTALLED = True
+SSH_TUNNEL_INSTALLED = False
 # Using SSH tunnel (proxy socks via SSH)
-WITH_SSH_TUNNEL = True
+WITH_SSH_TUNNEL = False
 # Local port used by Redsocks with SSH Tunnel (see SSHTunnel settings)
 SSHTUNNEL_PORT = 1984
 # If ShadowSocks is installed
 SHADOWSOCKS_INSTALLED = True
 # Using ShadowSocks proxy (cannot use both!)
-WITH_SHADOWSOCKS = False
+WITH_SHADOWSOCKS = True
 # Local port used by Redsocks with ShadowSocks (see ShadowSocks settings)
 SHADOWSOCKS_PORT = 1080
 # Capture on 'any' ifaces (all except lo with 127.0.0.1 filter)
