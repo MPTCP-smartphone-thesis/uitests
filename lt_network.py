@@ -39,8 +39,8 @@ RMNET = 'rmnet0'
 
 # version should be: '4', '3' or '2'
 def change_pref_net(version):
-    my_print("Settings: prefer " + version + "G")
-    arg = "network-status " + version + "G"
+    my_print("Settings: prefer " + str(version) + "G")
+    arg = "network-status " + str(version) + "G"
     return dev.adb_shell(False, uiautomator='preference_network', args=arg)
 
 def avoid_poor_connections(enable):
