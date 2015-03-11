@@ -218,7 +218,13 @@ def mptcp_round_robin(enable=True):
 def multipath_control(action='enable', path_mgr='default', rr=False):
     dev.stop_proxy() ## prevent error when enabling mptcp
     my_print("Multipath Control: " + action)
-    rc = dev.adb_shell(False, uiautomator='multipath_control', args='action ' + action)
+    for i in range(5):
+        rc = dev.adb_shell(False, uiautomator='multipath_control', args='action ' + action)
+        if rc:
+            break
+        else:
+            my_print_err("Error with multipath control, wait 5 sec and retry")
+            time.sleep(5)
     rc &= mptcp_path_manager(path_mgr)
     rc &= mptcp_round_robin(rr)
     return rc
