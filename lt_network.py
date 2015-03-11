@@ -228,7 +228,10 @@ def multipath_control_fullmesh(action='enable', backup=False, rr=False, def_rout
     if s.IPROUTE_WITH_MULTIPATH:
         # backup / fm
         if backup:
-            rc &= iproute_set_multipath_backup_rmnet(route=False)
+            if def_route_wlan:
+                rc &= iproute_set_multipath_backup_rmnet(route=False)
+            else:
+                rc &= iproute_set_multipath_backup_wlan(route=False)
         else:
             rc &= iproute_set_multipath_on()
         # default route
