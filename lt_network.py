@@ -238,6 +238,9 @@ def multipath_control_fullmesh(action='enable', backup=False, rr=False, def_rout
         if def_route_wlan:
             rc &= change_default_route_wlan()
         else:
+            # wait: we just have enabled the interface, we need an address
+            my_print("Wait 5 seconds in order to get an IP address")
+            time.sleep(5)
             rc &= change_default_route_rmnet()
     return rc
 
