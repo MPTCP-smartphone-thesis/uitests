@@ -283,6 +283,36 @@ def adb_get_pid(proc_name, strict=False):
         return output
     return []
 
+# min_size: if one file has less than min_size bytes, ALL files will now have ".err" as new extention.
+def adb_pull_files(android_dir, out_dir_app, min_size=0, is_dir=True):
+    my_print("Pull files to " + out_dir_app)
+    cmd = "adb pull " + android_dir + ("/ " if is_dir else "") + out_dir_app
+    if subprocess.call(cmd.split()) != 0:
+        my_print_err("when pulling traces for " + android_dir)
+    elif min_size:
+        files_fullpath = adb_shell("ls " + android_dir + ("/" if is_dir else ""), out=True, quiet=True)
+        if not files_fullpath:
+            return False
+        files = []
+        # get basename
+        for file in files_fullpath:
+            # unix style, change that if you want to use Windows...
+            files.append(os.path.join(out_dir_app, os.path.basename(file)))
+        # get size
+        has_error = False
+        for file in files:
+            if os.stat(file).st_size < min_size:
+                has_error = True
+                break
+        # add .err
+        if has_error:
+            my_print_err("size lower than " + min_size + " in: " + out_dir_app)
+            for file in files:
+                my_print_err("Rename " + file + " to " + file + ".err")
+                os.rename(file, file + ".err")
+            return False
+    return True
+
 
 ##################################################
 ##                 DEVICE: PROXY                ##
@@ -591,10 +621,7 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
         return False
 
     # Save files: 'traces' external dir already contains the app name
-    my_print("Pull files to " + out_dir_app)
-    cmd = "adb pull " + android_pcap_dir + "/ " + out_dir_app
-    if subprocess.call(cmd.split()) != 0:
-        my_print_err("when pulling traces for " + app)
+    adb_pull_files(android_pcap_dir, out_dir_app, min_size=1000)
     # Files will be saved in ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET/APP/MPTCP_APP_NET_DATE_HOUR.pcap + MPTCP_APP_NET_DATE_HOUR_lo.pcap
 
 def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False, rmnet_ip=False):
@@ -632,7 +659,7 @@ def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_
         if not os.path.isdir(app_dir): # we can have pid files
             continue
         for trace in os.listdir(app_dir):
-            if (trace.endswith('.pcap')):
+            if trace.endswith('.pcap') or trace.endswith('.pcap.err'):
                 trace_path = os.path.join(app_dir, trace)
                 if os.path.exists(trace_path + '.gz'):
                     my_print_err("This file is already compressed! " + trace_path)
