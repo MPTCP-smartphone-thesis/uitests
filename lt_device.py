@@ -306,7 +306,7 @@ def adb_pull_files(android_dir, out_dir_app, min_size=0, is_dir=True):
                 break
         # add .err
         if has_error:
-            my_print_err("size lower than " + min_size + " in: " + out_dir_app)
+            my_print_err("size lower than " + str(min_size) + " in: " + out_dir_app)
             for file in files:
                 my_print_err("Rename " + file + " to " + file + ".err")
                 os.rename(file, file + ".err")
