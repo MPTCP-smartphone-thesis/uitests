@@ -570,7 +570,7 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
     # Start full capture on the proxy and on the device
     if not manage_capture(True, arg_pcap, server_pcap_dir, android_pcap_dir, net_name, filters=filters):
         my_print_err("Error proxy: Skip test of " + app.upper())
-        return
+        return False
 
     get_info_netstat(out_dir_app, filename='netstat_before.txt')
     get_info_mptcp(out_dir_app, filename='mptcp_before.txt')
@@ -621,7 +621,7 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
         return False
 
     # Save files: 'traces' external dir already contains the app name
-    adb_pull_files(android_pcap_dir, out_dir_app, min_size=1000)
+    return adb_pull_files(android_pcap_dir, out_dir_app, min_size=1000)
     # Files will be saved in ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET/APP/MPTCP_APP_NET_DATE_HOUR.pcap + MPTCP_APP_NET_DATE_HOUR_lo.pcap
 
 def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False, rmnet_ip=False):
@@ -647,9 +647,13 @@ def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_
 
     for uitest in uitests_dir:
         app = uitest[8:]
-        time_before = time.time()
-        launch(app, net_name, tcp_mode, out_dir, func_init, func_start, func_end, func_exit, uitests_args, filters)
-        my_print('UITest ' + str(g.TEST_NO) + '/' + str(g.NB_TESTS) + ' for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
+        # launch one + retry if needed
+        for i in range(s.LAUNCH_RETRY_MAX + 1):
+            time_before = time.time()
+            success = launch(app, net_name, tcp_mode, out_dir, func_init, func_start, func_end, func_exit, uitests_args, filters)
+            my_print('UITest ' + str(g.TEST_NO) + '/' + str(g.NB_TESTS) + ' (' + str(i) + ') for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
+            if success:
+                break
         g.TEST_NO += 1
 
     # Compress files

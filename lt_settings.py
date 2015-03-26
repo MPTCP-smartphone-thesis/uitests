@@ -106,6 +106,8 @@ PROXY_RTT = 7
 
 # Timeout for each test which is launched: 3
 TIMEOUT = 60*3
+# Number of time a test will be relaunched if it fails (0 means no retry)
+LAUNCH_RETRY_MAX = 0
 # External host to ping in order to check that everything is ok
 EXT_HOST = "google.com"
 # Force the use of colours in messages sent to stdout/stderr
