@@ -214,7 +214,7 @@ def adb_check_reboot_sim():
         time.sleep(30)
     return rebooted or up or not g.LAST_UPTIME
 
-def adb_reboot(wait=True):
+def adb_reboot(wait=True, tcp_mode=tcp_mode, net_name=net_name):
     if not s.ADB_REBOOT:
         return True
 
@@ -256,20 +256,25 @@ def adb_reboot(wait=True):
         # check sim card warning
         adb_check_reboot_sim()
         timeout = False
+        success = False
         for i in range(5): # limit waiting time
             if i > 0 and not timeout:
                 time.sleep(30*60)
             try:
                 timeout = False
                 if subprocess.call("adb wait-for-device".split(), timeout=1800) == 0:
-                    return True
+                    success = True
+                    break
             except:
                 timeout = False
                 my_print_err("Device not found... wait and retry " + str(i))
                 if not adb_restart(): # restart: avoid permission problems
                     adb_restart_root() # try root if problem
-        my_print_err("Device not found... EXIT")
-        sys.exit(1)
+        if not success:
+            my_print_err("Device not found... EXIT")
+            sys.exit(1)
+        elif tcp_mode and net_name:
+            set_multipath_control_startup(tcp_mode, net_name)
     return True
 
 # strict: the process name == proc_name
@@ -654,6 +659,9 @@ def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_
             my_print('UITest ' + str(g.TEST_NO) + '/' + str(g.NB_TESTS) + ' (' + str(i) + ') for ' + app + ' took ' + str(round(time.time() - time_before)) + ' seconds')
             if success:
                 break
+            elif s.LAUNCH_RETRY_MAX > 0 and i % 2 == 1 and i < s.LAUNCH_RETRY_MAX:
+                my_print_err("Not able to get good results after " + str(i+1) + "tries, reboot, wait and retry")
+                adb_reboot(wait=True, tcp_mode=tcp_mode, net_name=net_name)
         g.TEST_NO += 1
 
     # Compress files
