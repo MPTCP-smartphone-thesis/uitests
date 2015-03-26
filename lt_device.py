@@ -624,7 +624,7 @@ def launch(app, net_name, tcp_mode, out_dir, func_init=False, func_start=False, 
     return adb_pull_files(android_pcap_dir, out_dir_app, min_size=1000)
     # Files will be saved in ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET/APP/MPTCP_APP_NET_DATE_HOUR.pcap + MPTCP_APP_NET_DATE_HOUR_lo.pcap
 
-def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False, rmnet_ip=False):
+def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_start=False, func_end=False, func_exit=False, uitests_args=False):
     # out_dir: ~/Thesis/TCPDump/DATE-HOUR-SHA1/MPTCP/NET
     out_dir = os.path.join(out_base, str(tcp_mode), net_name)
     if (not os.path.isdir(out_dir)):
@@ -643,7 +643,7 @@ def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_
     get_info_wifi(out_dir)
     get_info_rmnet(out_dir)
     get_info_sysctl_tcp(out_dir)
-    filters = get_proxy_filters(rmnet_ip, out_dir)
+    filters = get_proxy_filters(g.RMNET_IP, out_dir)
 
     for uitest in uitests_dir:
         app = uitest[8:]

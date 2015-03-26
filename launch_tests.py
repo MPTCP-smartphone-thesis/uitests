@@ -355,6 +355,7 @@ for tcp_mode in tcp_list:
             net.multipath_control_ndiffports()
         else:
             net.multipath_control(action="disable")
+        net.set_rmnet_ip(net_mode.name)
 
         # Set congestion control algorithm
         if s.WITH_TCP_CONGESTION_CONTROL_WVEGAS:
@@ -362,18 +363,8 @@ for tcp_mode in tcp_list:
         else:
             net.tcp_congestion_control(s.TCP_CONGESTION_CONTROL_DEFAULT, allowed=s.TCP_CONGESTION_CONTROL_ALLOWED_DEFAULT)
 
-        rmnet_ip = False
-        # get rmnet ip
-        if (tcp_mode.is_tcp() and name.startswith('rmnet')) \
-        or (tcp_mode.is_mptcp() and name != 'wlan'):
-            for i in range(10): # try during 10 seconds max
-                rmnet_ip = net.get_ipv4(net.RMNET)
-                if rmnet_ip:
-                    break
-                time.sleep(1)
-
         # Launch test (with net_mode.name to have the full name)
-        dev.launch_all(uitests_dir, net_mode.name, tcp_mode, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS, rmnet_ip)
+        dev.launch_all(uitests_dir, net_mode.name, tcp_mode, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS)
 
         if s.LIMIT_BW:
             if s.LIMIT_BW_WITH_SHAPER:

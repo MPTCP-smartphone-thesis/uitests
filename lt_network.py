@@ -295,6 +295,24 @@ def tcp_congestion_control_wvegas():
 
 
 ##################################################
+##           DEVICE: STARTUP SETTINGS           ##
+##################################################
+
+def set_rmnet_ip(net_name):
+    g.RMNET_IP = False
+    # get rmnet ip
+    if (tcp_mode.is_tcp() and net_name.startswith('rmnet')) \
+    or (tcp_mode.is_mptcp() and net_name.startswith('wlan')):
+        for i in range(10): # try during 10 seconds max
+            g.RMNET_IP = net.get_ipv4(net.RMNET)
+            if g.RMNET_IP:
+                return True
+            time.sleep(1)
+        return False
+    return True
+
+
+##################################################
 ##                    ROUTER                    ##
 ##################################################
 

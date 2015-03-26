@@ -19,8 +19,9 @@
 #  MA 02110-1301, USA.
 
 def init():
-    global LAST_UPTIME, TEST_NO, NB_TESTS, SAVE_DIR
+    global LAST_UPTIME, TEST_NO, NB_TESTS, SAVE_DIR, RMNET_IP
     LAST_UPTIME = ()
     TEST_NO = 0
     NB_TESTS = 0
     SAVE_DIR = 'TCPDump/test' # join(basedir(OUTPUT_DIR), time + git_rev) # unix mode!
+    RMNET_IP = False
