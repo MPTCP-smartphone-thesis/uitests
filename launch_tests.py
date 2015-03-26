@@ -343,9 +343,18 @@ for tcp_mode in tcp_list:
             net.enable_netem(netem)
 
         net.set_multipath_control_startup(tcp_mode, net_mode.name)
+        do_tests = False
+        for i in range(3):
+            if net.set_multipath_control_startup(tcp_mode, net_mode.name):
+                do_tests = True
+            else:
+                dev.adb_reboot(wait=True, tcp_mode=tcp_mode, net_name=net_mode.name)
 
         # Launch test (with net_mode.name to have the full name)
-        dev.launch_all(uitests_dir, net_mode.name, tcp_mode, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS)
+        if do_tests:
+            dev.launch_all(uitests_dir, net_mode.name, tcp_mode, output_dir, s.LAUNCH_FUNC_INIT, s.LAUNCH_FUNC_START, s.LAUNCH_FUNC_END, s.LAUNCH_FUNC_EXIT, s.LAUNCH_UITESTS_ARGS)
+        else:
+            my_print_err("Problem with multipath control or RMNET, skip: " + name + " for " + str(tcp_mode))
 
         if s.LIMIT_BW:
             if s.LIMIT_BW_WITH_SHAPER:
