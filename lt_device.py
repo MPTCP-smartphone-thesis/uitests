@@ -214,7 +214,7 @@ def adb_check_reboot_sim():
         time.sleep(30)
     return rebooted or up or not g.LAST_UPTIME
 
-def adb_reboot(wait=True, tcp_mode=tcp_mode, net_name=net_name):
+def adb_reboot(wait=True, tcp_mode=None, net_name=None):
     if not s.ADB_REBOOT:
         return True
 
@@ -273,8 +273,10 @@ def adb_reboot(wait=True, tcp_mode=tcp_mode, net_name=net_name):
         if not success:
             my_print_err("Device not found... EXIT")
             sys.exit(1)
-        elif tcp_mode and net_name:
-            set_multipath_control_startup(tcp_mode, net_name)
+        elif tcp_mode:
+            return net.set_multipath_control_startup(tcp_mode, net_name)
+        elif net_name:
+            return net.set_rmnet_ip(net_name)
     return True
 
 # strict: the process name == proc_name
