@@ -274,6 +274,7 @@ def adb_reboot(wait=True, tcp_mode=None, net_name=None):
             my_print_err("Device not found... EXIT")
             sys.exit(1)
         elif tcp_mode:
+            import lt_network as net ## TODO: find a better way
             return net.set_multipath_control_startup(tcp_mode, net_name)
     return True
 
