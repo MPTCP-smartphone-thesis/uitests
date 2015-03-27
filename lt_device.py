@@ -274,7 +274,7 @@ def adb_reboot(wait=True, tcp_mode=None, net_name=None):
             my_print_err("Device not found... EXIT")
             sys.exit(1)
         elif tcp_mode:
-            return net.set_multipath_control_startup(tcp_mode, net_name)
+            return set_multipath_control_startup(tcp_mode, net_name)
     return True
 
 # strict: the process name == proc_name
@@ -679,3 +679,34 @@ def launch_all(uitests_dir, net_name, tcp_mode, out_base, func_init=False, func_
                 cmd = 'gzip -9 -f ' + trace_path # or xz/7z format?
                 if subprocess.call(cmd.split()) != 0:
                     my_print_err(" when pulling traces for " + app)
+
+
+##################################################
+##           DEVICE: STARTUP SETTINGS           ##
+##################################################
+
+def set_multipath_control_startup(tcp_mode, net_name=None, def_route_wlan=s.IPROUTE_DEFAULT_ROUTE_WLAN, with_wvegas=s.WITH_TCP_CONGESTION_CONTROL_WVEGAS):
+    # On reboot, set mutipath_control
+    if tcp_mode is TCP.MPTCP:
+        net.multipath_control()
+    elif tcp_mode is TCP.MPTCP_FULLMESH:
+        net.multipath_control_fullmesh(backup=False, def_route_wlan=def_route_wlan)
+    elif tcp_mode is TCP.MPTCP_FULLMESH_RR:
+        net.multipath_control_fullmesh(backup=False, rr=True, def_route_wlan=def_route_wlan)
+    elif tcp_mode is TCP.MPTCP_BACKUP:
+        net.multipath_control_fullmesh(backup=True, def_route_wlan=def_route_wlan)
+    elif tcp_mode is TCP.MPTCP_NDIFFPORTS:
+        net.multipath_control_ndiffports()
+    else:
+        net.multipath_control(action="disable")
+
+    # Set congestion control algorithm
+    if with_wvegas:
+        net.tcp_congestion_control_wvegas()
+    else:
+        net.tcp_congestion_control(s.TCP_CONGESTION_CONTROL_DEFAULT, allowed=s.TCP_CONGESTION_CONTROL_ALLOWED_DEFAULT)
+
+    if net_name and not net.set_rmnet_ip(tcp_mode, net_name):
+        my_print_err("Not able to get RMNet IP")
+        return False
+    return True

@@ -100,6 +100,19 @@ def get_all_ipv4():
             result[iface] = addr
     return result
 
+def set_rmnet_ip(tcp_mode, net_name):
+    g.RMNET_IP = False
+    # get rmnet ip
+    if (tcp_mode.is_tcp() and net_name.startswith('rmnet')) \
+    or (tcp_mode.is_mptcp() and net_name.startswith('wlan')):
+        for i in range(10): # try during 10 seconds max
+            g.RMNET_IP = get_ipv4(RMNET)
+            if g.RMNET_IP:
+                return True
+            time.sleep(1)
+        return False
+    return True
+
 ROUTE_CMD = 'ip route show scope link proto boot table main'
 def get_route(iface, route=False):
     if not route:
@@ -294,50 +307,6 @@ def tcp_congestion_control_cubic():
 
 def tcp_congestion_control_wvegas():
     return tcp_congestion_control("wvegas", allowed="wvegas vegas cubic reno")
-
-
-##################################################
-##           DEVICE: STARTUP SETTINGS           ##
-##################################################
-
-def set_rmnet_ip(tcp_mode, net_name):
-    g.RMNET_IP = False
-    # get rmnet ip
-    if (tcp_mode.is_tcp() and net_name.startswith('rmnet')) \
-    or (tcp_mode.is_mptcp() and net_name.startswith('wlan')):
-        for i in range(10): # try during 10 seconds max
-            g.RMNET_IP = get_ipv4(RMNET)
-            if g.RMNET_IP:
-                return True
-            time.sleep(1)
-        return False
-    return True
-
-def set_multipath_control_startup(tcp_mode, net_name=None, def_route_wlan=s.IPROUTE_DEFAULT_ROUTE_WLAN, with_wvegas=s.WITH_TCP_CONGESTION_CONTROL_WVEGAS):
-    # On reboot, set mutipath_control
-    if tcp_mode is TCP.MPTCP:
-        multipath_control()
-    elif tcp_mode is TCP.MPTCP_FULLMESH:
-        multipath_control_fullmesh(backup=False, def_route_wlan=def_route_wlan)
-    elif tcp_mode is TCP.MPTCP_FULLMESH_RR:
-        multipath_control_fullmesh(backup=False, rr=True, def_route_wlan=def_route_wlan)
-    elif tcp_mode is TCP.MPTCP_BACKUP:
-        multipath_control_fullmesh(backup=True, def_route_wlan=def_route_wlan)
-    elif tcp_mode is TCP.MPTCP_NDIFFPORTS:
-        multipath_control_ndiffports()
-    else:
-        multipath_control(action="disable")
-
-    # Set congestion control algorithm
-    if with_wvegas:
-        tcp_congestion_control_wvegas()
-    else:
-        tcp_congestion_control(s.TCP_CONGESTION_CONTROL_DEFAULT, allowed=s.TCP_CONGESTION_CONTROL_ALLOWED_DEFAULT)
-
-    if net_name and not set_rmnet_ip(tcp_mode, net_name):
-        my_print_err("Not able to get RMNet IP")
-        return False
-    return True
 
 
 ##################################################
