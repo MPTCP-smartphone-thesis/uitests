@@ -344,7 +344,7 @@ for tcp_mode in tcp_list:
 
         do_tests = False
         for i in range(3):
-            if dev.set_multipath_control_startup(tcp_mode, net_mode.name):
+            if net.set_multipath_control_startup(tcp_mode, net_mode.name):
                 do_tests = True
                 break
             elif i < 2:
