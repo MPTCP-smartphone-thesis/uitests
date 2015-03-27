@@ -342,12 +342,12 @@ for tcp_mode in tcp_list:
         elif netem:
             net.enable_netem(netem)
 
-        net.set_multipath_control_startup(tcp_mode, net_mode.name)
         do_tests = False
         for i in range(3):
             if net.set_multipath_control_startup(tcp_mode, net_mode.name):
                 do_tests = True
-            else:
+                break
+            elif i < 2:
                 dev.adb_reboot(wait=True, tcp_mode=tcp_mode, net_name=net_mode.name)
 
         # Launch test (with net_mode.name to have the full name)
