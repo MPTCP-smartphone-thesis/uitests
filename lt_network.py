@@ -306,7 +306,7 @@ def set_rmnet_ip(net_name):
     if (tcp_mode.is_tcp() and net_name.startswith('rmnet')) \
     or (tcp_mode.is_mptcp() and net_name.startswith('wlan')):
         for i in range(10): # try during 10 seconds max
-            g.RMNET_IP = net.get_ipv4(net.RMNET)
+            g.RMNET_IP = get_ipv4(RMNET)
             if g.RMNET_IP:
                 return True
             time.sleep(1)
@@ -316,23 +316,23 @@ def set_rmnet_ip(net_name):
 def set_multipath_control_startup(tcp_mode, net_name=None, def_route_wlan=s.IPROUTE_DEFAULT_ROUTE_WLAN, with_wvegas=s.WITH_TCP_CONGESTION_CONTROL_WVEGAS):
     # On reboot, set mutipath_control
     if tcp_mode is TCP.MPTCP:
-        net.multipath_control()
+        multipath_control()
     elif tcp_mode is TCP.MPTCP_FULLMESH:
-        net.multipath_control_fullmesh(backup=False, def_route_wlan=def_route_wlan)
+        multipath_control_fullmesh(backup=False, def_route_wlan=def_route_wlan)
     elif tcp_mode is TCP.MPTCP_FULLMESH_RR:
-        net.multipath_control_fullmesh(backup=False, rr=True, def_route_wlan=def_route_wlan)
+        multipath_control_fullmesh(backup=False, rr=True, def_route_wlan=def_route_wlan)
     elif tcp_mode is TCP.MPTCP_BACKUP:
-        net.multipath_control_fullmesh(backup=True, def_route_wlan=def_route_wlan)
+        multipath_control_fullmesh(backup=True, def_route_wlan=def_route_wlan)
     elif tcp_mode is TCP.MPTCP_NDIFFPORTS:
-        net.multipath_control_ndiffports()
+        multipath_control_ndiffports()
     else:
-        net.multipath_control(action="disable")
+        multipath_control(action="disable")
 
     # Set congestion control algorithm
     if with_wvegas:
-        net.tcp_congestion_control_wvegas()
+        tcp_congestion_control_wvegas()
     else:
-        net.tcp_congestion_control(s.TCP_CONGESTION_CONTROL_DEFAULT, allowed=s.TCP_CONGESTION_CONTROL_ALLOWED_DEFAULT)
+        tcp_congestion_control(s.TCP_CONGESTION_CONTROL_DEFAULT, allowed=s.TCP_CONGESTION_CONTROL_ALLOWED_DEFAULT)
 
     if net_name and not set_rmnet_ip(net_name):
         my_print_err("Not able to get RMNet IP")
