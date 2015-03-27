@@ -275,8 +275,6 @@ def adb_reboot(wait=True, tcp_mode=None, net_name=None):
             sys.exit(1)
         elif tcp_mode:
             return net.set_multipath_control_startup(tcp_mode, net_name)
-        elif net_name:
-            return net.set_rmnet_ip(net_name)
     return True
 
 # strict: the process name == proc_name

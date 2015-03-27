@@ -300,7 +300,7 @@ def tcp_congestion_control_wvegas():
 ##           DEVICE: STARTUP SETTINGS           ##
 ##################################################
 
-def set_rmnet_ip(net_name):
+def set_rmnet_ip(tcp_mode, net_name):
     g.RMNET_IP = False
     # get rmnet ip
     if (tcp_mode.is_tcp() and net_name.startswith('rmnet')) \
@@ -334,7 +334,7 @@ def set_multipath_control_startup(tcp_mode, net_name=None, def_route_wlan=s.IPRO
     else:
         tcp_congestion_control(s.TCP_CONGESTION_CONTROL_DEFAULT, allowed=s.TCP_CONGESTION_CONTROL_ALLOWED_DEFAULT)
 
-    if net_name and not set_rmnet_ip(net_name):
+    if net_name and not set_rmnet_ip(tcp_mode, net_name):
         my_print_err("Not able to get RMNet IP")
         return False
     return True
