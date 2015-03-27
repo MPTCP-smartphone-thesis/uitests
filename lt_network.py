@@ -22,8 +22,10 @@ import subprocess
 import time
 
 import lt_settings as s
+import lt_globals as g
 import lt_device as dev
 
+from lt_tcp import TCP
 from lt_utils import * # my_print
 
 ## Net: devices
