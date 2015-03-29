@@ -264,8 +264,8 @@ public class Utils {
 		return openApp(t, appText, packageName, true);
 	}
 
-	public static double getMultTime(UiAutomatorTestCase t) {
-		String multTime = t.getParams().getString("mult-time");
+	public static double getDoubleFromParam(UiAutomatorTestCase t, String key) {
+		String multTime = t.getParams().getString(key);
 		if (multTime == null)
 			return 1.;
 		try {
@@ -275,6 +275,9 @@ public class Utils {
 		}
 	}
 
+	public static double getMultTime(UiAutomatorTestCase t) {
+		return getDoubleFromParam(t, "mult-time");
+	}
 
 	/////////////////////////////////////////
 	//              UiObject               //
