@@ -404,8 +404,8 @@ if s.BACKUP_TRACES:
             if subprocess.call(cmd) != 0:
                 my_print_err(" when using start_analyse.sh with " + cmd[2])
             else:
-                my_print("Wait 5 minutes before launching compression")
-                time.sleep(300) # we need time to duplicate files for the analyse
+                my_print("Wait " + str(s.COMPRESS_SLEEP / 60) + " minutes before launching compression")
+                time.sleep(s.COMPRESS_SLEEP) # we need time to duplicate files for the analyse
 
         my_print("Launch distant compression")
         dev.manage_capture_server('gzip')

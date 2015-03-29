@@ -39,6 +39,8 @@ BACKUP_TRACES = True
 START_ANALYSE = True
 # Capture traces on the proxy (by using *_full_pcap_distant.sh scripts)
 CAPTURE_ON_PROXY = True
+# Sleep 5 minutes before launching compression on the server
+COMPRESS_SLEEP = 5*60
 
 # If we can control WiFi router: don't forget to check ssh connexion is OK
 CTRL_WIFI = True
