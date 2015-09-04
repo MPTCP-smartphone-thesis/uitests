@@ -202,44 +202,45 @@ if s.PURGE_TRACES_SMARTPHONE:
 # remove sim if any to launch the first UiTest
 dev.adb_check_reboot_sim()
 
-for i in range(5):
-    if s.WITH_SHADOWSOCKS:
-        my_print("Using ShadowSocks:")
-        if s.SSH_TUNNEL_INSTALLED:
-            my_print("stop + kill SSHTunnel")
-            # Stop + kill ssh_tunnel
-            dev.adb_shell(False, uiautomator='ssh_tunnel', args='action stopnotautoconnect')
-            dev.adb_shell_root("am force-stop org.sshtunnel")
-        my_print("start + autoconnect ShadowSocks")
-        # Start shadown socks with autoconnect (in case of random reboot)
-        if not dev.adb_shell(False, uiautomator='shadow_socks', args='action startautoconnect'):
-            my_print_err('Not able to start shadowsocks...')
-            time.sleep(5)
+def connect_to_proxy():
+    for i in range(5):
+        if s.WITH_SHADOWSOCKS:
+            my_print("Using ShadowSocks:")
+            if s.SSH_TUNNEL_INSTALLED:
+                my_print("stop + kill SSHTunnel")
+                # Stop + kill ssh_tunnel
+                dev.adb_shell(False, uiautomator='ssh_tunnel', args='action stopnotautoconnect')
+                dev.adb_shell_root("am force-stop org.sshtunnel")
+            my_print("start + autoconnect ShadowSocks")
+            # Start shadown socks with autoconnect (in case of random reboot)
+            if not dev.adb_shell(False, uiautomator='shadow_socks', args='action startautoconnect'):
+                my_print_err('Not able to start shadowsocks...')
+                time.sleep(5)
+            else:
+                break
+        elif s.WITH_SSH_TUNNEL:
+            if s.SHADOWSOCKS_INSTALLED:
+                my_print("Using SSHTunnel: stop + kill ShadowSocks")
+                # Stop + kill ShadowSocks
+                dev.adb_shell(False, uiautomator='shadow_socks', args='action stopnotautoconnect')
+                dev.adb_shell_root("am force-stop com.github.shadowsocks")
+            my_print("start + autoconnect sshtunnel")
+            # Start shadown socks with autoconnect (in case of random reboot)
+            if not dev.adb_shell(False, uiautomator='ssh_tunnel', args='action startautoconnect'):
+                my_print_err('Not able to start sshtunnel...')
+                time.sleep(5)
+            else:
+                break
         else:
             break
-    elif s.WITH_SSH_TUNNEL:
-        if s.SHADOWSOCKS_INSTALLED:
-            my_print("Using SSHTunnel: stop + kill ShadowSocks")
-            # Stop + kill ShadowSocks
-            dev.adb_shell(False, uiautomator='shadow_socks', args='action stopnotautoconnect')
-            dev.adb_shell_root("am force-stop com.github.shadowsocks")
-        my_print("start + autoconnect sshtunnel")
-        # Start shadown socks with autoconnect (in case of random reboot)
-        if not dev.adb_shell(False, uiautomator='ssh_tunnel', args='action startautoconnect'):
-            my_print_err('Not able to start sshtunnel...')
-            time.sleep(5)
-        else:
-            break
-    else:
-        break
 
-    if i == 2:
-        my_print_err('Not able to start proxy client: reboot')
-        dev.adb_reboot()
+        if i == 2:
+            my_print_err('Not able to start proxy client: reboot')
+            dev.adb_reboot()
 
-    elif i == 4:
-        my_print_err('Not able to start proxy client: exit')
-        sys.exit(1)
+        elif i == 4:
+            my_print_err('Not able to start proxy client: exit')
+            sys.exit(1)
 
 
 # Should start with wlan/bothX/rmnetX
@@ -286,6 +287,9 @@ for tcp_mode in tcp_list:
         if not dev.adb_reboot():
             my_print_err('Error when rebooting, skip this test')
             continue
+
+        # Connect to proxy after having rebooted, prevent strange behavior from ShadowSocks
+        connect_to_proxy()
 
         # Check if we need to simulate errors
         netem = False
@@ -349,6 +353,8 @@ for tcp_mode in tcp_list:
                 break
             elif i < 2:
                 dev.adb_reboot(wait=True, tcp_mode=tcp_mode, net_name=net_mode.name)
+                # Connect to proxy after having rebooted, prevent strange behavior from ShadowSocks
+                connect_to_proxy()
 
         # Launch test (with net_mode.name to have the full name)
         if do_tests:
