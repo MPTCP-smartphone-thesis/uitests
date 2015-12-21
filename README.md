@@ -1,7 +1,7 @@
 uitests
 =======
 
-Regroup all uitests.
+Regroup all uitests. This code is part of the Master Thesis [Multipath TCP with Real Smartphone Applications ](http://dial.uclouvain.be/memoire/ucl/object/thesis:366) by [Matthieu Baerts](https://github.com/matttbe) and [Quentin De Coninck](https://github.com/qdeconinck).
 
 TODO before launching tests:
 ============================
